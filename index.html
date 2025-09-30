@@ -25,7 +25,7 @@ max-height: 932px;
 background: #000;
 position: relative;
 overflow: hidden;
-border-radius: 24px;
+/* #app: Keep squared off (no border-radius) */
 border: 2px solid rgba(255,255,255,0.15);
 box-shadow: 0 0 25px rgba(0,0,0,0.8);
 }
@@ -47,91 +47,65 @@ box-shadow: 0 0 25px rgba(0,0,0,0.8);
 
 .hidden { display: none !important; }
 
-/* --- PWA Prompt Style (Minimized) --- */
-#pwa-prompt {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 380px;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(15px);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    z-index: 10;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-#pwa-prompt-close {
-    font-size: 18px;
-    cursor: pointer;
-    opacity: 0.7;
-    margin-left: 15px;
-    transition: opacity 0.2s;
-}
-#pwa-prompt-close:hover {
-    opacity: 1;
-}
-
-/* Login/Register card - FROSTED BLACK */
+/* Login/Register card - INCREASED TRANSPARENCY */
 .login-card {
 position: absolute; 
 top: 50%; 
 left: 50%; 
 transform: translate(-50%, -50%);
-background: rgba(0, 0, 0, 0.45); /* Frosted Black Background */
+background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
 backdrop-filter: blur(25px); /* Frosted Blur Effect */
-border-radius: 16px;
+border-radius: 16px; 
 padding: 25px 20px;
 width: 85%; max-width: 320px;
 text-align: center;
-border: 1px solid rgba(255, 255, 255, 0.35);
+border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
 box-shadow: 0 8px 22px rgba(0,0,0,0.6);
 z-index: 1;
+transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
-/* Re-applying logo styles for when it's inside the card */
 .login-card img { max-width: 70%; margin-bottom: 16px; }
+
+/* Green glow on hover for login card */
+.login-card:hover {
+    box-shadow: 0 0 15px 5px rgba(120, 255, 80, 0.5), 0 8px 22px rgba(0,0,0,0.6);
+    border-color: rgba(120, 255, 80, 0.7); 
+}
 
 .login-card input,
 .login-card button { width: 100%; box-sizing: border-box; }
 .login-card input {
 margin-bottom: 14px; padding: 14px;
-border-radius: 12px; font-size: 16px;
-background: rgba(255, 255, 255, 0.15);
-border: 1px solid rgba(255, 255, 255, 0.35);
+border-radius: 12px; 
+font-size: 16px;
+background: rgba(255, 255, 255, 0.25); /* Slightly darker for input fields */
+border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
 color: white; text-align: center;
 }
 button {
-padding: 14px; border-radius: 12px;
+padding: 14px; 
+border-radius: 12px; 
 font-size: 16px; font-weight: 600;
 margin-bottom: 12px;
-background: rgba(255,255,255,0.12);
-border: 1px solid rgba(255,255,255,0.35);
+background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
+border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
 color: white; cursor: pointer;
 transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
 }
-/* Apply Frosted Black Hover Look to all buttons */
+/* Apply Frosted Light Hover Look to all buttons, with green glow */
 button:hover { 
-  border-color: rgba(255, 255, 255, 0.15); 
-  background: rgba(0, 0, 0, 0.55); 
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-color: rgba(120, 255, 80, 0.7); /* Stronger green border on hover */
+  background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on hover */
+  box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); /* Green glow */
   transform: translateY(-1px);
 }
 
 
-/* Welcome */
+/* Welcome - BIGGER HEADER */
 .welcome-header { 
-font-size: 22px; 
+font-size: 28px; 
 font-weight: 700; 
-margin: 0 0 22px 0; 
+margin: 0 0 28px 0; 
 text-align: center; 
 color: #ffffff;
 }
@@ -150,10 +124,10 @@ padding: 20px;
 box-sizing: border-box;
 }
 
-/* Menu buttons — frosted black style */
+/* Menu buttons — lighter frosted style with green glow */
 .frosted-rect {
 backdrop-filter: blur(20px);
-border-radius: 16px;
+border-radius: 16px; 
 padding: 18px;
 color: white;
 width: 100%;
@@ -162,9 +136,9 @@ font-size: 18px; font-weight:600;
 margin: 12px auto;
 cursor: pointer;
 display: flex; align-items: center; justify-content: center; gap: 10px;
-background: rgba(0, 0, 0, 0.45); 
+background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
 box-shadow: 0 6px 14px rgba(0,0,0,0.45);
-border: 2px solid rgba(255,255,255,0.15);
+border: 2px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
 transition: border-color 0.25s, transform 0.15s, background 0.25s, box-shadow 0.25s;
 }
 .frosted-rect i {
@@ -172,8 +146,13 @@ font-size: 20px;
 transition: transform 0.2s ease;
 color: #FFFFFF;
 }
-/* Hover animations */
-.frosted-rect:hover { animation: pulse 0.6s ease; }
+/* Hover animations with green glow */
+.frosted-rect:hover { 
+    animation: pulse 0.6s ease; 
+    border-color: rgba(120, 255, 80, 0.7); 
+    background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on hover */
+    box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); 
+}
 .frosted-rect:hover i { animation: bounce 0.4s ease; }
 
 @keyframes pulse {
@@ -188,11 +167,11 @@ color: #FFFFFF;
 100% { transform: scale(1); }
 }
 
-/* Icons hover/active effects - FROSTED BLACK LOOK */
+/* Icons hover/active effects - LIGHT FROSTED LOOK */
 .frosted-rect:hover, .frosted-rect.active {
-border-color: rgba(255, 255, 255, 0.15); 
-background: rgba(0, 0, 0, 0.55);
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+border-color: rgba(120, 255, 80, 0.7); 
+background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on active */
+box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); 
 }
 
 /* Page view */
@@ -205,7 +184,7 @@ padding:20px;
 text-align:center;
 }
 
-/* Back button styled */
+/* Back button styled with green glow */
 .back-btn {
 position: absolute;
 top: 20px; left: 20px;
@@ -213,37 +192,39 @@ cursor: pointer;
 font-size: 16px;
 font-weight: 600;
 color: white;
-background: rgba(255, 255, 255, 0.12);
-border: 1px solid rgba(255, 255, 255, 0.35);
-border-radius: 12px;
+background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
+border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border */
+border-radius: 12px; 
 padding: 8px 14px;
 backdrop-filter: blur(15px);
 transition: border-color 0.25s, transform 0.15s, background 0.25s, box-shadow 0.25s;
 }
 .back-btn:hover {
-border-color: rgba(255, 255, 255, 0.15); 
-background: rgba(0, 0, 0, 0.55);
+border-color: rgba(120, 255, 80, 0.7); 
+background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on hover */
 transform: translateY(-2px);
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); 
 }
 
 .leaderboard-content {
-background: rgba(255,255,255,0.1);
-border-radius:12px;
+background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
+border-radius:12px; 
 padding:14px;
 width:100%;
 max-width: 380px;
 font-size: 14px;
 text-align: center;
+border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for consistency */
+backdrop-filter: blur(15px);
 }
 
-/* Footer - NOW FROSTED BLACK */
+/* Footer - INCREASED TRANSPARENCY */
 .home-footer {
 position:absolute; bottom:0; left:0; width:100%;
 text-align:center; font-size:12px; color:rgba(255,255,255,0.8);
-background:rgba(0,0,0,0.45); /* Frosted Black Background */
+background:rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
 backdrop-filter:blur(10px);
-border-top:1px solid rgba(255,255,255,0.15); /* Subtler Border */
+border-top:1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
 padding:12px 0;
 z-index: 5;
 }
@@ -253,11 +234,6 @@ z-index: 5;
 <div id="app">
 <div class="orbit"><div class="glow green"></div></div>
 <div class="orbit"><div class="glow pink"></div></div>
-
-<div id="pwa-prompt">
-    Get the App
-    <span id="pwa-prompt-close" onclick="dismissPrompt()">&times;</span>
-</div>
 
 <div id="auth-container" class="login-card">
 <img src="https://i.imgur.com/piKjXSd.png" alt="Duck Hunt Logo" />
@@ -319,7 +295,6 @@ const id = document.getElementById("student-id").value.trim();
 if (id) {
 studentName = id;
 document.getElementById("auth-container").classList.add("hidden");
-document.getElementById("pwa-prompt").classList.add("hidden"); 
 document.getElementById("home-screen").classList.remove("hidden");
 document.getElementById("welcome-text").textContent = `Welcome ${studentName}!`;
 } else {
@@ -333,7 +308,7 @@ toggleForm();
 }
 
 function dismissPrompt() {
-    document.getElementById("pwa-prompt").classList.add("hidden");
+    // Functionality removed as prompt is removed
 }
 
 function openPage(page) {
@@ -354,8 +329,6 @@ document.getElementById("home-screen").classList.add("hidden");
 const pageScreen = document.getElementById("page-screen");
 pageScreen.classList.remove("hidden");
 
-// Ensure PWA prompt is hidden during navigation
-document.getElementById("pwa-prompt").classList.add("hidden");
 
 let html = `
 <div class="back-btn" onclick="closePage()">← Back</div>
