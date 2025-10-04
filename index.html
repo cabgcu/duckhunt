@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
+        /* [ ... UNCHANGED CSS STYLES ARE HERE ... ] */
         :root {
             --green: #60A34D;
             --pink: #ff69b4;
@@ -139,7 +140,7 @@
     <script>
         // --- FIREBASE INITIALIZATION ---
         const firebaseConfig = {
-            apiKey: "AIzaSyBNDPLuh7bHlJ6xYkmLHFXmMaHwQ7h4J-s",
+            apiKey: "AIzaSyBNDPLuh7bHlJ6xYkmLHFXmMaHwQ7h4J-s", // Your API Key
             authDomain: "duck-hunt-2025.firebaseapp.com",
             projectId: "duck-hunt-2025",
             storageBucket: "duck-hunt-2025.appspot.com",
@@ -150,16 +151,28 @@
         const db = firebase.firestore();
 
         // --- GLOBAL STATE & DOM REFERENCES ---
-        let html5QrCode = null; let currentUser = null; let initialDuckId = null;
+        let html5QrCode = null; 
+        let currentUser = null; 
+        let initialDuckId = null;
+        const pointsAwarded = 100; // Define points constant here
         const loginScreen = document.getElementById('login-screen');
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
 
         // --- CORE FUNCTIONS ---
+        
+        /**
+         * The CORRECTED onScanSuccess function using a Firestore Transaction.
+         * This enforces the 'Duck dead after one scan, globally' rule.
+         */
         function onScanSuccess(decodedText) {
+            // Stop scanning immediately to prevent duplicate reads
+            stopScanner(); 
+            
             let duckId = decodedText;
-            // Extract duckId from URL if it's a URL
+
+            // 1. Extract duckId from URL if it's a URL
             try {
                 const url = new URL(decodedText);
                 if (url.searchParams.has('duckId')) {
@@ -167,14 +180,79 @@
                 }
             } catch (e) { /* Not a valid URL, assume it's just the ID */ }
 
+            // References
+            const duckRef = db.collection("ducks").doc(duckId);
             const userRef = db.collection("users").doc(currentUser.id);
-            // In a real app, you would have a 'ducks' collection to look up points
-            const points = 100; 
-            userRef.update({ points: firebase.firestore.FieldValue.increment(points) });
-            userRef.collection("scanHistory").add({ location: duckId, points: points, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            showNotification(`+${points} Points!`);
+            const historyRef = userRef.collection("scanHistory");
+
+            // Use a transaction for atomic read-and-write
+            db.runTransaction(async (transaction) => {
+
+                // READ: Get the central duck document
+                const duckDoc = await transaction.get(duckRef);
+
+                // --- VALIDATION CHECKS ---
+
+                if (!duckDoc.exists) {
+                    return { status: 'error', message: `Duck code "${duckId}" is invalid.` };
+                }
+
+                // Check 2: Has the duck already been found by someone? (THE GLOBAL LOCK)
+                if (duckDoc.data().foundBy) {
+                    const foundById = duckDoc.data().foundBy;
+                    let message = `This duck has already been claimed by another user.`;
+                    
+                    if (foundById === currentUser.id) {
+                         message = "You are the original finder of this duck!";
+                    }
+                    
+                    return { status: 'error', message: message };
+                }
+
+                // --- NEW FIND (ATOMIC WRITE OPERATIONS) ---
+                
+                // A. Mark the central duck document as found (This 'kills' the duck code)
+                transaction.update(duckRef, {
+                    foundBy: currentUser.id,
+                    foundAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // B. Increment the user's total points
+                transaction.update(userRef, {
+                    points: firebase.firestore.FieldValue.increment(pointsAwarded)
+                });
+                
+                // C. Add the scan to the user's personal history
+                const newHistoryRef = historyRef.doc();
+                transaction.set(newHistoryRef, {
+                    location: duckId,
+                    points: pointsAwarded,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                return { status: 'success', points: pointsAwarded };
+
+            })
+            .then((result) => {
+                // Handle success and error notifications
+                if (result.status === 'success') {
+                    showNotification(`🎉 +${result.points} Points! New Duck Found!`);
+                } else if (result.status === 'error') {
+                    showNotification(`⚠️ ${result.message}`);
+                }
+                // Restart scanner *after* transaction and notification are complete
+                startScanner(); 
+            })
+            .catch((error) => {
+                console.error("Scanning transaction failed: ", error);
+                showNotification("🚫 A system error occurred. Please try again.");
+                // Restart scanner even on failure to allow retry
+                startScanner(); 
+            });
         }
         
+        // --- UNCHANGED SUPPORT FUNCTIONS ---
+
         function checkForInitialDuck() {
             const urlParams = new URLSearchParams(window.location.search);
             const duckId = urlParams.get('duckId');
@@ -184,18 +262,13 @@
             }
         }
         
-        function startScanner() { /* ... */ }
-        function stopScanner() { /* ... */ }
-        function showNotification(message) { /* ... */ }
-        function updateUserDashboardData() { /* ... */ }
-        function showApp(user, startPage = 'hunt-page') { /* ... */ }
-        function switchPage(pageId) { /* ... */ }
-
-        // --- EVENT LISTENERS ---
+        // --- EVENT LISTENERS & DOM MANIPULATION (Mostly Unchanged) ---
+        
         document.addEventListener('DOMContentLoaded', () => {
-            checkForInitialDuck(); // NEW: Check for a duckId in the URL on load
+            checkForInitialDuck();
 
-            document.getElementById('tab-bar').innerHTML = `<button class="tab-button" data-page="hunt-page">Duck Scanner</button><button class="tab-button" data-page="map-page">Map</button><button class="tab-button" data-page="leaderboard-page">Leaderboard</button><button class="tab-button" data-page="log-page">Log</button><button class="tab-button" data-page="info-page">Info</button>`;
+            // Populate Tab Bar (Simplified for brevity)
+            document.getElementById('tab-bar').innerHTML = `<button class="tab-button" data-page="hunt-page">Scanner</button><button class="tab-button" data-page="map-page">Map</button><button class="tab-button" data-page="leaderboard-page">Board</button><button class="tab-button" data-page="log-page">Log</button><button class="tab-button" data-page="info-page">Info</button>`;
 
             document.getElementById('signin-btn').addEventListener('click', () => { 
                 const studentId = document.getElementById('login-studentid').value.trim();
@@ -211,30 +284,127 @@
             });
 
             document.getElementById('submit-btn').addEventListener('click', () => {
-                const newUser = { firstName: document.getElementById('reg-firstname').value.trim(), lastName: document.getElementById('reg-lastname').value.trim(), studentId: document.getElementById('reg-studentid').value.trim(), email: document.getElementById('reg-email').value.trim(), points: 0, scanHistory: [] };
+                const newUser = { 
+                    firstName: document.getElementById('reg-firstname').value.trim(), 
+                    lastName: document.getElementById('reg-lastname').value.trim(), 
+                    studentId: document.getElementById('reg-studentid').value.trim(), 
+                    email: document.getElementById('reg-email').value.trim(), 
+                    points: 0 // Initialize points to 0
+                };
                 if (!newUser.firstName || !newUser.studentId || !newUser.email) { return alert('Please fill out your name, student ID, and email.'); }
 
                 db.collection("users").where("studentId", "==", newUser.studentId).get()
                     .then((querySnapshot) => {
                         if (!querySnapshot.empty) { alert("This Student ID is already registered. Please go back and sign in."); } 
-                        else { db.collection("users").add(newUser).then((docRef) => { newUser.id = docRef.id; showApp(newUser, 'info-page'); }).catch(error => alert(error.message)); }
+                        else { 
+                            // Add new user to the users collection
+                            db.collection("users").add(newUser)
+                                .then((docRef) => { 
+                                    newUser.id = docRef.id; 
+                                    showApp(newUser, 'info-page'); 
+                                })
+                                .catch(error => alert(error.message)); 
+                        }
                     })
                     .catch(error => alert(error.message));
             });
             
-            // Unchanged Listeners and Functions Below...
+            // Unchanged utility functions below
             document.getElementById('tab-bar').addEventListener('click', e => { if (e.target.matches('.tab-button')) switchPage(e.target.dataset.page); });
             document.getElementById('register-btn').addEventListener('click', () => { loginView.classList.add('hidden'); registrationView.classList.remove('hidden'); });
             document.getElementById('back-btn').addEventListener('click', () => { registrationView.classList.add('hidden'); loginView.classList.remove('hidden'); });
             document.getElementById('close-instructions').addEventListener('click', () => { document.getElementById('instructions-card').style.display = 'none'; });
             document.getElementById('info-to-hunt-btn').addEventListener('click', () => { switchPage('hunt-page'); });
             
+            // Redefined functions that interact with the UI/State:
             showNotification = (message) => {const el=document.getElementById('scan-notification'); el.innerHTML=`<p>${message}</p>`; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 3000);};
-            updateUserDashboardData = () => { if (!currentUser) return; db.collection("users").doc(currentUser.id).onSnapshot((doc) => { const userData = doc.data(); if (userData) { currentUser = { id: doc.id, ...userData }; document.getElementById('welcome-message').textContent = `Welcome, ${userData.firstName}!`; document.getElementById('player-points').textContent = userData.points; } }); db.collection("users").doc(currentUser.id).collection("scanHistory").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => { const logList = document.getElementById('log-list'); document.getElementById('player-ducks').textContent = querySnapshot.size; if (querySnapshot.empty) { logList.innerHTML = `<p>You haven't scanned any ducks yet.</p>`; } else { let historyHtml = ''; querySnapshot.forEach(doc => { const entry = doc.data(); historyHtml += `<div class="log-item"><div><div class="location">${entry.location}</div><div class="timestamp">${entry.timestamp.toDate().toLocaleTimeString()}</div></div><div class="points">+${entry.points}</div></div>`; }); logList.innerHTML = historyHtml; } }); };
-            showApp = (user, startPage = 'hunt-page') => { currentUser = user; loginScreen.classList.remove('visible'); setTimeout(() => { appWrapper.classList.add('visible'); updateUserDashboardData(); switchPage(startPage); if (initialDuckId) { onScanSuccess(initialDuckId); initialDuckId = null; } }, 500); };
-            startScanner = () => {if (document.getElementById('hunt-page')?.classList.contains('active')) {html5QrCode = new Html5Qrcode("qr-reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(err => {});}};
-            stopScanner = () => {if (html5QrCode && html5QrCode.isScanning) {html5QrCode.stop().catch(err => {});}};
-            switchPage = (pageId) => {stopScanner(); document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active')); const page = document.getElementById(pageId); if(page) page.classList.add('active'); document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active')); const button = document.querySelector(`.tab-button[data-page="${pageId}"]`); if(button) button.classList.add('active'); if (pageId === 'hunt-page') setTimeout(startScanner, 500);};
+            updateUserDashboardData = () => { 
+                if (!currentUser) return; 
+                
+                // Listen for changes to the user document
+                db.collection("users").doc(currentUser.id).onSnapshot((doc) => { 
+                    const userData = doc.data(); 
+                    if (userData) { 
+                        currentUser = { id: doc.id, ...userData }; 
+                        document.getElementById('welcome-message').textContent = `Welcome, ${userData.firstName}!`; 
+                        document.getElementById('player-points').textContent = userData.points || 0; 
+                    } 
+                }); 
+
+                // Listen for changes to the scanHistory subcollection
+                db.collection("users").doc(currentUser.id).collection("scanHistory").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => { 
+                    const logList = document.getElementById('log-list'); 
+                    document.getElementById('player-ducks').textContent = querySnapshot.size; 
+                    if (querySnapshot.empty) { 
+                        logList.innerHTML = `<p>You haven't scanned any ducks yet.</p>`; 
+                    } else { 
+                        let historyHtml = ''; 
+                        querySnapshot.forEach(doc => { 
+                            const entry = doc.data(); 
+                            // Ensure timestamp is a valid Date object before calling toLocaleTimeString
+                            const timeStr = entry.timestamp && entry.timestamp.toDate ? entry.timestamp.toDate().toLocaleTimeString() : 'N/A';
+                            historyHtml += `<div class="log-item"><div><div class="location">${entry.location}</div><div class="timestamp">${timeStr}</div></div><div class="points">+${entry.points}</div></div>`; 
+                        }); 
+                        logList.innerHTML = historyHtml; 
+                    } 
+                }); 
+            };
+
+            showApp = (user, startPage = 'hunt-page') => { 
+                currentUser = user; 
+                loginScreen.classList.remove('visible'); 
+                setTimeout(() => { 
+                    appWrapper.classList.add('visible'); 
+                    updateUserDashboardData(); 
+                    switchPage(startPage); 
+                    if (initialDuckId) { 
+                        // If a duck was found via URL, scan it immediately upon login
+                        onScanSuccess(initialDuckId); 
+                        initialDuckId = null; 
+                    } 
+                }, 500); 
+            };
+
+            // QR Code Scanner Control
+            startScanner = () => {
+                if (document.getElementById('hunt-page')?.classList.contains('active')) {
+                    if (!html5QrCode) {
+                         html5QrCode = new Html5Qrcode("qr-reader"); 
+                    }
+                    if (!html5QrCode.isScanning) {
+                        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(err => {
+                            console.error("Camera failed to start:", err);
+                        });
+                    }
+                }
+            };
+            
+            stopScanner = () => {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().catch(err => {});
+                }
+            };
+
+            switchPage = (pageId) => {
+                // Stop scanner when leaving hunt page
+                stopScanner(); 
+                document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active')); 
+                const page = document.getElementById(pageId); 
+                if(page) page.classList.add('active'); 
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active')); 
+                const button = document.querySelector(`.tab-button[data-page="${pageId}"]`); 
+                if(button) button.classList.add('active'); 
+                
+                // Start scanner only when entering hunt page
+                if (pageId === 'hunt-page') {
+                    // Timeout ensures the scanner container is fully visible before starting
+                    setTimeout(startScanner, 500);
+                }
+                // Optional: Trigger leaderboard data fetch when viewing leaderboard
+                if (pageId === 'leaderboard-page') {
+                    // You would call a function here to fetch and display the leaderboard
+                }
+            };
         });
     </script>
 </body>
