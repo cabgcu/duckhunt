@@ -20,28 +20,8 @@
         .app-page h2 { margin: 0; flex-shrink: 0; }
         #qr-reader-container { padding: 0.5rem; display: flex; min-height: 300px; max-height: 50vh; position: relative; }
         #log-container, #leaderboard-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        
-        /* MODIFIED: Styles for the pop-up message */
-        .point-pop {
-            position: absolute;
-            top: 85%; /* Start below the scanner */
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: white; /* Make text white */
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-            animation: float-up-short 1.5s ease-out forwards;
-            pointer-events: none;
-        }
-        @keyframes float-up-short {
-            to {
-                top: 70%; /* Float up slightly */
-                opacity: 0;
-            }
-        }
-        
-        /* All other CSS is unchanged */
+        .point-pop { position: absolute; top: 85%; left: 50%; transform: translateX(-50%); font-size: 1.8rem; font-weight: bold; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.5); animation: float-up-short 1.5s ease-out forwards; pointer-events: none; }
+        @keyframes float-up-short { to { top: 70%; opacity: 0; } }
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; }
         .primary-btn { background-color: var(--green); color: white; }
@@ -187,11 +167,43 @@
         const registrationView = document.getElementById('registration-view');
 
         // --- ANIMATION FUNCTIONS ---
-        function triggerDuckAnimation() { /* ... unchanged ... */ }
-        function triggerFrostAnimation() { /* ... unchanged ... */ }
+        function triggerDuckAnimation() {
+            const duckCount = Math.floor(Math.random() * 3) + 3;
+            for (let i = 0; i < duckCount; i++) {
+                setTimeout(() => {
+                    const duck = document.createElement('div');
+                    duck.textContent = '🦆';
+                    duck.className = 'duck-animation';
+                    duck.style.top = `${30 + Math.random() * 40}%`;
+                    duck.style.animationDuration = `${1.5 + Math.random()}s`;
+                    document.body.appendChild(duck);
+                    setTimeout(() => duck.remove(), 2500);
+                }, i * 200);
+            }
+        }
+        function triggerFrostAnimation() {
+            const flakeCount = 15;
+            for (let i = 0; i < flakeCount; i++) {
+                const flake = document.createElement('div');
+                flake.textContent = '❄️';
+                flake.className = 'frost-animation';
+                flake.style.left = `${Math.random() * 100}vw`;
+                flake.style.animationDuration = `${2 + Math.random() * 3}s`;
+                flake.style.animationDelay = `${Math.random()}s`;
+                document.body.appendChild(flake);
+                setTimeout(() => flake.remove(), 5000);
+            }
+        }
         
         // --- CORE LOGIC ---
-        function checkForInitialDuck() { /* ... unchanged ... */ }
+        function checkForInitialDuck() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const duckId = urlParams.get('duckId');
+            if (duckId) {
+                initialDuckId = duckId;
+                showNotification("Duck found! Sign in or register to claim it.");
+            }
+        }
 
         async function onScanSuccess(decodedText) {
             if (!currentUser || (html5QrCode && html5QrCode.getState() !== Html5QrcodeScannerState.SCANNING)) return;
@@ -222,7 +234,6 @@
                 } else {
                     const errorPop = document.createElement('div');
                     errorPop.className = 'point-pop';
-                    // MODIFIED: Error pop-up is now white
                     errorPop.style.color = 'white'; 
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
@@ -243,18 +254,223 @@
             }
         }
         
-        async function signIn(studentId) { /* ... unchanged ... */ }
-        async function registerUser() { /* ... unchanged ... */ }
-        function showApp(user) { /* ... unchanged ... */ }
-        async function updateUserDashboard(newDuckScanned = false) { /* ... unchanged ... */ }
-        async function updateLeaderboard() { /* ... unchanged ... */ }
-        async function updateScanHistory() { /* ... unchanged ... */ }
+        async function signIn(studentId) {
+             try {
+                const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
+                const result = await response.json();
+                if (result.status === "success") {
+                    showApp(result.user);
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert("Error signing in.");
+                console.error(error);
+            }
+        }
+        
+        async function registerUser() {
+            const payload = {
+                action: "registerUser",
+                firstName: document.getElementById('reg-firstname').value.trim(),
+                lastName: document.getElementById('reg-lastname').value.trim(),
+                studentId: document.getElementById('reg-studentid').value.trim(),
+                email: document.getElementById('reg-email').value.trim()
+            };
 
-        function startScanner() { /* ... unchanged ... */ }
-        function stopScanner() { /* ... unchanged ... */ }
-        function switchPage(pageId) { /* ... unchanged ... */ }
+            if (!payload.firstName || !payload.studentId) {
+                return alert("First Name and Student ID are required.");
+            }
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                alert(result.message);
+                if (result.status === "success") {
+                    signIn(payload.studentId);
+                }
+            } catch (error) {
+                alert("Error registering.");
+                console.error(error);
+            }
+        }
 
-        document.addEventListener('DOMContentLoaded', () => { /* ... unchanged ... */ });
+        function showApp(user) {
+            currentUser = user;
+            ducksScannedCount = 0;
+            sessionStorage.setItem('currentUserStudentId', user.studentId);
+            loginScreen.classList.remove('visible');
+            appWrapper.classList.add('visible');
+            updateUserDashboard();
+            switchPage('hunt-page');
+            
+            fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
+                .then(res => res.json())
+                .then(scanData => {
+                    ducksScannedCount = scanData.length;
+                    document.getElementById('player-ducks').textContent = ducksScannedCount;
+                });
+
+            if (initialDuckId) {
+                onScanSuccess(initialDuckId);
+                initialDuckId = null; 
+            }
+        }
+        
+        async function updateUserDashboard(newDuckScanned = false) {
+            if (!currentUser) return;
+            if (newDuckScanned) {
+                ducksScannedCount++;
+            }
+            const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`);
+            const result = await response.json();
+             if (result.status === "success") {
+                currentUser = result.user;
+                document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+                document.getElementById('player-points').textContent = currentUser.points;
+                document.getElementById('player-ducks').textContent = ducksScannedCount;
+             }
+        }
+        
+        async function updateLeaderboard() {
+            const listElement = document.getElementById('leaderboard-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
+                const leaderboardData = await response.json();
+                let html = '';
+                leaderboardData.slice(0, 20).forEach((player, index) => {
+                    const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
+                    const displayName = `${player.firstName} ${lastNameInitial}`;
+                    html += `<li class="list-item"><div><div class="primary-text">${index + 1}. ${displayName}</div></div><span>${player.points}</span></li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading leaderboard.</li>';
+                console.error(error);
+            }
+        }
+        
+        async function updateScanHistory() {
+            const listElement = document.getElementById('log-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`);
+                const scanData = await response.json();
+                if (!scanData || scanData.length === 0) {
+                    listElement.innerHTML = '<li>You haven\'t scanned any ducks yet.</li>';
+                    return;
+                }
+                let html = '';
+                scanData.forEach(scan => {
+                    const scanDate = new Date(scan.timestamp);
+                    const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    html += `<li class="list-item">
+                                <div>
+                                    <div class="primary-text">${scan.duckId}</div>
+                                    <div class="secondary-text">${scan.duckType || 'Duck'} - ${timeString}</div>
+                                </div>
+                            </li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading scan history.</li>';
+            }
+        }
+
+        function showNotification(message) {
+            const el = document.createElement('div');
+            el.className = 'glass-card';
+            el.id = 'scan-notification';
+            el.style.position = 'fixed';
+            el.style.top = '-150px';
+            el.style.left = '50%';
+            el.style.transform = 'translateX(-50%)';
+            el.style.zIndex = '999';
+            el.style.padding = '1rem 1.5rem';
+            el.style.width = '80%';
+            el.style.maxWidth = '350px';
+            el.style.boxSizing = 'border-box';
+            el.style.transition = 'top 0.5s ease-in-out';
+            el.innerHTML = `<p>${message}</p>`;
+            document.body.appendChild(el);
+            setTimeout(() => el.style.top = '20px', 10);
+            setTimeout(() => {
+                el.style.top = '-150px';
+                setTimeout(() => el.remove(), 500);
+            }, 3000);
+        }
+
+        function startScanner() {
+            if (document.getElementById('hunt-page')?.classList.contains('active')) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
+                .catch(err => console.log("QR Code scanner failed to start."));
+            }
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => {});
+            }
+        }
+
+        function switchPage(pageId) {
+            stopScanner();
+            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId)?.classList.add('active');
+            
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
+            
+            if (pageId === 'hunt-page') {
+                updateUserDashboard();
+                setTimeout(startScanner, 250);
+            }
+            if (pageId === 'leaderboard-page') {
+                updateLeaderboard();
+            }
+            if (pageId === 'log-page') {
+                updateScanHistory();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkForInitialDuck();
+
+            const savedStudentId = sessionStorage.getItem('currentUserStudentId');
+            if (savedStudentId) {
+                signIn(savedStudentId);
+            }
+
+            document.getElementById('signin-btn').addEventListener('click', () => {
+                const studentId = document.getElementById('login-studentid').value.trim();
+                if (studentId) signIn(studentId);
+            });
+            document.getElementById('submit-btn').addEventListener('click', registerUser);
+            
+            document.getElementById('register-btn').addEventListener('click', () => {
+                loginView.classList.add('hidden');
+                registrationView.classList.remove('hidden');
+            });
+            document.getElementById('back-btn').addEventListener('click', () => {
+                registrationView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+            });
+
+            document.getElementById('close-instructions').addEventListener('click', () => {
+                document.getElementById('instructions-card').style.display = 'none';
+            });
+            document.getElementById('info-to-hunt-btn').addEventListener('click', () => {
+                switchPage('hunt-page');
+            });
+
+            document.getElementById('tab-bar').addEventListener('click', (e) => {
+                if (e.target.matches('.tab-button')) {
+                    switchPage(e.target.dataset.page);
+                }
+            });
+        });
     </script>
 </body>
 </html>
