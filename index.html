@@ -20,14 +20,17 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; }
         
-        /* MODIFIED: Final centering strategy for the hunt page */
+        #hunt-page {
+            justify-content: center;
+            align-items: center;
+        }
         #hunt-content-wrapper {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             width: 85%;
-            max-width: 350px; /* Same max-width as the login card */
+            max-width: 350px;
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
@@ -68,7 +71,6 @@
         }
         @keyframes float-up-short { to { top: 70%; opacity: 0; } }
         
-        /* --- Unchanged CSS Below --- */
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; }
         .primary-btn { background-color: var(--green); color: white; }
@@ -152,6 +154,7 @@
         <main id="app-container">
             <section id="hunt-page" class="app-page">
                 <div id="hunt-content-wrapper">
+                    <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                     <h2 id="welcome-message"></h2>
                     <div id="qr-reader-container" class="glass-card">
                         <div id="scanner-overlay-stats">
