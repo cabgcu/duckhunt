@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        /* [ ... UNCHANGED CSS STYLES ARE HERE ... ] */
         :root {
             --green: #60A34D;
             --pink: #ff69b4;
@@ -154,7 +153,6 @@
         let html5QrCode = null; 
         let currentUser = null; 
         let initialDuckId = null;
-        const pointsAwarded = 100; // Define points constant here
         const loginScreen = document.getElementById('login-screen');
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
@@ -164,7 +162,8 @@
         
         /**
          * The CORRECTED onScanSuccess function using a Firestore Transaction.
-         * This enforces the 'Duck dead after one scan, globally' rule.
+         * 1. Enforces 'Duck dead after one scan, globally'.
+         * 2. Dynamically reads the correct 'Points' value from the 'ducks' document.
          */
         function onScanSuccess(decodedText) {
             // Stop scanning immediately to prevent duplicate reads
@@ -188,22 +187,26 @@
             // Use a transaction for atomic read-and-write
             db.runTransaction(async (transaction) => {
 
-                // READ: Get the central duck document
+                // READ 1: Get the central duck document (to check status AND get points)
                 const duckDoc = await transaction.get(duckRef);
 
                 // --- VALIDATION CHECKS ---
 
                 if (!duckDoc.exists) {
-                    return { status: 'error', message: `Duck code "${duckId}" is invalid.` };
+                    return { status: 'error', message: `Duck code "${duckId}" is invalid (not found in database).` };
                 }
-
+                
+                // --- FIX: READ DYNAMIC POINTS VALUE FROM THE DOCUMENT ---
+                // We ensure points is a number, defaulting to 100 if the field is missing/corrupted
+                const pointsAwarded = parseInt(duckDoc.data().points) || 100;
+                
                 // Check 2: Has the duck already been found by someone? (THE GLOBAL LOCK)
                 if (duckDoc.data().foundBy) {
                     const foundById = duckDoc.data().foundBy;
-                    let message = `This duck has already been claimed by another user.`;
+                    let message = `This duck has already been claimed by another user. (It was worth ${pointsAwarded} points)`;
                     
                     if (foundById === currentUser.id) {
-                         message = "You are the original finder of this duck!";
+                         message = `You are the original finder of this duck! (+${pointsAwarded} points previously awarded)`;
                     }
                     
                     return { status: 'error', message: message };
@@ -217,12 +220,12 @@
                     foundAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // B. Increment the user's total points
+                // B. Increment the user's total points, using the DYNAMIC value
                 transaction.update(userRef, {
                     points: firebase.firestore.FieldValue.increment(pointsAwarded)
                 });
                 
-                // C. Add the scan to the user's personal history
+                // C. Add the scan to the user's personal history, using the DYNAMIC value
                 const newHistoryRef = historyRef.doc();
                 transaction.set(newHistoryRef, {
                     location: duckId,
@@ -251,7 +254,7 @@
             });
         }
         
-        // --- UNCHANGED SUPPORT FUNCTIONS ---
+        // --- SUPPORT FUNCTIONS (UNMODIFIED) ---
 
         function checkForInitialDuck() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -262,12 +265,9 @@
             }
         }
         
-        // --- EVENT LISTENERS & DOM MANIPULATION (Mostly Unchanged) ---
-        
         document.addEventListener('DOMContentLoaded', () => {
             checkForInitialDuck();
 
-            // Populate Tab Bar (Simplified for brevity)
             document.getElementById('tab-bar').innerHTML = `<button class="tab-button" data-page="hunt-page">Scanner</button><button class="tab-button" data-page="map-page">Map</button><button class="tab-button" data-page="leaderboard-page">Board</button><button class="tab-button" data-page="log-page">Log</button><button class="tab-button" data-page="info-page">Info</button>`;
 
             document.getElementById('signin-btn').addEventListener('click', () => { 
@@ -289,7 +289,7 @@
                     lastName: document.getElementById('reg-lastname').value.trim(), 
                     studentId: document.getElementById('reg-studentid').value.trim(), 
                     email: document.getElementById('reg-email').value.trim(), 
-                    points: 0 // Initialize points to 0
+                    points: 0
                 };
                 if (!newUser.firstName || !newUser.studentId || !newUser.email) { return alert('Please fill out your name, student ID, and email.'); }
 
@@ -297,7 +297,6 @@
                     .then((querySnapshot) => {
                         if (!querySnapshot.empty) { alert("This Student ID is already registered. Please go back and sign in."); } 
                         else { 
-                            // Add new user to the users collection
                             db.collection("users").add(newUser)
                                 .then((docRef) => { 
                                     newUser.id = docRef.id; 
@@ -321,7 +320,6 @@
             updateUserDashboardData = () => { 
                 if (!currentUser) return; 
                 
-                // Listen for changes to the user document
                 db.collection("users").doc(currentUser.id).onSnapshot((doc) => { 
                     const userData = doc.data(); 
                     if (userData) { 
@@ -331,7 +329,6 @@
                     } 
                 }); 
 
-                // Listen for changes to the scanHistory subcollection
                 db.collection("users").doc(currentUser.id).collection("scanHistory").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => { 
                     const logList = document.getElementById('log-list'); 
                     document.getElementById('player-ducks').textContent = querySnapshot.size; 
@@ -341,7 +338,6 @@
                         let historyHtml = ''; 
                         querySnapshot.forEach(doc => { 
                             const entry = doc.data(); 
-                            // Ensure timestamp is a valid Date object before calling toLocaleTimeString
                             const timeStr = entry.timestamp && entry.timestamp.toDate ? entry.timestamp.toDate().toLocaleTimeString() : 'N/A';
                             historyHtml += `<div class="log-item"><div><div class="location">${entry.location}</div><div class="timestamp">${timeStr}</div></div><div class="points">+${entry.points}</div></div>`; 
                         }); 
@@ -358,7 +354,6 @@
                     updateUserDashboardData(); 
                     switchPage(startPage); 
                     if (initialDuckId) { 
-                        // If a duck was found via URL, scan it immediately upon login
                         onScanSuccess(initialDuckId); 
                         initialDuckId = null; 
                     } 
@@ -386,7 +381,6 @@
             };
 
             switchPage = (pageId) => {
-                // Stop scanner when leaving hunt page
                 stopScanner(); 
                 document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active')); 
                 const page = document.getElementById(pageId); 
@@ -395,14 +389,8 @@
                 const button = document.querySelector(`.tab-button[data-page="${pageId}"]`); 
                 if(button) button.classList.add('active'); 
                 
-                // Start scanner only when entering hunt page
                 if (pageId === 'hunt-page') {
-                    // Timeout ensures the scanner container is fully visible before starting
                     setTimeout(startScanner, 500);
-                }
-                // Optional: Trigger leaderboard data fetch when viewing leaderboard
-                if (pageId === 'leaderboard-page') {
-                    // You would call a function here to fetch and display the leaderboard
                 }
             };
         });
