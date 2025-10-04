@@ -24,9 +24,10 @@
             justify-content: center;
             align-items: center;
         }
+        /* MODIFIED: Shifted the entire content block up slightly */
         #hunt-content-wrapper {
             position: absolute;
-            top: 50%;
+            top: 45%; /* Was 50% */
             left: 50%;
             transform: translate(-50%, -50%);
             width: 85%;
@@ -34,12 +35,6 @@
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
-        }
-        /* MODIFIED: Header image styling for hunt page - moved higher */
-        #hunt-content-wrapper .header-image {
-            width: 80%; 
-            margin: -2rem auto 0.2rem auto; /* Adjusted margin to move higher */
-            display: block;
         }
         #qr-reader-container { 
             padding: 0; 
@@ -294,7 +289,8 @@
                     errorPop.style.color = 'white'; 
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), 2000);
+                    // MODIFIED: Error message now lasts 3 seconds
+                    setTimeout(() => errorPop.remove(), 3000);
 
                     if (result.message.includes("Daily limit")) {
                         triggerFrostAnimation();
