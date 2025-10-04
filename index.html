@@ -20,41 +20,33 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; }
         
-        /* MODIFIED: Make the scanner page a flex container that centers its content. */
+        /* MODIFIED: Removed specific centering from the hunt page itself */
         #hunt-page {
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            justify-content: flex-start; /* Align items to the top */
         }
-        /* MODIFIED: Position the welcome message absolutely at the top. */
-        #welcome-message {
-            position: absolute;
-            top: 1.5rem;
-            left: 1.5rem;
-            right: 1.5rem;
-        }
-        
-        /* MODIFIED: Make the scanner container a centered square. */
+
+        /* MODIFIED: The container now grows and centers its content (the scanner) */
         #qr-reader-container { 
             padding: 0.5rem; 
             display: flex; 
+            justify-content: center;
+            align-items: center;
             position: relative; 
-            width: 90%; /* Responsive width */
-            max-width: 400px; /* Max size on larger screens */
-            aspect-ratio: 1 / 1; /* Enforce a square shape */
+            flex-grow: 1; 
+            min-height: 0; /* Flexbox fix */
+        }
+        
+        /* MODIFIED: The scanner itself is now a constrained square */
+        #qr-reader {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1 / 1;
+            border-radius: 15px;
+            overflow: hidden;
         }
 
-        /* MODIFIED: Ensure log and leaderboard fill the page and are scrollable. */
-        #log-page, #leaderboard-page {
-            justify-content: flex-start;
-        }
-        #log-container, #leaderboard-container {
-            flex-grow: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            min-height: 0; /* Flexbox fix for scrolling */
-        }
+        #log-page, #leaderboard-page { justify-content: flex-start; }
+        #log-container, #leaderboard-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
 
         .point-pop { 
             position: absolute; 
@@ -95,7 +87,6 @@
         footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
         .footer-logo { height: 40px; }
         #app-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-        #qr-reader { width: 100%; height: 100%; border-radius: 15px; overflow: hidden; }
         #scanner-overlay-stats { position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; z-index: 10; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); border-radius: 15px 15px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
         .stat { text-align: center; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
