@@ -1,389 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Duck Hunt</title>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Wicked Background</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
 
-<style>
-body, html {
-margin: 0; padding: 0;
-width: 100%; height: 100%;
-background: #000;
-display: flex; justify-content: center; align-items: center;
-font-family: "Helvetica Neue", Arial, sans-serif;
-overflow: hidden;
-}
+        #lava-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #instructions-card {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-sizing: border-box;
+            color: white;
 
-#app {
-width: 100%;
-max-width: 430px;
-height: 100%;
-max-height: 932px;
-background: #000;
-position: relative;
-overflow: hidden;
-/* #app: Keep squared off (no border-radius) */
-border: 2px solid rgba(255,255,255,0.15);
-box-shadow: 0 0 25px rgba(0,0,0,0.8);
-}
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-/* orbit background */
-.orbit { position: absolute; width: 500px; height: 500px; border-radius: 50%; pointer-events: none; z-index: 0; }
-.glow { position: absolute; width: 200px; height: 200px; border-radius: 50%; filter: blur(120px); opacity: 0.75; }
-.green { background: rgba(120, 255, 80, 1); animation: orbitLeft 25s linear infinite; }
-.pink { background: rgba(255, 80, 200, 1); animation: orbitRight 30s linear infinite; }
+        #instructions-card p { margin: 0; font-size: 0.9rem; }
+        
+        #close-instructions {
+            background: none; border: none; color: white;
+            font-size: 1.8rem; font-weight: bold; cursor: pointer;
+            padding: 0 0 0 1rem; line-height: 1;
+        }
+        
+        #header-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 350px;
+            box-sizing: border-box;
+        }
 
-@keyframes orbitLeft {
-0% { transform: rotate(0deg) translateX(-180px) translateY(-100px); }
-100% { transform: rotate(360deg) translateX(-180px) translateY(-100px); }
-}
-@keyframes orbitRight {
-0% { transform: rotate(0deg) translateX(180px) translateY(100px); }
-100% { transform: rotate(360deg) translateX(180px) translateY(100px); }
-}
+        .card-view {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .card-view.active {
+            display: flex;
+            opacity: 1;
+        }
 
-.hidden { display: none !important; }
+        .header-image { display: block; width: 100%; margin-bottom: 1.5rem; }
 
-/* Login/Register card - INCREASED TRANSPARENCY */
-.login-card {
-position: absolute; 
-top: 50%; 
-left: 50%; 
-transform: translate(-50%, -50%);
-background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
-backdrop-filter: blur(25px); /* Frosted Blur Effect */
-border-radius: 16px; 
-padding: 25px 20px;
-width: 85%; max-width: 320px;
-text-align: center;
-border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
-box-shadow: 0 8px 22px rgba(0,0,0,0.6);
-z-index: 1;
-transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-.login-card img { max-width: 70%; margin-bottom: 16px; }
+        .reg-input, #student-id-login {
+            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+        }
 
-/* Green glow on hover for login card */
-.login-card:hover {
-    box-shadow: 0 0 15px 5px rgba(120, 255, 80, 0.5), 0 8px 22px rgba(0,0,0,0.6);
-    border-color: rgba(120, 255, 80, 0.7); 
-}
+        .reg-input:hover, #student-id-login:hover,
+        .reg-input:focus, #student-id-login:focus {
+            border-color: #60A34D;
+            box-shadow: 0 0 15px #60A34D;
+        }
 
-.login-card input,
-.login-card button { width: 100%; box-sizing: border-box; }
-.login-card input {
-margin-bottom: 14px; padding: 14px;
-border-radius: 12px; 
-font-size: 16px;
-background: rgba(255, 255, 255, 0.25); /* Slightly darker for input fields */
-border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
-color: white; text-align: center;
-}
-button {
-padding: 14px; 
-border-radius: 12px; 
-font-size: 16px; font-weight: 600;
-margin-bottom: 12px;
-background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
-border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
-color: white; cursor: pointer;
-transition: border-color 0.25s, box-shadow 0.25s, transform 0.15s;
-}
-/* Apply Frosted Light Hover Look to all buttons, with green glow */
-button:hover { 
-  border-color: rgba(120, 255, 80, 0.7); /* Stronger green border on hover */
-  background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on hover */
-  box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); /* Green glow */
-  transform: translateY(-1px);
-}
+        .reg-input::placeholder, #student-id-login::placeholder { color: rgba(255, 255, 255, 0.7); }
 
+        .button-group { display: flex; gap: 0.5rem; }
+        
+        .button-group button {
+            flex: 1; border-radius: 10px; padding: 12px 15px;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            border: 2px solid #60A34D; transition: all 0.3s ease;
+        }
+        
+        #register-btn, #submit-btn, #start-btn { background-color: #60A34D; color: white; }
+        #signin-btn, #back-btn, #logout-btn { background-color: transparent; color: #60A34D; }
 
-/* Welcome - BIGGER HEADER */
-.welcome-header { 
-font-size: 28px; 
-font-weight: 700; 
-margin: 0 0 28px 0; 
-text-align: center; 
-color: #ffffff;
-}
+        #signin-btn:hover, #back-btn:hover, #logout-btn:hover { background-color: #60A34D; color: white; box-shadow: 0 0 15px #60A34D; }
+        #register-btn:hover, #submit-btn:hover, #start-btn:hover { background-color: #4b823e; border-color: #4b823e; box-shadow: 0 0 15px #60A34D; }
+        
+        .card-view h3 { color: white; text-align: center; margin: 0 0 0.5rem 0; }
+        .card-view p { color: rgba(255, 255, 255, 0.9); text-align: center; margin: 0; font-size: 0.95rem; line-height: 1.4; }
 
-/* Home menu */
-#home-screen {
-position: absolute;
-top: 0; left: 0;
-width: 100%; height: 100%;
-display: flex;
-flex-direction: column;
-justify-content: center; 
-align-items: center;      
-text-align: center;
-padding: 20px;
-box-sizing: border-box;
-}
+        #leaderboard-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 0.5rem;
+        }
 
-/* Menu buttons — lighter frosted style with green glow */
-.frosted-rect {
-backdrop-filter: blur(20px);
-border-radius: 16px; 
-padding: 18px;
-color: white;
-width: 100%;
-max-width: 300px;
-font-size: 18px; font-weight:600;
-margin: 12px auto;
-cursor: pointer;
-display: flex; align-items: center; justify-content: center; gap: 10px;
-background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
-box-shadow: 0 6px 14px rgba(0,0,0,0.45);
-border: 2px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
-transition: border-color 0.25s, transform 0.15s, background 0.25s, box-shadow 0.25s;
-}
-.frosted-rect i {
-font-size: 20px;
-transition: transform 0.2s ease;
-color: #FFFFFF;
-}
-/* Hover animations with green glow */
-.frosted-rect:hover { 
-    animation: pulse 0.6s ease; 
-    border-color: rgba(120, 255, 80, 0.7); 
-    background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on hover */
-    box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); 
-}
-.frosted-rect:hover i { animation: bounce 0.4s ease; }
+        /* NEW: Styles for the QR Scanner card */
+        #qr-reader {
+            width: 100%;
+            border-radius: 10px;
+            border: 2px solid #60A34D;
+            box-shadow: 0 0 15px #60A34D; /* Green glow effect */
+            overflow: hidden; /* Keeps the camera feed inside the rounded corners */
+        }
+        
+        footer {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; z-index: 20;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+        }
 
-@keyframes pulse {
-0%   { transform: scale(1); }
-50%  { transform: scale(1.03); }
-100% { transform: scale(1); }
-}
-@keyframes bounce {
-0%   { transform: scale(1); }
-30%  { transform: scale(1.25); }
-60%  { transform: scale(0.9); }
-100% { transform: scale(1); }
-}
+        .footer-logo { height: 40px; width: auto; }
+        footer p { margin: 0; text-align: center; }
 
-/* Icons hover/active effects - LIGHT FROSTED LOOK */
-.frosted-rect:hover, .frosted-rect.active {
-border-color: rgba(120, 255, 80, 0.7); 
-background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on active */
-box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); 
-}
-
-/* Page view */
-#page-screen {
-position:absolute; top:0; left:0;
-width:100%; height:100%;
-background: rgba(0,0,0,0.9);
-display:flex; flex-direction:column; justify-content:center; align-items:center;
-padding:20px;
-text-align:center;
-}
-
-/* Back button styled with green glow */
-.back-btn {
-position: absolute;
-top: 20px; left: 20px;
-cursor: pointer;
-font-size: 16px;
-font-weight: 600;
-color: white;
-background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
-border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border */
-border-radius: 12px; 
-padding: 8px 14px;
-backdrop-filter: blur(15px);
-transition: border-color 0.25s, transform 0.15s, background 0.25s, box-shadow 0.25s;
-}
-.back-btn:hover {
-border-color: rgba(120, 255, 80, 0.7); 
-background: rgba(255, 255, 255, 0.05); /* Even MORE TRANSPARENT on hover */
-transform: translateY(-2px);
-box-shadow: 0 0 10px 3px rgba(120, 255, 80, 0.5); 
-}
-
-.leaderboard-content {
-background: rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
-border-radius:12px; 
-padding:14px;
-width:100%;
-max-width: 380px;
-font-size: 14px;
-text-align: center;
-border: 1px solid rgba(0, 0, 0, 0.35); /* Darker border for consistency */
-backdrop-filter: blur(15px);
-}
-
-/* Footer - INCREASED TRANSPARENCY AND ENFORCED FROSTED LOOK */
-.home-footer {
-position:absolute; bottom:0; left:0; width:100%;
-text-align:center; font-size:12px; color:rgba(255,255,255,0.8);
-background:rgba(255, 255, 255, 0.1); /* MORE TRANSPARENT */
-backdrop-filter:blur(10px);
-border-top:1px solid rgba(0, 0, 0, 0.35); /* Darker border for contrast */
-padding:12px 0;
-z-index: 5;
-}
-</style>
+        #lava-container::before, #lava-container::after {
+            content: ''; position: absolute; width: 50vmax; height: 50vmax;
+            border-radius: 50%; opacity: 0.6; mix-blend-mode: lighten; filter: blur(100px);
+        }
+        #lava-container::before {
+            background-color: #ff69b4; top: -25vmax; left: -25vmax;
+            animation: move-pink 25s infinite linear;
+        }
+        #lava-container::after {
+            background-color: #60A34D; bottom: -25vmax; right: -25vmax;
+            animation: move-green 20s infinite linear; animation-delay: -10s;
+        }
+        @keyframes move-pink {
+            0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); }
+            50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); }
+        }
+        @keyframes move-green {
+            0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); }
+            50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); }
+        }
+    </style>
 </head>
 <body>
-<div id="app">
-<div class="orbit"><div class="glow green"></div></div>
-<div class="orbit"><div class="glow pink"></div></div>
 
-<div id="auth-container" class="login-card">
-<img src="https://i.imgur.com/piKjXSd.png" alt="Duck Hunt Logo" />
-<div id="login-form">
-<input type="text" id="student-id" placeholder="Enter Student ID">
-<button onclick="login()">Sign In</button>
-<button class="secondary" onclick="toggleForm()">Register</button>
-</div>
-<div id="register-form" class="hidden">
-<input type="text" placeholder="First Name">
-<input type="text" placeholder="Last Name">
-<input type="text" placeholder="Student ID">
-<input type="email" placeholder="my.gcu.edu Email">
-<button onclick="register()">Register</button>
-<button class="secondary" onclick="toggleForm()">Back to Login</button>
-</div>
-</div>
+    <div id="instructions-card">
+        <p>Tap the <strong>Share</strong> icon (⇧) to add to your Home Screen!</p>
+        <button id="close-instructions">&times;</button>
+    </div>
 
-<div id="home-screen" class="hidden">
-<img src="https://i.imgur.com/piKjXSd.png" alt="Duck Hunt Logo" style="max-width: 60%; margin-bottom: 20px;" />
-<div class="welcome-header" id="welcome-text"></div>
-<div class="frosted-rect btn-home" onclick="openPage('stats')"><i class="fa-solid fa-house"></i> Home</div>
-<div class="frosted-rect btn-leaderboard" onclick="openPage('leaderboard')"><i class="fa-solid fa-trophy"></i> Leaderboard</div>
-<div class="frosted-rect btn-scanner" onclick="openPage('scanner')"><i class="fa-solid fa-qrcode"></i> Scanner</div>
-<div class="frosted-rect btn-map" onclick="openPage('map')"><i class="fa-solid fa-map"></i> Map</div>
-</div>
+    <div id="lava-container">
+        <div id="header-card">
+            
+            <div id="login-view" class="card-view">
+                <img class="header-image" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <input type="text" id="student-id-login" placeholder="Student ID">
+                <div class="button-group">
+                    <button id="signin-btn">Sign In</button>
+                    <button id="register-btn">Register</button>
+                </div>
+                <div id="leaderboard-link">View Leaderboard</div>
+            </div>
 
-<div id="page-screen" class="hidden"></div>
+            <div id="registration-view" class="card-view">
+                <h3>Welcome To The Hunt!</h3>
+                <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name">
+                <input type="text" class="reg-input" placeholder="Last Name">
+                <input type="email" class="reg-input" placeholder="Email">
+                <input type="text" class="reg-input" placeholder="Student ID">
+                <div class="button-group">
+                    <button id="back-btn">Back</button>
+                    <button id="submit-btn">Submit</button>
+                </div>
+            </div>
 
-<div class="home-footer">
-<img src="https://i.imgur.com/p2qZOL5.png" alt="CAB Logo" style="height:40px; display:block; margin:0 auto 6px;" />
-Hosted by the Canyon Activities Board<br/>Grand Canyon University
-</div>
+            <div id="how-to-play-view" class="card-view">
+                <h3>How To Play</h3>
+                <p>Find QR codes hidden around campus and scan them to score points. The hunter with the most points at the end wins!</p>
+                <div class="button-group">
+                    <button id="logout-btn">Log Out</button>
+                    <button id="start-btn">Start Hunting!</button>
+                </div>
+            </div>
+            
+            <div id="leaderboard-view" class="card-view">
+                <h3>Leaderboard</h3>
+                <p>The hunt has not yet begun. Check back here to see the top hunters once the event starts!</p>
+                <button id="back-to-login-btn">Back</button>
+            </div>
+            
+            <div id="scanner-view" class="card-view">
+                <h3 id="welcome-message">Welcome, Hunter!</h3>
+                <div id="qr-reader"></div>
+                <button id="scanner-logout-btn">Log Out</button>
+            </div>
 
-</div>
+        </div>
+    </div>
 
-<script>
-let studentName = "";
-let points = 0;
-let ducks = 0;
-let totalDucks = 50;
-let position = "--";
+    <footer>
+        <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
+        <p>Hosted By the Canyon Activities Board at Grand Canyon University</p>
+    </footer>
 
-const leaderboardData = [
-{ name: "Alice", points: 120, ducks: 12 },
-{ name: "Bob", points: 100, ducks: 10 },
-{ name: "Charlie", points: 80, ducks: 8 },
-{ name: "Diana", points: 70, ducks: 7 },
-{ name: "Ethan", points: 50, ducks: 5 },
-];
+    <script>
+        // --- State and Element References ---
+        let currentUserName = '';
+        let html5QrCode = null;
 
-function toggleForm() {
-document.getElementById("login-form").classList.toggle("hidden");
-document.getElementById("register-form").classList.toggle("hidden");
-}
+        const allViews = document.querySelectorAll('.card-view');
+        const loginView = document.getElementById('login-view');
+        const registrationView = document.getElementById('registration-view');
+        const howToPlayView = document.getElementById('how-to-play-view');
+        const leaderboardView = document.getElementById('leaderboard-view');
+        const scannerView = document.getElementById('scanner-view');
 
-function login() {
-const id = document.getElementById("student-id").value.trim();
-if (id) {
-studentName = id;
-document.getElementById("auth-container").classList.add("hidden");
-document.getElementById("home-screen").classList.remove("hidden");
-document.getElementById("welcome-text").textContent = `Welcome ${studentName}!`;
-} else {
-alert("Please enter a Student ID.");
-}
-}
+        const registerButton = document.getElementById('register-btn');
+        const backButton = document.getElementById('back-btn');
+        const signInButton = document.getElementById('signin-btn');
+        const logoutButton = document.getElementById('logout-btn');
+        const leaderboardLink = document.getElementById('leaderboard-link');
+        const backToLoginButton = document.getElementById('back-to-login-btn');
+        const submitButton = document.getElementById('submit-btn');
+        const scannerLogoutButton = document.getElementById('scanner-logout-btn');
+        
+        const instructionsCard = document.getElementById('instructions-card');
+        const closeInstructionsButton = document.getElementById('close-instructions');
 
-function register() {
-alert("Registered! You can now sign in.");
-toggleForm();
-}
+        // --- QR Scanner Functions ---
+        function onScanSuccess(decodedText, decodedResult) {
+            // Handle the scanned code here. For now, we'll just alert it.
+            alert(`QR Code Scanned! Result: ${decodedText}`);
+            stopScanner();
+            // You could switch to another view here, like a success screen
+        }
 
-function dismissPrompt() {
-    // Functionality removed as prompt is removed
-}
+        function startScanner() {
+            if (!html5QrCode) {
+                 html5QrCode = new Html5Qrcode("qr-reader");
+            }
+            html5QrCode.start(
+                { facingMode: "environment" }, // Use the back camera
+                {
+                    fps: 10,    // Optional, frames per second
+                    qrbox: { width: 250, height: 250 }  // Optional, size of scanning box
+                },
+                onScanSuccess)
+            .catch(err => {
+                console.log(`Unable to start scanning, error: ${err}`);
+            });
+        }
 
-function openPage(page) {
-// Remove any existing active states
-document.querySelectorAll('.frosted-rect').forEach(btn => btn.classList.remove('active'));
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    console.log("QR Code scanning stopped.");
+                }).catch(err => {
+                    console.log(`Unable to stop scanning, error: ${err}`);
+                });
+            }
+        }
 
-// Add active to the clicked button
-const btn = {
-stats: document.querySelector('.btn-home'),
-leaderboard: document.querySelector('.btn-leaderboard'),
-scanner: document.querySelector('.btn-scanner'),
-map: document.querySelector('.btn-map')
-}[page];
-if (btn) btn.classList.add('active');
+        // --- View Switching Function ---
+        function switchView(viewToShow) {
+            stopScanner(); // Always try to stop the scanner when leaving a view
+            allViews.forEach(view => view.classList.remove('active'));
+            viewToShow.classList.add('active');
+        }
 
-// Hide menu, show page
-document.getElementById("home-screen").classList.add("hidden");
-const pageScreen = document.getElementById("page-screen");
-pageScreen.classList.remove("hidden");
+        // --- Initial View ---
+        switchView(loginView);
 
+        // --- Event Listeners ---
+        registerButton.addEventListener('click', () => switchView(registrationView));
+        backButton.addEventListener('click', () => switchView(loginView));
+        leaderboardLink.addEventListener('click', () => switchView(leaderboardView));
+        backToLoginButton.addEventListener('click', () => switchView(loginView));
+        
+        const allLogoutButtons = [logoutButton, scannerLogoutButton];
+        allLogoutButtons.forEach(btn => {
+            btn.addEventListener('click', () => switchView(loginView));
+        });
 
-let html = `
-<div class="back-btn" onclick="closePage()">← Back</div>
-<div style="flex:1; display:flex; justify-content:center; align-items:center; flex-direction:column; width:100%;">
-`;
+        signInButton.addEventListener('click', () => {
+            const studentIdInput = document.getElementById('student-id-login');
+            if (studentIdInput.value.trim() !== '') {
+                // Update welcome message and switch to scanner
+                const welcomeMsg = document.getElementById('welcome-message');
+                welcomeMsg.textContent = `Welcome, ${currentUserName || 'Hunter'}!`;
+                switchView(scannerView);
+                startScanner(); // Start the camera
+            } else {
+                alert('Please enter your Student ID.');
+            }
+        });
 
-if (page === "stats") {
-html += `<div class="leaderboard-content"><h3>Your Stats</h3>
-<p>Ducks Found: ${ducks} / ${totalDucks}</p>
-<p>Points: ${points}</p>
-<p>Rank: ${position}</p></div>`;
-}
-if (page === "leaderboard") {
-html += `<div class="leaderboard-content"><h3>🏆 Leaderboard</h3><table style="width:100%;">
-<thead><tr><th>Rank</th><th>Name</th><th>Points</th><th>Ducks</th></tr></thead>
-<tbody>${leaderboardData.map((row, i) =>
-`<tr><td>#${i+1}</td><td>${row.name}</td><td>${row.points}</td><td>${row.ducks}</td></tr>`
-).join("")}</tbody></table></div>`;
-}
-if (page === "scanner") {
-html += `<div class="leaderboard-content"><h3>QR Code Scanner</h3>
-<div id="qr-reader"></div><div id="qr-result">Scan a QR code...</div></div>`;
-setTimeout(() => {
-const html5QrCode = new Html5Qrcode("qr-reader");
-html5QrCode.start(
-{ facingMode: "environment" },
-{ fps: 10, qrbox: 220 },
-qrCodeMessage => {
-document.getElementById("qr-result").innerText = `Scanned: ${qrCodeMessage}`;
-}
-).catch(err => {
-document.getElementById("qr-result").innerText = "Camera error: " + err;
-});
-}, 300);
-}
-if (page === "map") {
-html += `<div class="leaderboard-content"><h3>Campus Map</h3>
-<img src="https://i.imgur.com/MGb5SBU.png" style="width:100%; border-radius:10px;"/></div>`;
-}
+        submitButton.addEventListener('click', () => {
+            const firstNameInput = document.getElementById('reg-firstname');
+            currentUserName = firstNameInput.value.trim();
+            if(currentUserName){
+                switchView(howToPlayView); // Go to "How to Play" after registering
+            } else {
+                alert("Please enter your first name.");
+            }
+        });
 
-// Footer is not added here as it's outside the page-screen div now.
-html += `
-</div>
-`;
+        closeInstructionsButton.addEventListener('click', () => {
+            instructionsCard.style.display = 'none';
+        });
 
-pageScreen.innerHTML = html;
-}
+    </script>
 
-function closePage() {
-document.getElementById("page-screen").classList.add("hidden");
-document.getElementById("home-screen").classList.remove("hidden");
-
-// Remove all active glows when back
-document.querySelectorAll('.frosted-rect').forEach(btn => btn.classList.remove('active'));
-}
-</script>
 </body>
 </html>
