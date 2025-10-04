@@ -43,7 +43,7 @@
         .stat { text-align: center; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-        #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; min-height: 250px; }
+        #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; min-height: 250px; position: relative; }
         #qr-reader { width: 100%; border-radius: 15px; overflow: hidden; }
         #map-page { padding-left: 0; padding-right: 0; }
         #map-container { flex-grow: 1; overflow: auto; position: relative; border-radius: 20px; }
@@ -61,6 +61,8 @@
         .tab-button.active { color: var(--green); }
         #scan-notification { position: fixed; top: -150px; left: 50%; transform: translateX(-50%); z-index: 999; padding: 1rem 1.5rem; width: 80%; max-width: 350px; box-sizing: border-box; transition: top 0.5s ease-in-out; }
         #scan-notification.show { top: 20px; }
+        .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
+        @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
         @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); } 50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); } }
         @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); } 50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); } }
     </style>
@@ -166,6 +168,17 @@
         const registrationView = document.getElementById('registration-view');
 
         // --- CORE FUNCTIONS ---
+        function triggerDuckAnimation() {
+            const duck = document.createElement('div');
+            duck.textContent = '🦆';
+            duck.className = 'duck-animation';
+            duck.style.top = `${40 + Math.random() * 20}%`;
+            document.body.appendChild(duck);
+            setTimeout(() => {
+                duck.remove();
+            }, 2000);
+        }
+
         function checkForInitialDuck() {
             const urlParams = new URLSearchParams(window.location.search);
             const duckId = urlParams.get('duckId');
@@ -206,8 +219,9 @@
                 });
                 const result = await response.json();
                 
-                if (result.status === "success" && result.duckType) {
-                    showNotification(`${result.message} You found a ${result.duckType}!`);
+                if (result.status === "success") {
+                    showNotification(`${result.duckType} +${result.points} Points`);
+                    triggerDuckAnimation();
                     updateUserDashboard();
                 } else {
                     showNotification(result.message);
@@ -321,7 +335,12 @@
                 scanData.forEach(scan => {
                     const scanDate = new Date(scan.timestamp);
                     const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                    html += `<li class="list-item"><div><div class="primary-text">${scan.duckId}</div><div class="secondary-text">${timeString}</div></div></li>`;
+                    html += `<li class="list-item">
+                                <div>
+                                    <div class="primary-text">${scan.duckId}</div>
+                                    <div class="secondary-text">${scan.duckType || 'Duck'} - ${timeString}</div>
+                                </div>
+                            </li>`;
                 });
                 listElement.innerHTML = html;
             } catch (error) {
