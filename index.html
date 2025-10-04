@@ -143,7 +143,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_k9sseBVkTbdHqDr6qHOafHxrxE9Xc910-Y7VT8qLW4rO3D4zgHzKS-9KMvk7NvIB/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
 
         // --- GLOBAL STATE ---
         let html5QrCode = null;
@@ -174,24 +174,19 @@
             
             showNotification("Checking duck...");
 
-            // --- THIS IS THE FIX ---
-            // It intelligently handles both raw IDs and full URLs.
             let finalDuckId = decodedText;
             try {
-                // Check if the decoded text is a valid URL
                 const url = new URL(decodedText);
-                // If it has a 'duckId' parameter, use that as the ID
                 if (url.searchParams.has('duckId')) {
                     finalDuckId = url.searchParams.get('duckId');
                 }
             } catch (e) {
-                // If it's not a valid URL, we assume it's just the raw ID. Do nothing.
+                // Not a valid URL, assume it's a raw ID.
             }
-            // --- END OF FIX ---
 
             const payload = {
                 action: "scanDuck",
-                duckId: finalDuckId, // Use the extracted ID
+                duckId: finalDuckId,
                 studentId: currentUser.studentId
             };
 
