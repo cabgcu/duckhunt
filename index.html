@@ -24,17 +24,21 @@
             justify-content: center;
             align-items: center;
         }
-        /* MODIFIED: Shifted the entire content block up slightly */
         #hunt-content-wrapper {
             position: absolute;
-            top: 45%; /* Was 50% */
+            top: 45%;
             left: 50%;
             transform: translate(-50%, -50%);
             width: 85%;
             max-width: 350px;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem; /* MODIFIED: Reduced gap to bring items closer */
+        }
+        #hunt-content-wrapper .header-image {
+            width: 80%;
+            margin: -2rem auto 0.2rem auto;
+            display: block;
         }
         #qr-reader-container { 
             padding: 0; 
@@ -289,8 +293,8 @@
                     errorPop.style.color = 'white'; 
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    // MODIFIED: Error message now lasts 3 seconds
-                    setTimeout(() => errorPop.remove(), 3000);
+                    // MODIFIED: Error message now lasts 4 seconds
+                    setTimeout(() => errorPop.remove(), 4000);
 
                     if (result.message.includes("Daily limit")) {
                         triggerFrostAnimation();
