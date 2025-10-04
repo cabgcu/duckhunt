@@ -158,49 +158,64 @@
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
 
+        // ==========================================================
+        // 🚨 iOS/IN-APP BROWSER FIX LOGIC 🚨
+        // ==========================================================
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isStandalone = window.navigator.standalone === true;
+
+        if (isIOS && !isStandalone) {
+            // If we detect iOS but the app is NOT running from the Home Screen, 
+            // we display an error message over the login view to guide the user.
+            const headerCard = document.getElementById('header-card');
+            headerCard.innerHTML = `
+                <h3 style="color: #ffeb3b;">🚫 IMPORTANT: Access Error 🚫</h3>
+                <p style="font-size: 1.1rem;">Buttons may not work because you are in a restricted browser view.</p>
+                <p style="font-size: 0.9rem; margin-top: 15px;">Please tap the **Share** button ($\u2191$) below and select **"Open in Safari"** or **"Add to Home Screen"** to continue.</p>
+            `;
+            // Prevent all further interaction on this screen
+            headerCard.style.pointerEvents = 'none'; 
+        }
+        // ==========================================================
+
+
         // --- CORE FUNCTIONS ---
         
         /**
-         * The CORRECTED onScanSuccess function using a Firestore Transaction.
+         * The CORRECTED onScanSuccess function.
          * 1. Enforces 'Duck dead after one scan, globally'.
          * 2. Dynamically reads the correct 'Points' value from the 'ducks' document.
          */
         function onScanSuccess(decodedText) {
-            // Stop scanning immediately to prevent duplicate reads
+            // Block scanning if the iOS fix is active
+            if (isIOS && !isStandalone) return; 
+
             stopScanner(); 
             
             let duckId = decodedText;
 
-            // 1. Extract duckId from URL if it's a URL
             try {
                 const url = new URL(decodedText);
                 if (url.searchParams.has('duckId')) {
                     duckId = url.searchParams.get('duckId');
                 }
-            } catch (e) { /* Not a valid URL, assume it's just the ID */ }
+            } catch (e) { /* Not a valid URL */ }
 
-            // References
             const duckRef = db.collection("ducks").doc(duckId);
             const userRef = db.collection("users").doc(currentUser.id);
             const historyRef = userRef.collection("scanHistory");
 
-            // Use a transaction for atomic read-and-write
             db.runTransaction(async (transaction) => {
 
-                // READ 1: Get the central duck document (to check status AND get points)
                 const duckDoc = await transaction.get(duckRef);
-
-                // --- VALIDATION CHECKS ---
 
                 if (!duckDoc.exists) {
                     return { status: 'error', message: `Duck code "${duckId}" is invalid (not found in database).` };
                 }
                 
-                // --- FIX: READ DYNAMIC POINTS VALUE FROM THE DOCUMENT ---
-                // We ensure points is a number, defaulting to 100 if the field is missing/corrupted
+                // Dynamically read points from the duck document
                 const pointsAwarded = parseInt(duckDoc.data().points) || 100;
                 
-                // Check 2: Has the duck already been found by someone? (THE GLOBAL LOCK)
                 if (duckDoc.data().foundBy) {
                     const foundById = duckDoc.data().foundBy;
                     let message = `This duck has already been claimed by another user. (It was worth ${pointsAwarded} points)`;
@@ -212,20 +227,17 @@
                     return { status: 'error', message: message };
                 }
 
-                // --- NEW FIND (ATOMIC WRITE OPERATIONS) ---
+                // --- NEW FIND (ATOMIC WRITE) ---
                 
-                // A. Mark the central duck document as found (This 'kills' the duck code)
                 transaction.update(duckRef, {
                     foundBy: currentUser.id,
                     foundAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // B. Increment the user's total points, using the DYNAMIC value
                 transaction.update(userRef, {
                     points: firebase.firestore.FieldValue.increment(pointsAwarded)
                 });
                 
-                // C. Add the scan to the user's personal history, using the DYNAMIC value
                 const newHistoryRef = historyRef.doc();
                 transaction.set(newHistoryRef, {
                     location: duckId,
@@ -237,24 +249,21 @@
 
             })
             .then((result) => {
-                // Handle success and error notifications
                 if (result.status === 'success') {
                     showNotification(`🎉 +${result.points} Points! New Duck Found!`);
                 } else if (result.status === 'error') {
                     showNotification(`⚠️ ${result.message}`);
                 }
-                // Restart scanner *after* transaction and notification are complete
                 startScanner(); 
             })
             .catch((error) => {
                 console.error("Scanning transaction failed: ", error);
                 showNotification("🚫 A system error occurred. Please try again.");
-                // Restart scanner even on failure to allow retry
                 startScanner(); 
             });
         }
         
-        // --- SUPPORT FUNCTIONS (UNMODIFIED) ---
+        // --- SUPPORT FUNCTIONS ---
 
         function checkForInitialDuck() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -266,6 +275,9 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
+            // ONLY continue if not blocked by the iOS fix
+            if (isIOS && !isStandalone) return; 
+            
             checkForInitialDuck();
 
             document.getElementById('tab-bar').innerHTML = `<button class="tab-button" data-page="hunt-page">Scanner</button><button class="tab-button" data-page="map-page">Map</button><button class="tab-button" data-page="leaderboard-page">Board</button><button class="tab-button" data-page="log-page">Log</button><button class="tab-button" data-page="info-page">Info</button>`;
@@ -308,14 +320,12 @@
                     .catch(error => alert(error.message));
             });
             
-            // Unchanged utility functions below
             document.getElementById('tab-bar').addEventListener('click', e => { if (e.target.matches('.tab-button')) switchPage(e.target.dataset.page); });
             document.getElementById('register-btn').addEventListener('click', () => { loginView.classList.add('hidden'); registrationView.classList.remove('hidden'); });
             document.getElementById('back-btn').addEventListener('click', () => { registrationView.classList.add('hidden'); loginView.classList.remove('hidden'); });
             document.getElementById('close-instructions').addEventListener('click', () => { document.getElementById('instructions-card').style.display = 'none'; });
             document.getElementById('info-to-hunt-btn').addEventListener('click', () => { switchPage('hunt-page'); });
             
-            // Redefined functions that interact with the UI/State:
             showNotification = (message) => {const el=document.getElementById('scan-notification'); el.innerHTML=`<p>${message}</p>`; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 3000);};
             updateUserDashboardData = () => { 
                 if (!currentUser) return; 
@@ -362,6 +372,8 @@
 
             // QR Code Scanner Control
             startScanner = () => {
+                 if (isIOS && !isStandalone) return; // Block scanner if the fix is active
+                 
                 if (document.getElementById('hunt-page')?.classList.contains('active')) {
                     if (!html5QrCode) {
                          html5QrCode = new Html5Qrcode("qr-reader"); 
