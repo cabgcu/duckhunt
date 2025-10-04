@@ -148,7 +148,7 @@
         // --- GLOBAL STATE ---
         let html5QrCode = null;
         let currentUser = null;
-        let initialDuckId = null; // <-- RESTORED: Variable to hold duck ID from URL
+        let initialDuckId = null;
 
         // --- DOM REFERENCES ---
         const loginScreen = document.getElementById('login-screen');
@@ -157,8 +157,6 @@
         const registrationView = document.getElementById('registration-view');
 
         // --- CORE FUNCTIONS ---
-
-        // <-- RESTORED: Function to check URL for a duck ID on page load
         function checkForInitialDuck() {
             const urlParams = new URLSearchParams(window.location.search);
             const duckId = urlParams.get('duckId');
@@ -176,9 +174,24 @@
             
             showNotification("Checking duck...");
 
+            // --- THIS IS THE FIX ---
+            // It intelligently handles both raw IDs and full URLs.
+            let finalDuckId = decodedText;
+            try {
+                // Check if the decoded text is a valid URL
+                const url = new URL(decodedText);
+                // If it has a 'duckId' parameter, use that as the ID
+                if (url.searchParams.has('duckId')) {
+                    finalDuckId = url.searchParams.get('duckId');
+                }
+            } catch (e) {
+                // If it's not a valid URL, we assume it's just the raw ID. Do nothing.
+            }
+            // --- END OF FIX ---
+
             const payload = {
                 action: "scanDuck",
-                duckId: decodedText,
+                duckId: finalDuckId, // Use the extracted ID
                 studentId: currentUser.studentId
             };
 
@@ -250,16 +263,14 @@
             updateUserDashboard();
             switchPage('hunt-page');
 
-            // <-- RESTORED: Process the duck ID from the URL after signing in
             if (initialDuckId) {
                 onScanSuccess(initialDuckId);
-                initialDuckId = null; // Clear it so it doesn't run again
+                initialDuckId = null; 
             }
         }
         
         async function updateUserDashboard() {
             if (!currentUser) return;
-            // Re-fetch user data to get the latest points
             const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`);
             const result = await response.json();
              if (result.status === "success") {
@@ -276,7 +287,7 @@
                 const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
                 const leaderboardData = await response.json();
                 let html = '';
-                leaderboardData.slice(0, 20).forEach((player, index) => { // Show top 20
+                leaderboardData.slice(0, 20).forEach((player, index) => {
                     html += `<li class="leaderboard-item"><span>${index + 1}. ${player.firstName} ${player.lastName}</span><span>${player.points}</span></li>`;
                 });
                 listElement.innerHTML = html;
@@ -286,7 +297,6 @@
             }
         }
 
-        // --- UI & SCANNER CONTROL ---
         function showNotification(message) {
             const el = document.getElementById('scan-notification');
             el.innerHTML = `<p>${message}</p>`;
@@ -325,9 +335,8 @@
             }
         }
 
-        // --- EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
-            checkForInitialDuck(); // <-- RESTORED: Check the URL on page load
+            checkForInitialDuck();
 
             const savedStudentId = sessionStorage.getItem('currentUserStudentId');
             if (savedStudentId) {
