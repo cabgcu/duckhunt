@@ -6,6 +6,9 @@
     <title>Duck Hunt 2025</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
     <style>
         :root {
             --green: #60A34D;
@@ -55,8 +58,8 @@
         #header-card { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; }
         #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
         .input-group { display: flex; flex-direction: column; gap: 1rem; }
-        .reg-input, #student-id-login { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; outline: none; transition: all 0.3s ease; }
-        .reg-input:hover, #student-id-login:hover, .reg-input:focus, #student-id-login:focus { border-color: var(--green); box-shadow: 0 0 15px var(--green); }
+        .reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; outline: none; transition: all 0.3s ease; }
+        .reg-input:hover, #login-studentid:hover, .reg-input:focus, #login-studentid:focus { border-color: var(--green); box-shadow: 0 0 15px var(--green); }
         footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
         .footer-logo { height: 40px; }
 
@@ -65,7 +68,7 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; }
         
-        #stats-bar { display: flex; justify-content: space-around; padding: 0.8rem; flex-shrink: 0; }
+        #stats-bar { padding: 0.8rem; flex-shrink: 0; display: flex; justify-content: space-around; }
         .stat { display: flex; align-items: baseline; justify-content: center; gap: 0.5rem; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
@@ -75,7 +78,7 @@
         
         #map-page { padding-left: 0; padding-right: 0; }
         #map-container { flex-grow: 1; overflow: auto; position: relative; border-radius: 20px; }
-        #map-container img { width: 350%; /* UPDATED: Adjusted zoom */ height: auto; max-width: none; }
+        #map-container img { width: 350%; height: auto; max-width: none; }
         .map-zone { position: absolute; padding: 0.8rem; }
         #zone1 { top: 25%; left: 50%; transform: translateX(-50%); } 
         #zone2 { top: 60%; left: 30%; transform: translateX(-50%); }
@@ -103,27 +106,25 @@
 <body>
     <div id="lava-container"></div>
     <div id="scan-notification" class="glass-card"></div>
-
     <div id="login-screen" class="screen visible">
         <div class="glass-card" id="instructions-card"><p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p><button id="close-instructions">&times;</button></div>
         <div class="glass-card" id="header-card">
             <div id="login-view">
                 <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <div class="input-group"><input type="text" id="student-id-login" placeholder="Student ID"></div>
+                <div class="input-group"><input type="text" id="login-studentid" class="reg-input" placeholder="Student ID"></div>
                 <div class="button-group"><button id="signin-btn" class="secondary-btn">Sign In</button><button id="register-btn" class="primary-btn">Register</button></div>
             </div>
             <div id="registration-view" class="hidden">
                 <h3>Welcome To The Hunt!</h3>
                 <div class="input-group">
                     <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
-                    <input type="email" id="reg-email" class="reg-input" placeholder="Email"><input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID">
+                    <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
                 </div>
                 <div class="button-group"><button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button></div>
             </div>
         </div>
         <footer><img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo"><p>Hosted By the Canyon Activities Board at Grand Canyon University</p></footer>
     </div>
-
     <div id="app-wrapper" class="screen">
         <main id="app-container">
             <section id="hunt-page" class="app-page"><h2 id="welcome-message"></h2><div id="stats-bar" class="glass-card"><div class="stat"><h4>POINTS:</h4><p id="player-points">0</p></div><div class="stat"><h4>DUCKS:</h4><p id="player-ducks">0</p></div></div><div id="qr-reader-container" class="glass-card"><div id="qr-reader"></div></div></section>
@@ -136,139 +137,104 @@
     </div>
 
     <script>
-        // --- FAKE BACKEND / DATA SIMULATION ---
-        let registeredUsers = [{ id: 1, firstName: 'Elphaba', studentId: '12345', points: 1500}, { id: 2, firstName: 'Glinda', studentId: '67890', points: 1250 }];
-        let scanLog = [];
+        // --- FIREBASE INITIALIZATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBNDPLuh7bHlJ6xYkmLHFXmMaHwQ7h4J-s",
+            authDomain: "duck-hunt-2025.firebaseapp.com",
+            projectId: "duck-hunt-2025",
+            storageBucket: "duck-hunt-2025.appspot.com",
+            messagingSenderId: "899115592841",
+            appId: "1:899115592841:web:87df520ea1d410187e6a58"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // --- GLOBAL STATE ---
-        let html5QrCode = null;
-        let currentUser = null;
-        
-        // --- DOM ELEMENT REFERENCES ---
+        // --- GLOBAL STATE & DOM REFERENCES ---
+        let html5QrCode = null; let currentUser = null; let initialDuckId = null;
         const loginScreen = document.getElementById('login-screen');
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
 
         // --- CORE FUNCTIONS ---
-        function showNotification(message) {
-            const el=document.getElementById('scan-notification');
-            el.innerHTML=`<p>${message}</p>`;
-            el.classList.add('show');
-            setTimeout(()=>el.classList.remove('show'), 3000);
-        }
-
         function onScanSuccess(decodedText) {
-            showNotification(`+100 Points! Duck Found!`);
-            currentUser.points += 100;
-            scanLog.push({ location: decodedText, points: 100, timestamp: new Date() });
-            updateUserDashboardData();
-        }
+            let duckId = decodedText;
+            // Extract duckId from URL if it's a URL
+            try {
+                const url = new URL(decodedText);
+                if (url.searchParams.has('duckId')) {
+                    duckId = url.searchParams.get('duckId');
+                }
+            } catch (e) { /* Not a valid URL, assume it's just the ID */ }
 
-        function startScanner() {
-            if (document.getElementById('hunt-page')?.classList.contains('active')) {
-                html5QrCode = new Html5Qrcode("qr-reader");
-                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(err => {});
-            }
-        }
-
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().catch(err => {});
-            }
-        }
-
-        // --- UI FLOW & NAVIGATION ---
-        function showApp(user, startPage = 'hunt-page') {
-            currentUser = user;
-            loginScreen.classList.remove('visible');
-            setTimeout(() => {
-                appWrapper.classList.add('visible');
-                updateUserDashboardData();
-                switchPage(startPage);
-            }, 500);
-        }
-
-        function switchPage(pageId) {
-            stopScanner();
-            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
-            const page = document.getElementById(pageId);
-            if(page) page.classList.add('active');
-            
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            const button = document.querySelector(`.tab-button[data-page="${pageId}"]`);
-            if(button) button.classList.add('active');
-            
-            if (pageId === 'hunt-page') setTimeout(startScanner, 500);
-        }
-
-        // --- DATA RENDER FUNCTION ---
-        function updateUserDashboardData() {
-            document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
-            document.getElementById('player-points').textContent = currentUser.points;
-            document.getElementById('player-ducks').textContent = scanLog.length;
-            
-            document.getElementById('leaderboard-list').innerHTML = [...registeredUsers].sort((a,b) => b.points - a.points).map((user, i) => `<li class="leaderboard-item"><span class="rank">${i+1}</span><span class="name">${user.firstName}</span><span class="score">${user.points}</span></li>`).join('');
-
-            const logList = document.getElementById('log-list');
-            if(scanLog.length === 0){ logList.innerHTML = `<p>You haven't scanned any ducks yet.</p>`; } 
-            else { logList.innerHTML = [...scanLog].reverse().map(entry => `<div class="log-item"><div><div class="location">${entry.location}</div><div class="timestamp">${entry.timestamp.toLocaleTimeString()}</div></div><div class="points">+${entry.points}</div></div>`).join(''); }
-            
-            document.getElementById('info-container').innerHTML = `<details class="glass-card"><summary>Announcements</summary><p>Welcome, Hunters! The hunt begins at noon.</p></details><details class="glass-card"><summary>Rules & Prizes</summary><p>Scan ducks to win!</p></details>`;
+            const userRef = db.collection("users").doc(currentUser.id);
+            // In a real app, you would have a 'ducks' collection to look up points
+            const points = 100; 
+            userRef.update({ points: firebase.firestore.FieldValue.increment(points) });
+            userRef.collection("scanHistory").add({ location: duckId, points: points, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            showNotification(`+${points} Points!`);
         }
         
+        function checkForInitialDuck() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const duckId = urlParams.get('duckId');
+            if (duckId) {
+                initialDuckId = duckId;
+                showNotification("Welcome! Register or sign in to claim the duck you found!");
+            }
+        }
+        
+        function startScanner() { /* ... */ }
+        function stopScanner() { /* ... */ }
+        function showNotification(message) { /* ... */ }
+        function updateUserDashboardData() { /* ... */ }
+        function showApp(user, startPage = 'hunt-page') { /* ... */ }
+        function switchPage(pageId) { /* ... */ }
+
         // --- EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
+            checkForInitialDuck(); // NEW: Check for a duckId in the URL on load
+
             document.getElementById('tab-bar').innerHTML = `<button class="tab-button" data-page="hunt-page">Duck Scanner</button><button class="tab-button" data-page="map-page">Map</button><button class="tab-button" data-page="leaderboard-page">Leaderboard</button><button class="tab-button" data-page="log-page">Log</button><button class="tab-button" data-page="info-page">Info</button>`;
 
             document.getElementById('signin-btn').addEventListener('click', () => { 
-                const studentId = document.getElementById('student-id-login').value.trim();
-                const user = registeredUsers.find(u => u.studentId === studentId);
-                if (user) {
-                    showApp(user, 'hunt-page');
-                } else {
-                    alert('Student ID not found. Please register first.');
-                }
+                const studentId = document.getElementById('login-studentid').value.trim();
+                if (!studentId) return alert("Please enter your Student ID.");
+                
+                db.collection("users").where("studentId", "==", studentId).get()
+                    .then((querySnapshot) => {
+                        if (querySnapshot.empty) { throw new Error("Student ID not found. Please register first."); }
+                        const userDoc = querySnapshot.docs[0];
+                        showApp({ id: userDoc.id, ...userDoc.data() });
+                    })
+                    .catch(error => alert(error.message));
             });
 
             document.getElementById('submit-btn').addEventListener('click', () => {
-                const newUser = { 
-                    id: Date.now(), 
-                    firstName: document.getElementById('reg-firstname').value.trim(), 
-                    lastName: document.getElementById('reg-lastname').value.trim(), 
-                    email: document.getElementById('reg-email').value.trim(), 
-                    studentId: document.getElementById('reg-studentid').value.trim(), 
-                    points: 0 
-                };
-                if (newUser.firstName && newUser.studentId) {
-                    registeredUsers.push(newUser);
-                    showApp(newUser, 'info-page');
-                } else { 
-                    alert('Please fill out all fields.'); 
-                }
-            });
+                const newUser = { firstName: document.getElementById('reg-firstname').value.trim(), lastName: document.getElementById('reg-lastname').value.trim(), studentId: document.getElementById('reg-studentid').value.trim(), email: document.getElementById('reg-email').value.trim(), points: 0, scanHistory: [] };
+                if (!newUser.firstName || !newUser.studentId || !newUser.email) { return alert('Please fill out your name, student ID, and email.'); }
 
-            document.getElementById('tab-bar').addEventListener('click', e => { 
-                if (e.target.matches('.tab-button')) switchPage(e.target.dataset.page); 
+                db.collection("users").where("studentId", "==", newUser.studentId).get()
+                    .then((querySnapshot) => {
+                        if (!querySnapshot.empty) { alert("This Student ID is already registered. Please go back and sign in."); } 
+                        else { db.collection("users").add(newUser).then((docRef) => { newUser.id = docRef.id; showApp(newUser, 'info-page'); }).catch(error => alert(error.message)); }
+                    })
+                    .catch(error => alert(error.message));
             });
-
-            document.getElementById('register-btn').addEventListener('click', () => { 
-                loginView.classList.add('hidden'); 
-                registrationView.classList.remove('hidden'); 
-            });
-
-            document.getElementById('back-btn').addEventListener('click', () => { 
-                registrationView.classList.add('hidden'); 
-                loginView.classList.remove('hidden'); 
-            });
-
-            document.getElementById('close-instructions').addEventListener('click', () => { 
-                document.getElementById('instructions-card').style.display = 'none'; 
-            });
-
-            document.getElementById('info-to-hunt-btn').addEventListener('click', () => {
-                switchPage('hunt-page');
-            });
+            
+            // Unchanged Listeners and Functions Below...
+            document.getElementById('tab-bar').addEventListener('click', e => { if (e.target.matches('.tab-button')) switchPage(e.target.dataset.page); });
+            document.getElementById('register-btn').addEventListener('click', () => { loginView.classList.add('hidden'); registrationView.classList.remove('hidden'); });
+            document.getElementById('back-btn').addEventListener('click', () => { registrationView.classList.add('hidden'); loginView.classList.remove('hidden'); });
+            document.getElementById('close-instructions').addEventListener('click', () => { document.getElementById('instructions-card').style.display = 'none'; });
+            document.getElementById('info-to-hunt-btn').addEventListener('click', () => { switchPage('hunt-page'); });
+            
+            showNotification = (message) => {const el=document.getElementById('scan-notification'); el.innerHTML=`<p>${message}</p>`; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 3000);};
+            updateUserDashboardData = () => { if (!currentUser) return; db.collection("users").doc(currentUser.id).onSnapshot((doc) => { const userData = doc.data(); if (userData) { currentUser = { id: doc.id, ...userData }; document.getElementById('welcome-message').textContent = `Welcome, ${userData.firstName}!`; document.getElementById('player-points').textContent = userData.points; } }); db.collection("users").doc(currentUser.id).collection("scanHistory").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => { const logList = document.getElementById('log-list'); document.getElementById('player-ducks').textContent = querySnapshot.size; if (querySnapshot.empty) { logList.innerHTML = `<p>You haven't scanned any ducks yet.</p>`; } else { let historyHtml = ''; querySnapshot.forEach(doc => { const entry = doc.data(); historyHtml += `<div class="log-item"><div><div class="location">${entry.location}</div><div class="timestamp">${entry.timestamp.toDate().toLocaleTimeString()}</div></div><div class="points">+${entry.points}</div></div>`; }); logList.innerHTML = historyHtml; } }); };
+            showApp = (user, startPage = 'hunt-page') => { currentUser = user; loginScreen.classList.remove('visible'); setTimeout(() => { appWrapper.classList.add('visible'); updateUserDashboardData(); switchPage(startPage); if (initialDuckId) { onScanSuccess(initialDuckId); initialDuckId = null; } }, 500); };
+            startScanner = () => {if (document.getElementById('hunt-page')?.classList.contains('active')) {html5QrCode = new Html5Qrcode("qr-reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(err => {});}};
+            stopScanner = () => {if (html5QrCode && html5QrCode.isScanning) {html5QrCode.stop().catch(err => {});}};
+            switchPage = (pageId) => {stopScanner(); document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active')); const page = document.getElementById(pageId); if(page) page.classList.add('active'); document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active')); const button = document.querySelector(`.tab-button[data-page="${pageId}"]`); if(button) button.classList.add('active'); if (pageId === 'hunt-page') setTimeout(startScanner, 500);};
         });
     </script>
 </body>
