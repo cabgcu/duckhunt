@@ -154,7 +154,7 @@
         // --- GLOBAL STATE & DOM REFERENCES ---
         let html5QrCode = null; 
         let currentUser = null; 
-        let initialDuckId = null;
+        let initialDuckId = null; 
         const loginScreen = document.getElementById('login-screen');
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
@@ -163,9 +163,6 @@
 
         // --- NEW/UPDATED HELPER FUNCTIONS ---
 
-        /**
-         * Triggers the flying duck emoji animation.
-         */
         function triggerDuckAnimation() {
             const duckEmojis = ['🦆', '🐥', '🦢', '🐤', '🐧'];
             const container = document.body;
@@ -195,9 +192,6 @@
             }
         }
 
-        /**
-         * Displays a temporary notification banner.
-         */
         let showNotification = (message, isError = false) => {
             const el=document.getElementById('scan-notification'); 
             el.innerHTML=`<p>${message}</p>`; 
@@ -207,9 +201,6 @@
         
         // --- CORE SCANNING LOGIC (FIXED) ---
         
-        /**
-         * Implements the global single-scan lock using a Firestore Transaction.
-         */
         function onScanSuccess(decodedText) {
             let duckId = decodedText;
             
@@ -221,6 +212,8 @@
             } catch (e) { /* Not a valid URL */ }
 
             if (!currentUser) {
+                // If the user isn't logged in, store the ID and show a message, but don't hit the DB yet.
+                initialDuckId = duckId;
                 showNotification("Please sign in or register to claim this duck!", true);
                 return;
             }
@@ -264,7 +257,7 @@
                 const newHistoryRef = historyRef.doc();
                 transaction.set(newHistoryRef, {
                     location: duckId,
-                    type: duckType, // Logging the type
+                    type: duckType, 
                     points: points,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -275,7 +268,7 @@
             .then((result) => {
                 if (result.status === 'success') {
                     showNotification(`🎉 +${result.points} Points! New ${result.duckType} Found!`, false);
-                    triggerDuckAnimation(); // Visual effect
+                    triggerDuckAnimation(); 
                 } else if (result.status === 'error') {
                     showNotification(`⚠️ ${result.message}`, true);
                 }
@@ -292,37 +285,57 @@
             const urlParams = new URLSearchParams(window.location.search);
             const duckId = urlParams.get('duckId');
             if (duckId) {
+                // Store the ID found in the URL. It will be processed on login/registration.
                 initialDuckId = duckId;
-                showNotification("Welcome! Register or sign in to claim the duck you found!");
+                showNotification("Welcome! Sign in or register to claim the duck you found!", false);
             }
         }
         
         function startScanner() {
-            if (document.getElementById('hunt-page')?.classList.contains('active')) {
-                html5QrCode = new Html5Qrcode("qr-reader"); 
-                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(err => {
-                    console.error("Scanner failed to start:", err);
-                });
+            const qrReaderDiv = document.getElementById('qr-reader');
+            if (!qrReaderDiv || !document.getElementById('hunt-page')?.classList.contains('active')) {
+                return;
             }
+
+            html5QrCode = new Html5Qrcode("qr-reader"); 
+            
+            // Check if camera is already running (stop it if so, to avoid error)
+            if (html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => console.error("Error stopping scanner:", err));
+            }
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } }, 
+                onScanSuccess,
+                // On scan failure (e.g., cannot find QR code, ignore)
+                (errorMessage) => { } 
+            )
+            .catch(err => {
+                // FIX: Better error message for camera access issues
+                console.error("Camera access failed. Ensure you are on HTTPS and granted permissions:", err);
+                qrReaderDiv.innerHTML = '<p style="color:red;padding:20px;">Camera access denied or device not supported. Please ensure your site is served over HTTPS and camera permission is granted.</p>';
+                showNotification("Camera error. Please ensure permissions are granted.", true);
+            });
         }
         
         function stopScanner() {
             if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().catch(err => {});
+                html5QrCode.stop().catch(err => {
+                    console.error("Error stopping scanner:", err);
+                });
             }
         }
         
         function fetchLeaderboard() {
             const leaderboardList = document.getElementById('leaderboard-list');
             
-            // Real-time listener for the leaderboard status
             db.collection("users").orderBy("points", "desc").limit(20).onSnapshot((querySnapshot) => {
                 leaderboardList.innerHTML = '';
                 let rank = 1;
                 querySnapshot.forEach(doc => {
                     const user = doc.data();
                     
-                    // FIX: Display First Name and Last Initial for privacy
                     const firstName = user.firstName || '';
                     const lastInitial = user.lastName ? user.lastName[0] + '.' : '';
                     const display_name = `${firstName} ${lastInitial}`.trim();
@@ -367,7 +380,6 @@
                         const entry = doc.data(); 
                         const timeString = entry.timestamp ? entry.timestamp.toDate().toLocaleTimeString() : 'Just now';
 
-                        // Displaying duck type
                         historyHtml += `
                             <li class="log-item glass-card">
                                 <div>
@@ -392,9 +404,11 @@
                 appWrapper.classList.add('visible'); 
                 updateUserDashboardData(); 
                 switchPage(startPage); 
+                
+                // FIX: Process the initial duck ID from the URL now that the user is logged in
                 if (initialDuckId) { 
                     onScanSuccess(initialDuckId); 
-                    initialDuckId = null; 
+                    initialDuckId = null; // Clear the stored ID after trying to claim
                 } 
             }, 500); 
         }
@@ -416,7 +430,7 @@
         // --- EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
             checkForInitialDuck();
-
+            
             // Tab bar rendering
             document.getElementById('tab-bar').innerHTML = `
                 <button class="tab-button active" data-page="hunt-page">Scanner</button>
