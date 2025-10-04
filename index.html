@@ -3,336 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wicked Background</title>
+    <title>Duck Hunt 2025</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <style>
+        :root {
+            --green: #60A34D;
+            --pink: #ff69b4;
+            --card-bg: rgba(25, 25, 25, 0.4);
+            --border-color: rgba(255, 255, 255, 0.15);
+        }
+
         body {
             margin: 0;
             background-color: #000;
             overflow: hidden;
-            font-family: sans-serif;
-        }
-
-        #lava-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
-        
-        #instructions-card {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            
-            padding: 0.8rem 1.2rem;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 450px;
-            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             color: white;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center; /* NEW: Global text centering */
         }
 
-        #instructions-card p { margin: 0; font-size: 0.9rem; }
-        
-        #close-instructions {
-            background: none; border: none; color: white;
-            font-size: 1.8rem; font-weight: bold; cursor: pointer;
-            padding: 0 0 0 1rem; line-height: 1;
+        /* --- Animated Background --- */
+        #lava-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
         }
-        
-        #header-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1.5rem;
-            border-radius: 20px;
-            width: 85%;
-            max-width: 350px;
-            box-sizing: border-box;
-        }
-
-        .card-view {
-            display: none;
-            flex-direction: column;
-            gap: 1rem;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-        }
-        .card-view.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .header-image { display: block; width: 100%; margin-bottom: 1.5rem; }
-
-        .reg-input, #student-id-login {
-            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white;
-            text-align: center;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .reg-input:hover, #student-id-login:hover,
-        .reg-input:focus, #student-id-login:focus {
-            border-color: #60A34D;
-            box-shadow: 0 0 15px #60A34D;
-        }
-
-        .reg-input::placeholder, #student-id-login::placeholder { color: rgba(255, 255, 255, 0.7); }
-
-        .button-group { display: flex; gap: 0.5rem; }
-        
-        .button-group button {
-            flex: 1; border-radius: 10px; padding: 12px 15px;
-            font-size: 1.1rem; font-weight: bold; cursor: pointer;
-            border: 2px solid #60A34D; transition: all 0.3s ease;
-        }
-        
-        #register-btn, #submit-btn, #start-btn { background-color: #60A34D; color: white; }
-        #signin-btn, #back-btn, #logout-btn { background-color: transparent; color: #60A34D; }
-
-        #signin-btn:hover, #back-btn:hover, #logout-btn:hover { background-color: #60A34D; color: white; box-shadow: 0 0 15px #60A34D; }
-        #register-btn:hover, #submit-btn:hover, #start-btn:hover { background-color: #4b823e; border-color: #4b823e; box-shadow: 0 0 15px #60A34D; }
-        
-        .card-view h3 { color: white; text-align: center; margin: 0 0 0.5rem 0; }
-        .card-view p { color: rgba(255, 255, 255, 0.9); text-align: center; margin: 0; font-size: 0.95rem; line-height: 1.4; }
-
-        #leaderboard-link {
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: underline;
-            margin-top: 0.5rem;
-        }
-
-        /* NEW: Styles for the QR Scanner card */
-        #qr-reader {
-            width: 100%;
-            border-radius: 10px;
-            border: 2px solid #60A34D;
-            box-shadow: 0 0 15px #60A34D; /* Green glow effect */
-            overflow: hidden; /* Keeps the camera feed inside the rounded corners */
-        }
-        
-        footer {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; z-index: 20;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
-        }
-
-        .footer-logo { height: 40px; width: auto; }
-        footer p { margin: 0; text-align: center; }
-
         #lava-container::before, #lava-container::after {
             content: ''; position: absolute; width: 50vmax; height: 50vmax;
             border-radius: 50%; opacity: 0.6; mix-blend-mode: lighten; filter: blur(100px);
         }
-        #lava-container::before {
-            background-color: #ff69b4; top: -25vmax; left: -25vmax;
-            animation: move-pink 25s infinite linear;
+        #lava-container::before { background-color: var(--pink); top: -25vmax; left: -25vmax; animation: move-pink 25s infinite linear; }
+        #lava-container::after { background-color: var(--green); bottom: -25vmax; right: -25vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
+
+        /* --- Login Screen Elements --- */
+        .login-screen-element {
+            position: absolute;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
         }
-        #lava-container::after {
-            background-color: #60A34D; bottom: -25vmax; right: -25vmax;
-            animation: move-green 20s infinite linear; animation-delay: -10s;
+        #instructions-card {
+            top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color); padding: 0.8rem 1.2rem;
+            border-radius: 12px; width: 90%; max-width: 450px;
+            box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        @keyframes move-pink {
-            0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); }
-            50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); }
+        #instructions-card p { margin: 0; font-size: 0.9rem; }
+        #close-instructions { background: none; border: none; color: white; font-size: 1.8rem; font-weight: bold; cursor: pointer; padding: 0 0 0 1rem; line-height: 1; }
+        
+        #header-card {
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color); border-radius: 20px; padding: 1.5rem;
+            width: 85%; max-width: 350px;
+            box-sizing: border-box; /* ADDED for consistency */
         }
-        @keyframes move-green {
-            0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); }
-            50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); }
+        
+        /* UPDATED: Consistent flex layout for both login and registration views */
+        #login-view, #registration-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Increased gap for better spacing */
         }
+
+        .header-image { display: block; width: 100%; }
+        
+        .input-group, .button-group { display: flex; flex-direction: column; gap: 1rem; }
+        .button-group { flex-direction: row; gap: 0.5rem; }
+
+        .reg-input, #student-id-login {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white;
+            text-align: center; outline: none; transition: all 0.3s ease;
+        }
+        .reg-input:hover, #student-id-login:hover, .reg-input:focus, #student-id-login:focus { border-color: var(--green); box-shadow: 0 0 15px var(--green); }
+        
+        .button-group button { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; }
+        #register-btn, #submit-btn { background-color: var(--green); color: white; }
+        #signin-btn, #back-btn { background-color: transparent; color: var(--green); }
+        #signin-btn:hover, #back-btn:hover { background-color: var(--green); color: white; box-shadow: 0 0 15px var(--green); }
+        #register-btn:hover, #submit-btn:hover { background-color: #4b823e; border-color: #4b823e; box-shadow: 0 0 15px var(--green); }
+        #registration-view h3 { margin: 0; }
+        
+        footer {
+            bottom: 0; left: 0; right: 0;
+            padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+        }
+        .footer-logo { height: 40px; } footer p { margin: 0; }
+
+        /* --- Main App Dashboard --- */
+        .app-screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
+        .app-screen.visible { opacity: 1; pointer-events: auto; }
+        #app-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+        .app-page { width: 100%; height: 100%; box-sizing: border-box; padding: 1rem 1rem 80px 1rem; display: none; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
+        .app-page.active { display: flex; }
+        .app-page h2 { margin: 0; }
+        .glass-card { background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 20px; }
+        
+        #stats-bar { display: flex; justify-content: space-around; padding: 1rem; }
+        .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: normal; font-size: 0.8rem; }
+        .stat p { margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: bold; }
+        #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; }
+        #qr-reader { width: 100%; border-radius: 15px; overflow: hidden; }
+
+        #map-container { background: url(https://i.imgur.com/u0iT91s.png) no-repeat center center; background-size: cover; flex-grow: 1; border-radius: 20px; position: relative; }
+        .map-zone { position: absolute; padding: 0.8rem; }
+        .map-zone h5 { margin: 0; } .map-zone p { margin: 0.25rem 0 0 0; font-size: 0.8rem; }
+        #zone1 { top: 15%; left: 25%; } #zone2 { top: 60%; left: 55%; }
+
+        #leaderboard-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem; }
+        .leaderboard-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; }
+        .rank { font-size: 1.5rem; font-weight: bold; width: 30px; }
+        .name { flex-grow: 1; font-size: 1.1rem; text-align: left; } /* Keep names left-aligned */
+        .score { font-size: 1.2rem; font-weight: bold; }
+
+        .accordion details { margin-bottom: 1rem; }
+        .accordion summary { cursor: pointer; font-size: 1.2rem; font-weight: bold; padding: 1.5rem; text-align: left; }
+        .accordion p { padding: 0 1.5rem 1.5rem 1.5rem; margin: 0; line-height: 1.5; color: rgba(255,255,255,0.8); text-align: left; }
+        
+        #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+        .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 1rem; cursor: pointer; transition: color 0.3s ease; flex-grow: 1; }
+        .tab-button.active { color: var(--green); font-weight: bold; }
+        
+        @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); } 50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); } }
+        @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); } 50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); } }
     </style>
 </head>
 <body>
+    <div id="lava-container"></div>
 
-    <div id="instructions-card">
-        <p>Tap the <strong>Share</strong> icon (⇧) to add to your Home Screen!</p>
+    <div id="instructions-card" class="login-screen-element">
+        <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
         <button id="close-instructions">&times;</button>
     </div>
-
-    <div id="lava-container">
-        <div id="header-card">
-            
-            <div id="login-view" class="card-view">
-                <img class="header-image" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+    <div id="header-card" class="login-screen-element">
+        <div id="login-view">
+            <img class="header-image" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+            <div class="input-group">
                 <input type="text" id="student-id-login" placeholder="Student ID">
-                <div class="button-group">
-                    <button id="signin-btn">Sign In</button>
-                    <button id="register-btn">Register</button>
-                </div>
-                <div id="leaderboard-link">View Leaderboard</div>
             </div>
-
-            <div id="registration-view" class="card-view">
-                <h3>Welcome To The Hunt!</h3>
-                <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name">
-                <input type="text" class="reg-input" placeholder="Last Name">
-                <input type="email" class="reg-input" placeholder="Email">
-                <input type="text" class="reg-input" placeholder="Student ID">
-                <div class="button-group">
-                    <button id="back-btn">Back</button>
-                    <button id="submit-btn">Submit</button>
-                </div>
+            <div class="button-group">
+                <button id="signin-btn">Sign In</button>
+                <button id="register-btn">Register</button>
             </div>
-
-            <div id="how-to-play-view" class="card-view">
-                <h3>How To Play</h3>
-                <p>Find QR codes hidden around campus and scan them to score points. The hunter with the most points at the end wins!</p>
-                <div class="button-group">
-                    <button id="logout-btn">Log Out</button>
-                    <button id="start-btn">Start Hunting!</button>
-                </div>
+        </div>
+        <div id="registration-view" style="display: none;">
+            <h3>Welcome To The Hunt!</h3>
+            <div class="input-group">
+                <input type="text" class="reg-input" placeholder="First Name"><input type="text" class="reg-input" placeholder="Last Name">
+                <input type="email" class="reg-input" placeholder="Email"><input type="text" class="reg-input" placeholder="Student ID">
             </div>
-            
-            <div id="leaderboard-view" class="card-view">
-                <h3>Leaderboard</h3>
-                <p>The hunt has not yet begun. Check back here to see the top hunters once the event starts!</p>
-                <button id="back-to-login-btn">Back</button>
+            <div class="button-group">
+                <button id="back-btn">Back</button><button id="submit-btn">Submit</button>
             </div>
-            
-            <div id="scanner-view" class="card-view">
-                <h3 id="welcome-message">Welcome, Hunter!</h3>
-                <div id="qr-reader"></div>
-                <button id="scanner-logout-btn">Log Out</button>
-            </div>
-
         </div>
     </div>
-
-    <footer>
+    <footer class="login-screen-element">
         <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
         <p>Hosted By the Canyon Activities Board at Grand Canyon University</p>
     </footer>
 
-    <script>
-        // --- State and Element References ---
-        let currentUserName = '';
-        let html5QrCode = null;
+    <div id="app-wrapper" class="app-screen">
+        <main id="app-container">
+            <section id="hunt-page" class="app-page"><div id="stats-bar" class="glass-card"><div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div><div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div></div><div id="qr-reader-container" class="glass-card"><div id="qr-reader"></div></div></section>
+            <section id="map-page" class="app-page"><h2>Campus Map</h2><div id="map-container"><div id="zone1" class="map-zone glass-card"><h5>The Quad</h5><p>Ducks Left: 5</p></div><div id="zone2" class="map-zone glass-card"><h5>Library Lawn</h5><p>Ducks Left: 8</p></div></div></section>
+            <section id="leaderboard-page" class="app-page"><h2>Leaderboard</h2><ul id="leaderboard-list"><li class="leaderboard-item glass-card"><span class="rank">1</span><span class="name">Elphaba T.</span><span class="score">1500</span></li><li class="leaderboard-item glass-card"><span class="rank">2</span><span class="name">Glinda U.</span><span class="score">1250</span></li><li class="leaderboard-item glass-card"><span class="rank">3</span><span class="name">Nessarose T.</span><span class="score">900</span></li></ul></section>
+            <section id="info-page" class="app-page"><h2>Information</h2><div class="accordion"><details class="glass-card"><summary>Announcements</summary><p>Welcome, Hunters! The hunt begins at noon. Make sure your phone is charged and ready to go!</p></details><details class="glass-card"><summary>Rules & Prizes</summary><p>Find and scan ducks to earn points. The top 3 hunters win gift cards to the campus bookstore. Be respectful of campus property. Good luck!</p></details></div></section>
+        </main>
+        <nav id="tab-bar"></nav>
+    </div>
 
-        const allViews = document.querySelectorAll('.card-view');
+    <script>
+        let html5QrCode = null;
+        const loginScreenElements = document.querySelectorAll('.login-screen-element');
+        const appWrapper = document.getElementById('app-wrapper');
+        const tabBar = document.getElementById('tab-bar');
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
-        const howToPlayView = document.getElementById('how-to-play-view');
-        const leaderboardView = document.getElementById('leaderboard-view');
-        const scannerView = document.getElementById('scanner-view');
-
         const registerButton = document.getElementById('register-btn');
         const backButton = document.getElementById('back-btn');
         const signInButton = document.getElementById('signin-btn');
-        const logoutButton = document.getElementById('logout-btn');
-        const leaderboardLink = document.getElementById('leaderboard-link');
-        const backToLoginButton = document.getElementById('back-to-login-btn');
         const submitButton = document.getElementById('submit-btn');
-        const scannerLogoutButton = document.getElementById('scanner-logout-btn');
-        
-        const instructionsCard = document.getElementById('instructions-card');
         const closeInstructionsButton = document.getElementById('close-instructions');
-
-        // --- QR Scanner Functions ---
-        function onScanSuccess(decodedText, decodedResult) {
-            // Handle the scanned code here. For now, we'll just alert it.
-            alert(`QR Code Scanned! Result: ${decodedText}`);
-            stopScanner();
-            // You could switch to another view here, like a success screen
-        }
-
-        function startScanner() {
-            if (!html5QrCode) {
-                 html5QrCode = new Html5Qrcode("qr-reader");
-            }
-            html5QrCode.start(
-                { facingMode: "environment" }, // Use the back camera
-                {
-                    fps: 10,    // Optional, frames per second
-                    qrbox: { width: 250, height: 250 }  // Optional, size of scanning box
-                },
-                onScanSuccess)
-            .catch(err => {
-                console.log(`Unable to start scanning, error: ${err}`);
-            });
-        }
-
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    console.log("QR Code scanning stopped.");
-                }).catch(err => {
-                    console.log(`Unable to stop scanning, error: ${err}`);
-                });
-            }
-        }
-
-        // --- View Switching Function ---
-        function switchView(viewToShow) {
-            stopScanner(); // Always try to stop the scanner when leaving a view
-            allViews.forEach(view => view.classList.remove('active'));
-            viewToShow.classList.add('active');
-        }
-
-        // --- Initial View ---
-        switchView(loginView);
-
-        // --- Event Listeners ---
-        registerButton.addEventListener('click', () => switchView(registrationView));
-        backButton.addEventListener('click', () => switchView(loginView));
-        leaderboardLink.addEventListener('click', () => switchView(leaderboardView));
-        backToLoginButton.addEventListener('click', () => switchView(loginView));
         
-        const allLogoutButtons = [logoutButton, scannerLogoutButton];
-        allLogoutButtons.forEach(btn => {
-            btn.addEventListener('click', () => switchView(loginView));
-        });
-
-        signInButton.addEventListener('click', () => {
-            const studentIdInput = document.getElementById('student-id-login');
-            if (studentIdInput.value.trim() !== '') {
-                // Update welcome message and switch to scanner
-                const welcomeMsg = document.getElementById('welcome-message');
-                welcomeMsg.textContent = `Welcome, ${currentUserName || 'Hunter'}!`;
-                switchView(scannerView);
-                startScanner(); // Start the camera
-            } else {
-                alert('Please enter your Student ID.');
+        function onScanSuccess(decodedText) {
+            alert(`QR Code Scanned! Result: ${decodedText}`);
+            document.getElementById('player-points').textContent = parseInt(document.getElementById('player-points').textContent) + 100;
+            document.getElementById('player-ducks').textContent = parseInt(document.getElementById('player-ducks').textContent) + 1;
+        }
+        function startScanner() {
+            if (document.getElementById('hunt-page').classList.contains('active')) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
+                .catch(err => console.log(`Scanner start error: ${err}`));
             }
-        });
+        }
+        function stopScanner() { if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop().catch(err => console.log(`Scanner stop error: ${err}`)); }
 
-        submitButton.addEventListener('click', () => {
-            const firstNameInput = document.getElementById('reg-firstname');
-            currentUserName = firstNameInput.value.trim();
-            if(currentUserName){
-                switchView(howToPlayView); // Go to "How to Play" after registering
-            } else {
-                alert("Please enter your first name.");
-            }
-        });
+        function showApp() {
+            loginScreenElements.forEach(el => el.style.opacity = 0);
+            setTimeout(() => {
+                loginScreenElements.forEach(el => el.style.display = 'none');
+                appWrapper.classList.add('visible');
+                tabBar.innerHTML = `<button class="tab-button active" data-page="hunt-page">Hunt</button><button class="tab-button" data-page="map-page">Map</button><button class="tab-button" data-page="leaderboard-page">Leaders</button><button class="tab-button" data-page="info-page">Info</button>`;
+                switchPage('hunt-page');
+            }, 500);
+        }
 
-        closeInstructionsButton.addEventListener('click', () => {
-            instructionsCard.style.display = 'none';
-        });
-
+        const pages = document.querySelectorAll('.app-page');
+        function switchPage(pageId) {
+            stopScanner();
+            pages.forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[data-page="${pageId}"]`).classList.add('active');
+            
+            if (pageId === 'hunt-page') setTimeout(startScanner, 500);
+        }
+        
+        tabBar.addEventListener('click', e => { if (e.target.matches('.tab-button')) switchPage(e.target.dataset.page); });
+        registerButton.addEventListener('click', () => { loginView.style.display = 'none'; registrationView.style.display = 'flex'; });
+        backButton.addEventListener('click', () => { registrationView.style.display = 'none'; loginView.style.display = 'flex'; });
+        signInButton.addEventListener('click', () => { if (document.getElementById('student-id-login').value.trim() !== '') showApp(); else alert('Please enter your Student ID.'); });
+        submitButton.addEventListener('click', () => { if (document.querySelector('#registration-view .reg-input').value.trim() !== '') showApp(); else alert("Please enter your first name."); });
+        closeInstructionsButton.addEventListener('click', () => { document.getElementById('instructions-card').style.display = 'none'; });
     </script>
-
 </body>
 </html>
