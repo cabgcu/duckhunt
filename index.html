@@ -39,12 +39,12 @@
         .app-page { width: 100%; height: 100%; box-sizing: border-box; padding: 1rem 1rem 80px 1rem; display: none; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; }
-        #stats-bar { padding: 0.8rem; flex-shrink: 0; display: flex; justify-content: space-around; }
+        #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; min-height: 250px; position: relative; }
+        #qr-reader { width: 100%; border-radius: 15px; overflow: hidden; }
+        #scanner-overlay-stats { position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; z-index: 10; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); border-radius: 15px 15px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
         .stat { text-align: center; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-        #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; min-height: 250px; position: relative; }
-        #qr-reader { width: 100%; border-radius: 15px; overflow: hidden; }
         #map-page { padding-left: 0; padding-right: 0; }
         #map-container { flex-grow: 1; overflow: auto; position: relative; border-radius: 20px; }
         #map-container img { width: 350%; height: auto; max-width: none; }
@@ -59,18 +59,19 @@
         #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; }
         .tab-button.active { color: var(--green); }
-        #scan-notification { position: fixed; top: -150px; left: 50%; transform: translateX(-50%); z-index: 999; padding: 1rem 1.5rem; width: 80%; max-width: 350px; box-sizing: border-box; transition: top 0.5s ease-in-out; }
-        #scan-notification.show { top: 20px; }
+        .point-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-weight: bold; color: var(--green); text-shadow: 0 0 10px white; animation: float-up 1.5s ease-out forwards; pointer-events: none; }
+        @keyframes float-up { to { transform: translate(-50%, -250%); opacity: 0; } }
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
         @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
+        .frost-animation { position: absolute; top: -50px; font-size: 2rem; color: #aaddff; text-shadow: 0 0 10px white; animation: fall-and-fade linear forwards; pointer-events: none; z-index: 1000; }
+        @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
         @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); } 50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); } }
         @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); } 50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); } }
     </style>
 </head>
 <body>
     <div id="lava-container"></div>
-    <div id="scan-notification" class="glass-card"></div>
-
+    
     <div id="login-screen" class="screen visible">
         <div class="glass-card" id="instructions-card">
             <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
@@ -109,10 +110,13 @@
         <main id="app-container">
             <section id="hunt-page" class="app-page">
                 <h2 id="welcome-message"></h2>
-                <div id="stats-bar" class="glass-card">
-                    <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
+                <div id="qr-reader-container" class="glass-card">
+                    <div id="scanner-overlay-stats">
+                        <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
+                        <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
+                    </div>
+                    <div id="qr-reader"></div>
                 </div>
-                <div id="qr-reader-container" class="glass-card"><div id="qr-reader"></div></div>
             </section>
             
             <section id="map-page" class="app-page">
@@ -160,6 +164,7 @@
         let html5QrCode = null;
         let currentUser = null;
         let initialDuckId = null;
+        let ducksScannedCount = 0;
 
         // --- DOM REFERENCES ---
         const loginScreen = document.getElementById('login-screen');
@@ -167,18 +172,37 @@
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
 
-        // --- CORE FUNCTIONS ---
+        // --- ANIMATION FUNCTIONS ---
         function triggerDuckAnimation() {
-            const duck = document.createElement('div');
-            duck.textContent = '🦆';
-            duck.className = 'duck-animation';
-            duck.style.top = `${40 + Math.random() * 20}%`;
-            document.body.appendChild(duck);
-            setTimeout(() => {
-                duck.remove();
-            }, 2000);
+            const duckCount = Math.floor(Math.random() * 3) + 3;
+            for (let i = 0; i < duckCount; i++) {
+                setTimeout(() => {
+                    const duck = document.createElement('div');
+                    duck.textContent = '🦆';
+                    duck.className = 'duck-animation';
+                    duck.style.top = `${30 + Math.random() * 40}%`;
+                    duck.style.animationDuration = `${1.5 + Math.random()}s`;
+                    document.body.appendChild(duck);
+                    setTimeout(() => duck.remove(), 2500);
+                }, i * 200);
+            }
         }
 
+        function triggerFrostAnimation() {
+            const flakeCount = 15;
+            for (let i = 0; i < flakeCount; i++) {
+                const flake = document.createElement('div');
+                flake.textContent = '❄️';
+                flake.className = 'frost-animation';
+                flake.style.left = `${Math.random() * 100}vw`;
+                flake.style.animationDuration = `${2 + Math.random() * 3}s`;
+                flake.style.animationDelay = `${Math.random()}s`;
+                document.body.appendChild(flake);
+                setTimeout(() => flake.remove(), 5000);
+            }
+        }
+        
+        // --- CORE LOGIC ---
         function checkForInitialDuck() {
             const urlParams = new URLSearchParams(window.location.search);
             const duckId = urlParams.get('duckId');
@@ -189,12 +213,7 @@
         }
 
         async function onScanSuccess(decodedText) {
-            if (!currentUser) {
-                showNotification("Please sign in to scan ducks.");
-                return;
-            }
-            
-            showNotification("Checking duck...");
+            if (!currentUser) return;
 
             let finalDuckId = decodedText;
             try {
@@ -202,34 +221,37 @@
                 if (url.searchParams.has('duckId')) {
                     finalDuckId = url.searchParams.get('duckId');
                 }
-            } catch (e) {
-                // Not a valid URL, assume it's a raw ID.
-            }
+            } catch (e) {}
 
-            const payload = {
-                action: "scanDuck",
-                duckId: finalDuckId,
-                studentId: currentUser.studentId
-            };
+            const payload = { action: "scanDuck", duckId: finalDuckId, studentId: currentUser.studentId };
 
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await response.json();
                 
                 if (result.status === "success") {
-                    showNotification(`${result.duckType} +${result.points} Points`);
+                    const pointsPop = document.createElement('div');
+                    pointsPop.className = 'point-pop';
+                    pointsPop.textContent = `+${result.points}`;
+                    document.getElementById('qr-reader-container').appendChild(pointsPop);
+                    setTimeout(() => pointsPop.remove(), 1500);
+                    
                     triggerDuckAnimation();
-                    updateUserDashboard();
+                    updateUserDashboard(true);
                 } else {
-                    showNotification(result.message);
-                }
+                    const errorPop = document.createElement('div');
+                    errorPop.className = 'point-pop';
+                    errorPop.style.color = 'hotpink';
+                    errorPop.textContent = result.message;
+                    document.getElementById('qr-reader-container').appendChild(errorPop);
+                    setTimeout(() => errorPop.remove(), 2000);
 
+                    if (result.message.includes("Daily limit")) {
+                        triggerFrostAnimation();
+                    }
+                }
             } catch (error) {
-                showNotification("Error scanning duck.");
-                console.error(error);
+                console.error("Scan error:", error);
             }
         }
         
@@ -262,10 +284,7 @@
             }
             
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await response.json();
                 alert(result.message);
                 if (result.status === "success") {
@@ -279,11 +298,19 @@
 
         function showApp(user) {
             currentUser = user;
+            ducksScannedCount = 0;
             sessionStorage.setItem('currentUserStudentId', user.studentId);
             loginScreen.classList.remove('visible');
             appWrapper.classList.add('visible');
             updateUserDashboard();
             switchPage('hunt-page');
+            
+            fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
+                .then(res => res.json())
+                .then(scanData => {
+                    ducksScannedCount = scanData.length;
+                    document.getElementById('player-ducks').textContent = ducksScannedCount;
+                });
 
             if (initialDuckId) {
                 onScanSuccess(initialDuckId);
@@ -291,14 +318,18 @@
             }
         }
         
-        async function updateUserDashboard() {
+        async function updateUserDashboard(newDuckScanned = false) {
             if (!currentUser) return;
+            if (newDuckScanned) {
+                ducksScannedCount++;
+            }
             const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`);
             const result = await response.json();
              if (result.status === "success") {
                 currentUser = result.user;
                 document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
                 document.getElementById('player-points').textContent = currentUser.points;
+                document.getElementById('player-ducks').textContent = ducksScannedCount;
              }
         }
         
@@ -327,7 +358,7 @@
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`);
                 const scanData = await response.json();
-                if (scanData.length === 0) {
+                if (!scanData || scanData.length === 0) {
                     listElement.innerHTML = '<li>You haven\'t scanned any ducks yet.</li>';
                     return;
                 }
@@ -345,14 +376,21 @@
                 listElement.innerHTML = html;
             } catch (error) {
                 listElement.innerHTML = '<li>Error loading scan history.</li>';
+                console.error(error);
             }
         }
 
-        function showNotification(message) {
-            const el = document.getElementById('scan-notification');
+        function showNotification(message) { // This is only used for the initial "Duck Found!" message now
+            const el = document.createElement('div');
+            el.className = 'glass-card';
+            el.id = 'scan-notification';
             el.innerHTML = `<p>${message}</p>`;
+            document.body.appendChild(el);
             el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 3000);
+            setTimeout(() => {
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 500);
+            }, 3000);
         }
 
         function startScanner() {
