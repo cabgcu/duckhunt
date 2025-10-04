@@ -20,33 +20,29 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; }
         
-        /* MODIFIED: Removed specific centering from the hunt page itself */
+        /* MODIFIED: Final centering fix for the hunt page */
         #hunt-page {
-            justify-content: flex-start; /* Align items to the top */
+            justify-content: flex-start; /* Align content to the top */
         }
-
-        /* MODIFIED: The container now grows and centers its content (the scanner) */
         #qr-reader-container { 
             padding: 0.5rem; 
             display: flex; 
             justify-content: center;
             align-items: center;
             position: relative; 
-            flex-grow: 1; 
-            min-height: 0; /* Flexbox fix */
+            flex-grow: 1; /* This makes the container expand to fill all empty space */
+            min-height: 0; 
         }
-        
-        /* MODIFIED: The scanner itself is now a constrained square */
         #qr-reader {
             width: 100%;
             max-width: 400px;
             aspect-ratio: 1 / 1;
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
         }
 
         #log-page, #leaderboard-page { justify-content: flex-start; }
-        #log-container, #leaderboard-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
+        #log-container, #leaderboard-container { flex: 1; overflow-y: auto; min-height: 0; }
 
         .point-pop { 
             position: absolute; 
@@ -87,7 +83,7 @@
         footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
         .footer-logo { height: 40px; }
         #app-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
-        #scanner-overlay-stats { position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; z-index: 10; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); border-radius: 15px 15px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
+        #scanner-overlay-stats { position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; z-index: 10; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
         .stat { text-align: center; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
