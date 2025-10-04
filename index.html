@@ -5,723 +5,362 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Duck Hunt 2025</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
     <style>
         :root {
             --green: #60A34D;
             --pink: #ff69b4;
             --card-bg: rgba(25, 25, 25, 0.4);
             --border-color: rgba(255, 255, 255, 0.15);
-            --admin-accent: #fcd34d;
         }
-
-        body {
-            margin: 0;
-            background-color: #000;
-            overflow: hidden;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            color: white;
-            text-align: center;
-        }
-
+        body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
         .hidden { display: none !important; }
-
-        .glass-card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px); 
-            border: 1px solid var(--border-color); 
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            padding: 1.5rem;
-        }
-        
+        .glass-card { background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; }
         .primary-btn { background-color: var(--green); color: white; }
         .secondary-btn { background-color: transparent; color: var(--green); }
-        .primary-btn:hover { background-color: #4b823e; border-color: #4b823e; box-shadow: 0 0 15px var(--green); }
-        .secondary-btn:hover { background-color: var(--green); color: white; box-shadow: 0 0 15px var(--green); }
-        
+        .primary-btn:hover { background-color: #4b823e; border-color: #4b823e; }
+        .secondary-btn:hover { background-color: var(--green); color: white; }
         #lava-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         #lava-container::before, #lava-container::after { content: ''; position: absolute; width: 50vmax; height: 50vmax; border-radius: 50%; opacity: 0.6; mix-blend-mode: lighten; filter: blur(100px); }
         #lava-container::before { background-color: var(--pink); top: -25vmax; left: -25vmax; animation: move-pink 25s infinite linear; }
         #lava-container::after { background-color: var(--green); bottom: -25vmax; right: -25vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
-
         .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
         .screen.visible { opacity: 1; pointer-events: auto; }
-        
         #login-screen { position: absolute; width: 100%; height: 100%; }
         #instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
         #header-card { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; }
-        
-        /* New Admin Login UI */
-        #admin-login-view { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; }
-
         #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
         .input-group { display: flex; flex-direction: column; gap: 1rem; }
-        .reg-input, #login-studentid, #admin-email-input, #admin-password-input { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; outline: none; transition: all 0.3s ease; }
-        .reg-input:hover, #login-studentid:hover, .reg-input:focus, #login-studentid:focus, #admin-email-input:focus, #admin-password-input:focus { border-color: var(--green); box-shadow: 0 0 15px var(--green); }
-        
+        .reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; }
         footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
         .footer-logo { height: 40px; }
-
         #app-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
         .app-page { width: 100%; height: 100%; box-sizing: border-box; padding: 1rem 1rem 80px 1rem; display: none; flex-direction: column; gap: 1.5rem; overflow-y: auto; }
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; }
-        
         #stats-bar { padding: 0.8rem; flex-shrink: 0; display: flex; justify-content: space-around; }
-        .stat { display: flex; align-items: baseline; justify-content: center; gap: 0.5rem; }
+        .stat { text-align: center; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-        
         #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; min-height: 250px; }
         #qr-reader { width: 100%; border-radius: 15px; overflow: hidden; }
-        
         #map-page { padding-left: 0; padding-right: 0; }
         #map-container { flex-grow: 1; overflow: auto; position: relative; border-radius: 20px; }
         #map-container img { width: 350%; height: auto; max-width: none; }
         .map-zone { position: absolute; padding: 0.8rem; }
         #zone1 { top: 25%; left: 50%; transform: translateX(-50%); } 
         #zone2 { top: 60%; left: 30%; transform: translateX(-50%); }
-
-        #leaderboard-container, #log-container { flex-grow: 1; overflow-y: auto; padding: 0 1rem; }
-        #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
-        .leaderboard-item, .log-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
-        .name { text-align: left; } .score { font-weight: bold; }
-        .log-item .type, .log-item .timestamp { text-align: left; font-size: 0.9em; color: rgba(255,255,255,0.7); } 
-        .log-item .points { font-weight: bold; font-size: 1.1em; color: var(--green); }
-        
-        .accordion details { margin-bottom: 1rem; }
-        .accordion summary, .accordion p { text-align: left; }
-        
+        #leaderboard-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
+        .leaderboard-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
         #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
-        .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; transition: color 0.3s ease; flex-grow: 1; padding: 0.5rem 0.2rem; }
+        .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; }
         .tab-button.active { color: var(--green); }
-        .tab-button.admin-only { color: var(--admin-accent); } 
-
         #scan-notification { position: fixed; top: -150px; left: 50%; transform: translateX(-50%); z-index: 999; padding: 1rem 1.5rem; width: 80%; max-width: 350px; box-sizing: border-box; transition: top 0.5s ease-in-out; }
         #scan-notification.show { top: 20px; }
-        
         @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); } 50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); } }
         @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); } 50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); } }
-        
-        /* Admin Page Specific Styles */
-        #admin-page .admin-feature {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 1.5rem;
-            border-radius: 12px;
-        }
-        #admin-log-area, .admin-data-list {
-            height: 200px;
-            overflow-y: scroll;
-            background: #000;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: left;
-            font-family: monospace;
-            font-size: 0.8rem;
-        }
-        .admin-data-row {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 5px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .admin-data-row span {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .admin-data-row span:nth-child(2) {
-            flex: 1.5;
-        }
     </style>
 </head>
 <body>
     <div id="lava-container"></div>
     <div id="scan-notification" class="glass-card"></div>
+
     <div id="login-screen" class="screen visible">
-        <div class="glass-card" id="instructions-card"><p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p><button id="close-instructions">&times;</button></div>
+        <div class="glass-card" id="instructions-card">
+            <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
+            <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
         <div class="glass-card" id="header-card">
             <div id="login-view">
                 <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <div class="input-group">
-                    <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
-                </div>
+                <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
                 <div class="button-group">
                     <button id="signin-btn" class="secondary-btn">Sign In</button>
                     <button id="register-btn" class="primary-btn">Register</button>
                 </div>
-                <p style="margin-top: 1rem; font-size: 0.9rem;">Are you an administrator? <a href="#" id="show-admin-login" style="color:var(--admin-accent); font-weight: bold;">Sign in here.</a></p>
             </div>
             <div id="registration-view" class="hidden">
                 <h3>Welcome To The Hunt!</h3>
                 <div class="input-group">
-                    <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
-                    <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
+                    <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name">
+                    <input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
+                    <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID">
+                    <input type="email" id="reg-email" class="reg-input" placeholder="Email">
                 </div>
-                <div class="button-group"><button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button></div>
+                <div class="button-group">
+                    <button id="back-btn" class="secondary-btn">Back</button>
+                    <button id="submit-btn" class="primary-btn">Submit</button>
+                </div>
             </div>
         </div>
-        
-        <div id="admin-login-view" class="glass-card hidden">
-            <h3>Admin Sign In</h3>
-            <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">Use your authorized Firebase Email and Password.</p>
-            <div class="input-group">
-                <input type="email" id="admin-email-input" class="reg-input" placeholder="Admin Email">
-                <input type="password" id="admin-password-input" class="reg-input" placeholder="Password">
-            </div>
-            <div class="button-group">
-                <button id="back-to-student-login" class="secondary-btn">Back</button>
-                <button id="admin-signin-button" class="primary-btn">Sign In</button>
-            </div>
-        </div>
-        
-        <footer><img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo"><p>Hosted By the Canyon Activities Board at Grand Canyon University</p></footer>
+        <footer>
+            <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
+            <p>Hosted By the Canyon Activities Board at Grand Canyon University</p>
+        </footer>
     </div>
-    
+
     <div id="app-wrapper" class="screen">
         <main id="app-container">
-            <section id="hunt-page" class="app-page"><h2 id="welcome-message"></h2><div id="stats-bar" class="glass-card"><div class="stat"><h4>POINTS:</h4><p id="player-points">0</p></div><div class="stat"><h4>DUCKS:</h4><p id="player-ducks">0</p></div></div><div id="qr-reader-container" class="glass-card"><div id="qr-reader"></div></div></section>
-            <section id="map-page" class="app-page"><h2>Campus Map</h2><div id="map-container"><img src="https://i.imgur.com/1aQCsPk.jpeg" alt="Campus Map"><div id="zone1" class="map-zone glass-card"><h5>Student Union</h5><p>Ducks Left: 5</p></div><div id="zone2" class="map-zone glass-card"><h5>The Grove</h5><p>Ducks Left: 8</p></div></div></section>
-            <section id="leaderboard-page" class="app-page"><h2>Leaderboard</h2><div id="leaderboard-container" class="glass-card"><ul id="leaderboard-list"></ul></div></section>
-            <section id="log-page" class="app-page"><h2>Scan History</h2><div id="log-container" class="glass-card"><ul id="log-list"></ul></div></section>
-            <section id="info-page" class="app-page"><h2>Information</h2><div id="info-container" class="accordion"></div><button id="info-to-hunt-btn" class="primary-btn full-width-btn">Start Hunting!</button></section>
-            
-            <section id="admin-page" class="app-page">
-                <h2 style="color: var(--admin-accent);">ADMIN PANEL</h2>
-                <button id="admin-signout-btn" class="secondary-btn full-width-btn" style="margin-bottom: 2rem;">Sign Out</button>
-
-                <div class="admin-feature">
-                    <h3>Duck Reset & Status</h3>
-                    <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">Current Ducks in Database:</p>
-                    <div id="duck-status-list" class="admin-data-list">Loading...</div>
-                    <button id="reset-ducks-btn" class="primary-btn full-width-btn" style="background-color: #dc2626; border-color: #dc2626; margin-top: 15px;">
-                        Reset ALL Ducks (Danger Zone)
-                    </button>
-                    <div id="admin-log-area" style="margin-top: 1rem;">Awaiting actions...</div>
+            <section id="hunt-page" class="app-page">
+                <h2 id="welcome-message"></h2>
+                <div id="stats-bar" class="glass-card">
+                    <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
                 </div>
-
-                <div class="admin-feature" style="margin-top: 1.5rem;">
-                    <h3>User Management</h3>
-                    <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">All Registered Users:</p>
-                    <div id="user-status-list" class="admin-data-list">Loading...</div>
+                <div id="qr-reader-container" class="glass-card"><div id="qr-reader"></div></div>
+            </section>
+            
+            <section id="map-page" class="app-page">
+                <h2>Campus Map</h2>
+                <div id="map-container">
+                    <img src="https://i.imgur.com/1aQCsPk.jpeg" alt="Campus Map">
+                    <div id="zone1" class="map-zone glass-card"><h5>Student Union</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone2" class="map-zone glass-card"><h5>The Grove</h5><p>Ducks Left: ?</p></div>
                 </div>
             </section>
+
+            <section id="leaderboard-page" class="app-page">
+                <h2>Leaderboard</h2>
+                <div id="leaderboard-container" class="glass-card"><ul id="leaderboard-list"></ul></div>
+            </section>
+
+            <section id="info-page" class="app-page">
+                <h2>Information</h2>
+                <div id="info-container" class="glass-card" style="text-align:left;">
+                   <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
+                   <p>The player with the most points at the end of the event wins a prize!</p>
+                </div>
+                <button id="info-to-hunt-btn" class="primary-btn full-width-btn">Start Hunting!</button>
+            </section>
         </main>
-        <nav id="tab-bar"></nav>
+        <nav id="tab-bar">
+             <button class="tab-button" data-page="hunt-page">Scanner</button>
+             <button class="tab-button" data-page="map-page">Map</button>
+             <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+             <button class="tab-button" data-page="info-page">Info</button>
+        </nav>
     </div>
 
     <script>
-        // --- FIREBASE INITIALIZATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBNDPLuh7bHlJ6xYkmLHFXmMaHwQ7h4J-s",
-            authDomain: "duck-hunt-2025.firebaseapp.com",
-            projectId: "duck-hunt-2025",
-            storageBucket: "duck-hunt-2025.appspot.com",
-            messagingSenderId: "899111592841",
-            appId: "1:899111592841:web:87df520ea1d410087e6a58"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_k9sseBVkTbdHqDr6qHOafHxrxE9Xc910-Y7VT8qLW4rO3D4zgHzKS-9KMvk7NvIB/exec';
 
-        // --- ADMIN CONFIG / SETUP ---
-        const ADMIN_ROLES_DOC_REF = db.collection('adminConfig').doc('roles');
-        let adminEmails = []; 
+        // --- GLOBAL STATE ---
+        let html5QrCode = null;
+        let currentUser = null;
+        let initialDuckId = null; // <-- RESTORED: Variable to hold duck ID from URL
 
-        // --- GLOBAL STATE & DOM REFERENCES ---
-        let html5QrCode = null; 
-        let currentUser = null; 
-        let isAdmin = false; 
-        let initialDuckId = null;
+        // --- DOM REFERENCES ---
         const loginScreen = document.getElementById('login-screen');
-        const headerCard = document.getElementById('header-card');
-        const adminLoginView = document.getElementById('admin-login-view');
+        const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
-        const pointsAwarded = 100; 
 
-        // --- HELPER FUNCTIONS ---
+        // --- CORE FUNCTIONS ---
 
-        function triggerDuckAnimation() { 
-            const duckEmojis = ['🦆', '🐥', '🦢', '🐤', '🐧'];
-            const container = document.body;
-            for (let i = 0; i < 15; i++) {
-                const duck = document.createElement('div');
-                duck.textContent = duckEmojis[Math.floor(Math.random() * duckEmojis.length)];
-                duck.style.position = 'fixed'; duck.style.fontSize = `${25 + Math.random() * 25}px`; duck.style.left = `${45 + (Math.random() * 30 - 15)}%`; duck.style.top = `${-50}px`; duck.style.zIndex = 1000; duck.style.opacity = 1; duck.style.transition = 'all 4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                container.appendChild(duck);
-                setTimeout(() => {
-                    duck.style.transform = `translate(${Math.random() * 400 - 200}px, ${window.innerHeight + 100}px) rotate(${Math.random() * 720 - 360}deg)`;
-                    duck.style.opacity = 0;
-                }, 50);
-                setTimeout(() => {
-                    duck.remove();
-                }, 4100);
+        // <-- RESTORED: Function to check URL for a duck ID on page load
+        function checkForInitialDuck() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const duckId = urlParams.get('duckId');
+            if (duckId) {
+                initialDuckId = duckId;
+                showNotification("Duck found! Sign in or register to claim it.");
             }
         }
 
-        let showNotification = (message, isError = false) => {
-            const el=document.getElementById('scan-notification'); 
-            el.innerHTML=`<p>${message}</p>`; 
-            el.className = isError ? 'glass-card error show' : 'glass-card success show';
-            setTimeout(()=>el.classList.remove('show'), 3000);
-        };
-
-        function logAdminAction(message) {
-            const logArea = document.getElementById('admin-log-area');
-            const now = new Date().toLocaleTimeString();
-            logArea.innerHTML += `<p>[${now}] ${message}</p>`;
-            logArea.scrollTop = logArea.scrollHeight;
-        }
-
-        // --- CORE SCANNING LOGIC ---
-        
-        function onScanSuccess(decodedText) {
-            let duckId = decodedText;
-            
-            try {
-                const url = new URL(decodedText);
-                if (url.searchParams.has('duckId')) {
-                    duckId = url.searchParams.get('duckId');
-                }
-            } catch (e) { /* Not a valid URL */ }
-
+        async function onScanSuccess(decodedText) {
             if (!currentUser) {
-                initialDuckId = duckId;
-                showNotification("Please sign in or register to claim this duck!", true);
+                showNotification("Please sign in to scan ducks.");
                 return;
             }
+            
+            showNotification("Checking duck...");
 
-            const duckRef = db.collection("ducks").doc(duckId);
-            const userRef = db.collection("users").doc(currentUser.id);
-            const historyRef = userRef.collection("scanHistory");
+            const payload = {
+                action: "scanDuck",
+                duckId: decodedText,
+                studentId: currentUser.studentId
+            };
 
-            db.runTransaction(async (transaction) => {
-
-                const duckDoc = await transaction.get(duckRef);
-                
-                if (!duckDoc.exists) {
-                    return { status: 'error', message: `Duck ID "${duckId}" is invalid or retired.` };
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                showNotification(result.message);
+                if (result.status === "success") {
+                    updateUserDashboard();
                 }
-                
-                const duckData = duckDoc.data();
-                const duckType = duckData.type || 'Standard Duck';
-                const points = duckData.points || pointsAwarded; 
-
-                if (duckData.foundBy) {
-                    let message = "This duck has already been found by another hunter!";
-                    if (duckData.foundBy === currentUser.id) {
-                         message = `You are the original finder of this ${duckType}!`;
-                    }
-                    return { status: 'error', message: message };
-                }
-
-                transaction.update(duckRef, { foundBy: currentUser.id, foundAt: firebase.firestore.FieldValue.serverTimestamp() });
-                transaction.update(userRef, { points: firebase.firestore.FieldValue.increment(points) });
-                
-                const newHistoryRef = historyRef.doc();
-                transaction.set(newHistoryRef, { location: duckId, type: duckType, points: points, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                
-                return { status: 'success', points: points, duckType: duckType };
-
-            })
-            .then((result) => {
-                if (result.status === 'success') {
-                    showNotification(`🎉 +${result.points} Points! New ${result.duckType} Found!`, false);
-                    triggerDuckAnimation(); 
-                } else if (result.status === 'error') {
-                    showNotification(`⚠️ ${result.message}`, true);
-                }
-            })
-            .catch((error) => {
-                console.error("Scanning transaction failed: ", error);
-                showNotification("🚫 A critical system error occurred. Please try again.", true);
-            });
+            } catch (error) {
+                showNotification("Error scanning duck.");
+                console.error(error);
+            }
         }
         
-        // --- DATA FETCHERS & UI MANAGEMENT ---
-
-        function fetchAdminData() {
-            if (!isAdmin) return;
-
-            // Fetch Duck Status
-            db.collection('ducks').onSnapshot(snapshot => {
-                let html = '<div class="admin-data-row"><span>ID / Type</span><span>Found By</span><span>Status</span></div>';
-                snapshot.forEach(doc => {
-                    const duck = doc.data();
-                    const status = duck.foundBy ? `<span style="color:var(--admin-accent);">CLAIMED</span>` : `<span style="color:var(--green);">AVAILABLE</span>`;
-                    const date = duck.foundAt ? duck.foundAt.toDate().toLocaleDateString() : 'N/A';
-                    html += `
-                        <div class="admin-data-row">
-                            <span title="${doc.id}">${doc.id.substring(0, 5)}... (${duck.type || 'N/A'})</span>
-                            <span title="${duck.foundBy || 'N/A'}">${duck.foundBy ? duck.foundBy.substring(0, 8) + '...' : '---'}</span>
-                            <span>${status}</span>
-                        </div>
-                    `;
-                });
-                document.getElementById('duck-status-list').innerHTML = html;
-            });
-            
-            // Fetch User Status
-            db.collection('users').orderBy('points', 'desc').onSnapshot(snapshot => {
-                let html = '<div class="admin-data-row"><span>ID</span><span>Name</span><span>Score</span></div>';
-                snapshot.forEach(doc => {
-                    const user = doc.data();
-                    const name = `${user.firstName || 'User'} ${user.lastName ? user.lastName[0] + '.' : ''}`;
-                    html += `
-                        <div class="admin-data-row">
-                            <span title="${doc.id}">${doc.id.substring(0, 8)}...</span>
-                            <span>${name}</span>
-                            <span style="color:var(--green);">${user.points || 0} pts</span>
-                        </div>
-                    `;
-                });
-                document.getElementById('user-status-list').innerHTML = html;
-            });
-        }
-
-        function fetchLeaderboard() {
-            const leaderboardList = document.getElementById('leaderboard-list');
-            
-            db.collection("users").orderBy("points", "desc").limit(20).onSnapshot((querySnapshot) => {
-                leaderboardList.innerHTML = '';
-                let rank = 1;
-                querySnapshot.forEach(doc => {
-                    const user = doc.data();
-                    
-                    const firstName = user.firstName || '';
-                    const lastInitial = user.lastName ? user.lastName[0] + '.' : '';
-                    const display_name = `${firstName} ${lastInitial}`.trim();
-
-                    leaderboardList.innerHTML += `
-                        <li class="leaderboard-item glass-card">
-                            <div class="rank">${rank}.</div>
-                            <div class="name">${display_name}</div>
-                            <div class="score">${user.points || 0} pts</div>
-                        </li>
-                    `;
-                    rank++;
-                });
-                if (querySnapshot.empty) {
-                    leaderboardList.innerHTML = `<li class="leaderboard-item">No users yet. Be the first!</li>`;
-                }
-            }, error => console.error("Leaderboard error:", error));
-        }
-
-        function updateUserDashboardData() { 
-            if (!currentUser) return; 
-
-            // 1. Player Stats Listener 
-            db.collection("users").doc(currentUser.id).onSnapshot((doc) => { 
-                const userData = doc.data(); 
-                if (userData) { 
-                    currentUser = { id: doc.id, ...userData }; 
-                    document.getElementById('welcome-message').textContent = `Welcome, ${userData.firstName}!`; 
-                    document.getElementById('player-points').textContent = userData.points || 0; 
-                } 
-            }); 
-            
-            // 2. Scan History Listener 
-            db.collection("users").doc(currentUser.id).collection("scanHistory").orderBy("timestamp", "desc").onSnapshot((querySnapshot) => { 
-                const logList = document.getElementById('log-list'); 
-                document.getElementById('player-ducks').textContent = querySnapshot.size; 
-                if (querySnapshot.empty) { 
-                    logList.innerHTML = `<p style="text-align:center;">You haven't scanned any ducks yet.</p>`; 
-                } else { 
-                    let historyHtml = ''; 
-                    querySnapshot.forEach(doc => { 
-                        const entry = doc.data(); 
-                        const timeString = entry.timestamp ? entry.timestamp.toDate().toLocaleTimeString() : 'Just now';
-
-                        historyHtml += `
-                            <li class="log-item glass-card">
-                                <div>
-                                    <div class="type">${entry.type || entry.location}</div>
-                                    <div class="timestamp">Found at: ${timeString}</div>
-                                </div>
-                                <div class="points">+${entry.points}</div>
-                            </li>
-                        `; 
-                    }); 
-                    logList.innerHTML = historyHtml; 
-                } 
-            }); 
-            
-            fetchLeaderboard();
-        }
-
-        function showApp(user, startPage = 'hunt-page') { 
-            currentUser = user; 
-            loginScreen.classList.remove('visible'); 
-            
-            // Check if the user's email is in the authorized admin list
-            isAdmin = (auth.currentUser && auth.currentUser.email && adminEmails.includes(auth.currentUser.email));
-
-            setTimeout(() => { 
-                appWrapper.classList.add('visible'); 
-                
-                // Set up tabs based on role
-                if (isAdmin) {
-                    document.getElementById('tab-bar').innerHTML = `
-                        <button class="tab-button admin-only active" data-page="admin-page">Admin Panel</button>
-                        <button class="tab-button admin-only" data-page="leaderboard-page">Leaderboard</button>
-                    `;
-                    fetchAdminData(); 
-                    switchPage('admin-page');
+        async function signIn(studentId) {
+             try {
+                const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
+                const result = await response.json();
+                if (result.status === "success") {
+                    showApp(result.user);
                 } else {
-                    document.getElementById('tab-bar').innerHTML = `
-                        <button class="tab-button active" data-page="hunt-page">Scanner</button>
-                        <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
-                        <button class="tab-button" data-page="log-page">Log</button>
-                        <button class="tab-button" data-page="map-page">Map</button>
-                        <button class="tab-button" data-page="info-page">Info</button>`;
-                    updateUserDashboardData(); 
-                    switchPage(startPage); 
+                    alert(result.message);
                 }
+            } catch (error) {
+                alert("Error signing in.");
+                console.error(error);
+            }
+        }
+        
+        async function registerUser() {
+            const payload = {
+                action: "registerUser",
+                firstName: document.getElementById('reg-firstname').value.trim(),
+                lastName: document.getElementById('reg-lastname').value.trim(),
+                studentId: document.getElementById('reg-studentid').value.trim(),
+                email: document.getElementById('reg-email').value.trim()
+            };
 
-                if (initialDuckId && !isAdmin) { 
-                    onScanSuccess(initialDuckId); 
-                    initialDuckId = null; 
-                } 
-            }, 500); 
+            if (!payload.firstName || !payload.studentId) {
+                return alert("First Name and Student ID are required.");
+            }
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                alert(result.message);
+                if (result.status === "success") {
+                    signIn(payload.studentId);
+                }
+            } catch (error) {
+                alert("Error registering.");
+                console.error(error);
+            }
+        }
+
+        function showApp(user) {
+            currentUser = user;
+            sessionStorage.setItem('currentUserStudentId', user.studentId);
+            loginScreen.classList.remove('visible');
+            appWrapper.classList.add('visible');
+            updateUserDashboard();
+            switchPage('hunt-page');
+
+            // <-- RESTORED: Process the duck ID from the URL after signing in
+            if (initialDuckId) {
+                onScanSuccess(initialDuckId);
+                initialDuckId = null; // Clear it so it doesn't run again
+            }
+        }
+        
+        async function updateUserDashboard() {
+            if (!currentUser) return;
+            // Re-fetch user data to get the latest points
+            const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`);
+            const result = await response.json();
+             if (result.status === "success") {
+                currentUser = result.user;
+                document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+                document.getElementById('player-points').textContent = currentUser.points;
+             }
+        }
+        
+        async function updateLeaderboard() {
+            const listElement = document.getElementById('leaderboard-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
+                const leaderboardData = await response.json();
+                let html = '';
+                leaderboardData.slice(0, 20).forEach((player, index) => { // Show top 20
+                    html += `<li class="leaderboard-item"><span>${index + 1}. ${player.firstName} ${player.lastName}</span><span>${player.points}</span></li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading leaderboard.</li>';
+                console.error(error);
+            }
+        }
+
+        // --- UI & SCANNER CONTROL ---
+        function showNotification(message) {
+            const el = document.getElementById('scan-notification');
+            el.innerHTML = `<p>${message}</p>`;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function startScanner() {
+            if (document.getElementById('hunt-page')?.classList.contains('active')) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess)
+                .catch(err => console.log("QR Code scanner failed to start."));
+            }
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => {});
+            }
         }
 
         function switchPage(pageId) {
-            stopScanner(); 
-            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active')); 
-            const page = document.getElementById(pageId); 
-            if(page) page.classList.add('active'); 
+            stopScanner();
+            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId)?.classList.add('active');
             
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active')); 
-            const button = document.querySelector(`.tab-button[data-page="${pageId}"]`); 
-            if(button) button.classList.add('active'); 
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
             
-            if (pageId === 'hunt-page') setTimeout(startScanner, 500);
-            if (pageId === 'leaderboard-page') fetchLeaderboard();
-            if (pageId === 'admin-page') fetchAdminData();
+            if (pageId === 'hunt-page') {
+                updateUserDashboard();
+                setTimeout(startScanner, 250);
+            }
+            if (pageId === 'leaderboard-page') {
+                updateLeaderboard();
+            }
         }
-        
-        // --- ADMIN ACTIONS ---
-
-        document.getElementById('reset-ducks-btn').addEventListener('click', async () => {
-            if (!confirm("DANGER: This action will mark ALL ducks as UNSCANNED (foundBy=null). Are you sure?")) {
-                return;
-            }
-            const btn = document.getElementById('reset-ducks-btn');
-            btn.disabled = true;
-            logAdminAction("Starting full duck reset...");
-
-            try {
-                const snapshot = await db.collection("ducks").get();
-                if (snapshot.empty) {
-                    logAdminAction("No ducks found to reset.");
-                    btn.disabled = false;
-                    return;
-                }
-
-                const batch = db.batch();
-                let resetCount = 0;
-
-                snapshot.docs.forEach(doc => {
-                    const docRef = db.collection("ducks").doc(doc.id);
-                    batch.update(docRef, {
-                        foundBy: null,
-                        foundAt: null
-                    });
-                    resetCount++;
-                });
-
-                await batch.commit();
-                logAdminAction(`✅ Successfully reset ${resetCount} ducks.`);
-                showNotification(`Hunt Reset Complete! ${resetCount} ducks are available.`, false);
-
-            } catch (error) {
-                logAdminAction(`❌ Failed to reset ducks: ${error.message}`);
-                showNotification("Failed to reset the hunt.", true);
-            } finally {
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('admin-signout-btn').addEventListener('click', () => {
-            auth.signOut().then(() => {
-                showNotification("Signed out successfully. Reloading...", false);
-                window.location.reload(); 
-            }).catch((error) => {
-                console.error("Sign out error:", error);
-            });
-        });
-        
-        // --- AUTHENTICATION LISTENERS & FLOW ---
-        
-        // Listener for Admin Role Configuration
-        ADMIN_ROLES_DOC_REF.onSnapshot(doc => {
-            if (doc.exists && doc.data().authorizedEmails) {
-                adminEmails = doc.data().authorizedEmails; // Array of strings
-                console.log(`Authorized Admin Emails loaded: ${adminEmails.length}`);
-            } else {
-                 console.warn("ADMIN WARNING: Firestore role document missing or empty. Please create /adminConfig/roles with authorizedEmails array.");
-                 if (!doc.exists) {
-                    ADMIN_ROLES_DOC_REF.set({ authorizedEmails: [] }).catch(err => console.error("Failed to create admin config doc:", err));
-                 }
-            }
-        }, err => console.error("Error loading admin roles:", err));
-
-        // Listener for Auth State Changes (Main Entry Point)
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                const isAuthAdmin = adminEmails.includes(user.email);
-                
-                if (isAuthAdmin) {
-                     // Get user details for dashboard display
-                     const userDoc = await db.collection('users').doc(user.uid).get();
-                     let adminData = { id: user.uid, uid: user.uid, email: user.email, firstName: 'Admin', lastName: '' };
-
-                     if (userDoc.exists) {
-                        adminData = { id: user.uid, ...userDoc.data() };
-                     } else {
-                         // Create a basic Firestore record tied to the Auth UID
-                         await db.collection('users').doc(user.uid).set(adminData, { merge: true });
-                     }
-                    
-                    showApp(adminData, 'admin-page');
-                } else {
-                    // Regular user: Must find their record in Firestore to proceed
-                    db.collection("users").where("email", "==", user.email).get()
-                        .then(querySnapshot => {
-                            if (querySnapshot.empty) {
-                                showNotification("Account not registered. Please sign up.", true);
-                                auth.signOut(); // Force sign out if Auth user has no profile
-                            } else {
-                                const userDoc = querySnapshot.docs[0];
-                                showApp({ id: userDoc.id, ...userDoc.data() }, 'hunt-page');
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Firestore lookup failed:", error);
-                            auth.signOut();
-                        });
-                }
-            } else {
-                // Not signed in, show login screen
-                loginScreen.classList.add('visible');
-                appWrapper.classList.remove('visible');
-            }
-        });
 
         // --- EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
-            checkForInitialDuck();
+            checkForInitialDuck(); // <-- RESTORED: Check the URL on page load
 
-            document.getElementById('tab-bar').addEventListener('click', e => { 
-                if (e.target.matches('.tab-button')) switchPage(e.target.dataset.page); 
-            });
-            
-            // Student Login Logic (Firestore Lookup)
-            document.getElementById('signin-btn').addEventListener('click', async () => { 
+            const savedStudentId = sessionStorage.getItem('currentUserStudentId');
+            if (savedStudentId) {
+                signIn(savedStudentId);
+            }
+
+            document.getElementById('signin-btn').addEventListener('click', () => {
                 const studentId = document.getElementById('login-studentid').value.trim();
-                if (!studentId) return alert("Please enter Student ID.");
-
-                db.collection("users").where("studentId", "==", studentId).get()
-                    .then(querySnapshot => {
-                        if (querySnapshot.empty) {
-                            showNotification("Student ID not found. Please register first.", true);
-                            return;
-                        }
-                        const userDoc = querySnapshot.docs[0];
-                        
-                        // Simulate login by using Firestore data
-                        showApp({ id: userDoc.id, ...userDoc.data(), uid: userDoc.id }, 'hunt-page');
-                    })
-                    .catch(error => alert(error.message));
+                if (studentId) signIn(studentId);
             });
-
-            // Registration Logic (Creates the user record)
-            document.getElementById('submit-btn').addEventListener('click', async () => {
-                const newUser = { 
-                    firstName: document.getElementById('reg-firstname').value.trim(), 
-                    lastName: document.getElementById('reg-lastname').value.trim(), 
-                    studentId: document.getElementById('reg-studentid').value.trim(), 
-                    email: document.getElementById('reg-email').value.trim(), 
-                    points: 0 
-                };
-                if (!newUser.firstName || !newUser.studentId || !newUser.email) { return alert('Please fill out your name, student ID, and email.'); }
-
-                db.collection("users").where("studentId", "==", newUser.studentId).get()
-                    .then((querySnapshot) => {
-                        if (!querySnapshot.empty) { alert("This Student ID is already registered. Please go back and sign in."); } 
-                        else { 
-                            // 1. Create Firestore Record
-                            db.collection("users").add(newUser)
-                                .then((docRef) => { newUser.id = docRef.id; showApp({id: docRef.id, uid: docRef.id, ...newUser}, 'info-page'); })
-                                .catch(error => alert(error.message)); 
-                        }
-                    })
-                    .catch(error => alert(error.message));
-            });
+            document.getElementById('submit-btn').addEventListener('click', registerUser);
             
-            // Admin Sign In Action (Uses Firebase Auth Email/Password)
-            document.getElementById('admin-signin-button').addEventListener('click', async () => {
-                const email = document.getElementById('admin-email-input').value.trim();
-                const password = document.getElementById('admin-password-input').value.trim();
+            document.getElementById('register-btn').addEventListener('click', () => {
+                loginView.classList.add('hidden');
+                registrationView.classList.remove('hidden');
+            });
+            document.getElementById('back-btn').addEventListener('click', () => {
+                registrationView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+            });
 
-                if (!email || !password) {
-                    showNotification("Please enter both email and password.", true);
-                    return;
-                }
-                
-                try {
-                    // This signs the user into Firebase Authentication
-                    await auth.signInWithEmailAndPassword(email, password);
-                    // auth.onAuthStateChanged listener will now check role and redirect
-                    
-                } catch (error) {
-                    let message = "Admin Login Failed. Check your credentials.";
-                    if (error.code === 'auth/user-not-found') {
-                        message = "Account not found. Ensure your admin email is registered in Firebase Auth.";
-                    } else if (error.code === 'auth/wrong-password') {
-                        message = "Invalid password.";
-                    }
-                    showNotification(message, true);
-                    console.error("Admin Login Error:", error);
+            document.getElementById('close-instructions').addEventListener('click', () => {
+                document.getElementById('instructions-card').style.display = 'none';
+            });
+            document.getElementById('info-to-hunt-btn').addEventListener('click', () => {
+                switchPage('hunt-page');
+            });
+
+            document.getElementById('tab-bar').addEventListener('click', (e) => {
+                if (e.target.matches('.tab-button')) {
+                    switchPage(e.target.dataset.page);
                 }
             });
-
-
-            // UI Navigation
-            document.getElementById('register-btn').addEventListener('click', () => { 
-                const loginId = document.getElementById('login-studentid').value.trim();
-                if (loginId) document.getElementById('reg-studentid').value = loginId; 
-                loginView.classList.add('hidden'); 
-                adminLoginView.classList.add('hidden');
-                headerCard.classList.add('hidden');
-                registrationView.classList.remove('hidden'); 
-            });
-            document.getElementById('back-btn').addEventListener('click', () => { registrationView.classList.add('hidden'); loginView.classList.remove('hidden'); });
-            document.getElementById('close-instructions').addEventListener('click', () => { document.getElementById('instructions-card').style.display = 'none'; });
-            document.getElementById('info-to-hunt-btn').addEventListener('click', () => { switchPage('hunt-page'); });
-            
-            // Admin Login Navigation
-            document.getElementById('show-admin-login').addEventListener('click', (e) => {
-                e.preventDefault();
-                headerCard.classList.add('hidden');
-                adminLoginView.classList.remove('hidden');
-            });
-            document.getElementById('back-to-student-login').addEventListener('click', () => {
-                adminLoginView.classList.add('hidden');
-                headerCard.classList.remove('hidden');
-            });
-
         });
     </script>
 </body>
