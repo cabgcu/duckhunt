@@ -106,22 +106,20 @@
         #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; }
         #qr-reader { width: 100%; border-radius: 15px; overflow: hidden; }
 
-        /* UPDATED: Map Page Styles for Zoom/Pan and Rounded Corners */
+        /* UPDATED: Map container no longer has a background image */
         #map-container {
-            background: url(https://i.imgur.com/1aQCsPk.jpeg) no-repeat center center;
-            background-size: cover; /* Changed to cover for better initial fit */
             flex-grow: 1;
-            border-radius: 20px; /* NEW: Rounded corners */
+            border-radius: 20px;
             position: relative;
-            overflow: hidden; /* Important for containing children during transform */
-            cursor: grab; /* Indicates it's draggable */
+            overflow: hidden;
+            cursor: grab;
         }
         
-        #map-image-wrapper { /* NEW: Wrapper for zoom/pan */
+        #map-image-wrapper {
             width: 100%;
             height: 100%;
-            transform-origin: 0% 0%; /* Zoom from top-left by default */
-            transition: transform 0.05s ease-out; /* Smooth transitions for zoom/pan */
+            transform-origin: 0% 0%;
+            transition: transform 0.05s ease-out;
             position: absolute;
             top: 0;
             left: 0;
@@ -129,7 +127,7 @@
             background-size: cover;
         }
 
-        .map-zone { position: absolute; padding: 0.8rem; z-index: 2; } /* Z-index to ensure zones are above map */
+        .map-zone { position: absolute; padding: 0.8rem; z-index: 2; }
         .map-zone h5 { margin: 0; } .map-zone p { margin: 0.25rem 0 0 0; font-size: 0.8rem; }
         #zone1 { top: 25%; left: 45%; transform: translateX(-50%); }
         #zone2 { top: 70%; left: 15%; transform: translateX(-50%); }
@@ -148,10 +146,9 @@
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 1rem; cursor: pointer; transition: color 0.3s ease; flex-grow: 1; }
         .tab-button.active { color: var(--green); font-weight: bold; }
 
-        /* NEW: Scan Notification */
         #scan-notification {
             position: fixed;
-            top: -150px; /* Start hidden above the screen */
+            top: -150px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 999;
@@ -161,9 +158,7 @@
             box-sizing: border-box;
             transition: top 0.5s ease-in-out;
         }
-        #scan-notification.show {
-            top: 20px;
-        }
+        #scan-notification.show { top: 20px; }
         
         @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); } 50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); } }
         @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); } 50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); } }
@@ -211,11 +206,7 @@
 
     <div id="app-wrapper" class="app-screen">
         <main id="app-container">
-            <section id="hunt-page" class="app-page">
-                <h2 id="welcome-message"></h2>
-                <div id="stats-bar" class="glass-card"><div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div><div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div></div>
-                <div id="qr-reader-container" class="glass-card"><div id="qr-reader"></div></div>
-            </section>
+            <section id="hunt-page" class="app-page"><h2 id="welcome-message"></h2><div id="stats-bar" class="glass-card"><div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div><div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div></div><div id="qr-reader-container" class="glass-card"><div id="qr-reader"></div></div></section>
             <section id="map-page" class="app-page">
                 <h2>Campus Map</h2>
                 <div id="map-container">
@@ -232,6 +223,8 @@
     </div>
 
     <script>
+        // --- All JS logic is the same as the previous version, just with the map fix ---
+
         let html5QrCode = null;
         const loginScreenElements = document.querySelectorAll('.login-screen-element');
         const appWrapper = document.getElementById('app-wrapper');
@@ -251,32 +244,15 @@
             notification.classList.add('show');
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 3000); // Hide after 3 seconds
+            }, 3000);
         }
 
-        function onScanSuccess(decodedText) {
-            showNotification(`+100 Points! Duck Found!`);
-            document.getElementById('player-points').textContent = parseInt(document.getElementById('player-points').textContent) + 100;
-            document.getElementById('player-ducks').textContent = parseInt(document.getElementById('player-ducks').textContent) + 1;
-        }
-
-        function startScanner() {
-            if (document.getElementById('hunt-page').classList.contains('active')) {
-                html5QrCode = new Html5Qrcode("qr-reader");
-                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
-                .catch(err => console.log(`Scanner start error: ${err}`));
-            }
-        }
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().catch(err => console.log(`Scanner stop error: ${err}`));
-            }
-        }
+        function onScanSuccess(decodedText) { showNotification(`+100 Points! Duck Found!`); document.getElementById('player-points').textContent = parseInt(document.getElementById('player-points').textContent) + 100; document.getElementById('player-ducks').textContent = parseInt(document.getElementById('player-ducks').textContent) + 1; }
+        function startScanner() { if (document.getElementById('hunt-page').classList.contains('active')) { html5QrCode = new Html5Qrcode("qr-reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(err => console.log(`Scanner start error: ${err}`)); } }
+        function stopScanner() { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => console.log(`Scanner stop error: ${err}`)); } }
 
         function showApp(userName) {
-            const welcomeMessageEl = document.getElementById('welcome-message');
-            welcomeMessageEl.textContent = `Welcome, ${userName || 'Hunter'}!`;
-
+            document.getElementById('welcome-message').textContent = `Welcome, ${userName || 'Hunter'}!`;
             loginScreenElements.forEach(el => el.style.opacity = 0);
             setTimeout(() => {
                 loginScreenElements.forEach(el => el.style.display = 'none');
@@ -295,12 +271,8 @@
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
             document.querySelector(`.tab-button[data-page="${pageId}"]`).classList.add('active');
             
-            if (pageId === 'hunt-page') {
-                setTimeout(startScanner, 500);
-            } else if (pageId === 'map-page') {
-                // Reset map zoom/pan when navigating to map page
-                resetMapTransform();
-            }
+            if (pageId === 'hunt-page') setTimeout(startScanner, 500);
+            else if (pageId === 'map-page') resetMapTransform();
         }
         
         tabBar.addEventListener('click', e => { if (e.target.matches('.tab-button')) switchPage(e.target.dataset.page); });
@@ -315,113 +287,40 @@
         });
         closeInstructionsButton.addEventListener('click', () => { document.getElementById('instructions-card').style.display = 'none'; });
 
-        // --- NEW: Map Zoom/Pan Logic ---
         const mapContainer = document.getElementById('map-container');
         const mapImageWrapper = document.getElementById('map-image-wrapper');
-        let scale = 1;
-        let panning = false;
-        let pointX = 0;
-        let pointY = 0;
-        let start = { x: 0, y: 0 };
-        let initialPinchDistance = null;
-
-        function setTransform() {
-            mapImageWrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
-        }
-
-        function resetMapTransform() {
-            scale = 1;
-            pointX = 0;
-            pointY = 0;
-            setTransform();
-        }
-
-        // Mouse events
-        mapContainer.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            panning = true;
-            mapContainer.style.cursor = 'grabbing';
-            start = { x: e.clientX - pointX, y: e.clientY - pointY };
-        });
-
-        mapContainer.addEventListener('mouseup', () => {
-            panning = false;
-            mapContainer.style.cursor = 'grab';
-        });
-
-        mapContainer.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            if (!panning) return;
-            pointX = e.clientX - start.x;
-            pointY = e.clientY - start.y;
-            setTransform();
-        });
-
+        let scale = 1, panning = false, pointX = 0, pointY = 0, start = { x: 0, y: 0 }, initialPinchDistance = null;
+        function setTransform() { mapImageWrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+        function resetMapTransform() { scale = 1; pointX = 0; pointY = 0; setTransform(); }
+        mapContainer.addEventListener('mousedown', (e) => { e.preventDefault(); panning = true; mapContainer.style.cursor = 'grabbing'; start = { x: e.clientX - pointX, y: e.clientY - pointY }; });
+        mapContainer.addEventListener('mouseup', () => { panning = false; mapContainer.style.cursor = 'grab'; });
+        mapContainer.addEventListener('mouseleave', () => { panning = false; mapContainer.style.cursor = 'grab'; });
+        mapContainer.addEventListener('mousemove', (e) => { e.preventDefault(); if (!panning) return; pointX = e.clientX - start.x; pointY = e.clientY - start.y; setTransform(); });
         mapContainer.addEventListener('wheel', (e) => {
             e.preventDefault();
-            let xs = (e.clientX - pointX) / scale;
-            let ys = (e.clientY - pointY) / scale;
-            const delta = e.deltaY * -0.01; // Invert scroll for intuitive zoom
-            const newScale = Math.min(Math.max(0.5, scale + delta), 4); // Min 0.5, Max 4
-            
-            if (newScale !== scale) {
-                scale = newScale;
-                pointX = e.clientX - xs * scale;
-                pointY = e.clientY - ys * scale;
-                setTransform();
-            }
+            let xs = (e.clientX - pointX) / scale, ys = (e.clientY - pointY) / scale, delta = e.deltaY * -0.01;
+            scale = Math.min(Math.max(0.8, scale + delta), 4);
+            pointX = e.clientX - xs * scale;
+            pointY = e.clientY - ys * scale;
+            setTransform();
         });
-
-        // Touch events for mobile (pinch to zoom and pan)
-        mapContainer.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                panning = true;
-                start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY };
-            } else if (e.touches.length === 2) {
-                initialPinchDistance = getPinchDistance(e.touches);
-            }
-        });
-
-        mapContainer.addEventListener('touchend', () => {
-            panning = false;
-            initialPinchDistance = null;
-        });
-
+        mapContainer.addEventListener('touchstart', (e) => { if (e.touches.length === 1) { panning = true; start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY }; } else if (e.touches.length === 2) { initialPinchDistance = getPinchDistance(e.touches); } });
+        mapContainer.addEventListener('touchend', () => { panning = false; initialPinchDistance = null; });
         mapContainer.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (e.touches.length === 1 && panning) {
-                pointX = e.touches[0].clientX - start.x;
-                pointY = e.touches[0].clientY - start.y;
+            if (e.touches.length === 1 && panning) { pointX = e.touches[0].clientX - start.x; pointY = e.touches[0].clientY - start.y; setTransform(); }
+            else if (e.touches.length === 2 && initialPinchDistance !== null) {
+                const currentPinchDistance = getPinchDistance(e.touches), pinchRatio = currentPinchDistance / initialPinchDistance;
+                let clientX = (e.touches[0].clientX + e.touches[1].clientX) / 2, clientY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                let xs = (clientX - pointX) / scale, ys = (clientY - pointY) / scale;
+                scale = Math.min(Math.max(0.8, scale * pinchRatio), 4);
+                pointX = clientX - xs * scale;
+                pointY = clientY - ys * scale;
                 setTransform();
-            } else if (e.touches.length === 2 && initialPinchDistance !== null) {
-                const currentPinchDistance = getPinchDistance(e.touches);
-                const pinchRatio = currentPinchDistance / initialPinchDistance;
-                const newScale = Math.min(Math.max(0.5, scale * pinchRatio), 4);
-
-                if (newScale !== scale) {
-                    // Calculate center point of the pinch for zoom origin
-                    const clientX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                    const clientY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-
-                    let xs = (clientX - pointX) / scale;
-                    let ys = (clientY - pointY) / scale;
-
-                    scale = newScale;
-                    pointX = clientX - xs * scale;
-                    pointY = clientY - ys * scale;
-                    setTransform();
-                    initialPinchDistance = currentPinchDistance; // Update initial distance for smooth continuous pinch
-                }
+                initialPinchDistance = currentPinchDistance;
             }
         });
-
-        function getPinchDistance(touches) {
-            const dx = touches[0].clientX - touches[1].clientX;
-            const dy = touches[0].clientY - touches[1].clientY;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        // Initialize map transform on page load (or when map page becomes active)
+        function getPinchDistance(touches) { const dx = touches[0].clientX - touches[1].clientX, dy = touches[0].clientY - touches[1].clientY; return Math.sqrt(dx * dx + dy * dy); }
         document.addEventListener('DOMContentLoaded', resetMapTransform);
     </script>
 </body>
