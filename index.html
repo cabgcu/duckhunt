@@ -51,8 +51,11 @@
         .map-zone { position: absolute; padding: 0.8rem; }
         #zone1 { top: 25%; left: 50%; transform: translateX(-50%); } 
         #zone2 { top: 60%; left: 30%; transform: translateX(-50%); }
-        #leaderboard-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
-        .leaderboard-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
+        .list-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        .list-item div { text-align: left; }
+        .list-item .primary-text { font-weight: bold; }
+        .list-item .secondary-text { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
         #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; }
         .tab-button.active { color: var(--green); }
@@ -123,6 +126,11 @@
                 <h2>Leaderboard</h2>
                 <div id="leaderboard-container" class="glass-card"><ul id="leaderboard-list"></ul></div>
             </section>
+            
+            <section id="log-page" class="app-page">
+                <h2>Scan History</h2>
+                <div id="log-container" class="glass-card"><ul id="log-list"></ul></div>
+            </section>
 
             <section id="info-page" class="app-page">
                 <h2>Information</h2>
@@ -137,6 +145,7 @@
              <button class="tab-button" data-page="hunt-page">Scanner</button>
              <button class="tab-button" data-page="map-page">Map</button>
              <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+             <button class="tab-button" data-page="log-page">Log</button>
              <button class="tab-button" data-page="info-page">Info</button>
         </nav>
     </div>
@@ -196,10 +205,14 @@
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
-                showNotification(result.message);
-                if (result.status === "success") {
+                
+                if (result.status === "success" && result.duckType) {
+                    showNotification(`${result.message} You found a ${result.duckType}!`);
                     updateUserDashboard();
+                } else {
+                    showNotification(result.message);
                 }
+
             } catch (error) {
                 showNotification("Error scanning duck.");
                 console.error(error);
@@ -283,12 +296,36 @@
                 const leaderboardData = await response.json();
                 let html = '';
                 leaderboardData.slice(0, 20).forEach((player, index) => {
-                    html += `<li class="leaderboard-item"><span>${index + 1}. ${player.firstName} ${player.lastName}</span><span>${player.points}</span></li>`;
+                    const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
+                    const displayName = `${player.firstName} ${lastNameInitial}`;
+                    html += `<li class="list-item"><div><div class="primary-text">${index + 1}. ${displayName}</div></div><span>${player.points}</span></li>`;
                 });
                 listElement.innerHTML = html;
             } catch (error) {
                 listElement.innerHTML = '<li>Error loading leaderboard.</li>';
                 console.error(error);
+            }
+        }
+        
+        async function updateScanHistory() {
+            const listElement = document.getElementById('log-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`);
+                const scanData = await response.json();
+                if (scanData.length === 0) {
+                    listElement.innerHTML = '<li>You haven\'t scanned any ducks yet.</li>';
+                    return;
+                }
+                let html = '';
+                scanData.forEach(scan => {
+                    const scanDate = new Date(scan.timestamp);
+                    const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    html += `<li class="list-item"><div><div class="primary-text">${scan.duckId}</div><div class="secondary-text">${timeString}</div></div></li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading scan history.</li>';
             }
         }
 
@@ -327,6 +364,9 @@
             }
             if (pageId === 'leaderboard-page') {
                 updateLeaderboard();
+            }
+            if (pageId === 'log-page') {
+                updateScanHistory();
             }
         }
 
