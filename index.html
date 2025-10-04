@@ -35,6 +35,12 @@
             flex-direction: column;
             gap: 1.5rem;
         }
+        /* MODIFIED: Header image styling for hunt page - moved higher */
+        #hunt-content-wrapper .header-image {
+            width: 80%; 
+            margin: -2rem auto 0.2rem auto; /* Adjusted margin to move higher */
+            display: block;
+        }
         #qr-reader-container { 
             padding: 0; 
             display: flex; 
@@ -154,7 +160,7 @@
         <main id="app-container">
             <section id="hunt-page" class="app-page">
                 <div id="hunt-content-wrapper">
-                    <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                    <img class="header-image" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                     <h2 id="welcome-message"></h2>
                     <div id="qr-reader-container" class="glass-card">
                         <div id="scanner-overlay-stats">
