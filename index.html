@@ -11,36 +11,36 @@
             --pink: #ff69b4;
             --card-bg: rgba(25, 25, 25, 0.4);
             --border-color: rgba(255, 255, 255, 0.15);
-            --error-red: #FF5733; /* New color for errors */
         }
         body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
         .hidden { display: none !important; }
         .glass-card { background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
-        
-        /* MODIFIED: Better vertical centering for all app pages */
-        .app-page {
-            width: 100%;
-            height: 100%;
-            box-sizing: border-box;
-            padding: 1rem 1rem 80px 1rem;
-            display: none;
-            flex-direction: column;
-            gap: 1.5rem;
-            justify-content: center; /* This will center the content vertically */
-        }
+        .app-page { width: 100%; height: 100%; box-sizing: border-box; padding: 1rem 1rem 80px 1rem; display: none; flex-direction: column; gap: 1.5rem; justify-content: center; }
         .app-page.active { display: flex; }
-        .app-page h2 { margin: 0; flex-shrink: 0; } /* Prevent h2 from shrinking */
-
+        .app-page h2 { margin: 0; flex-shrink: 0; }
         #qr-reader-container { padding: 0.5rem; display: flex; min-height: 300px; max-height: 50vh; position: relative; }
+        #log-container, #leaderboard-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
         
-        /* MODIFIED: Makes the log and leaderboard cards fill available space and scroll */
-        #log-container, #leaderboard-container {
-            flex-grow: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
+        /* MODIFIED: Styles for the pop-up message */
+        .point-pop {
+            position: absolute;
+            top: 85%; /* Start below the scanner */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white; /* Make text white */
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            animation: float-up-short 1.5s ease-out forwards;
+            pointer-events: none;
         }
-
+        @keyframes float-up-short {
+            to {
+                top: 70%; /* Float up slightly */
+                opacity: 0;
+            }
+        }
+        
         /* All other CSS is unchanged */
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; }
@@ -80,8 +80,6 @@
         #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; }
         .tab-button.active { color: var(--green); }
-        .point-pop { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; font-weight: bold; color: var(--green); text-shadow: 0 0 10px white; animation: float-up 1.5s ease-out forwards; pointer-events: none; }
-        @keyframes float-up { to { transform: translate(-50%, -250%); opacity: 0; } }
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
         @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
         .frost-animation { position: absolute; top: -50px; font-size: 2rem; color: #aaddff; text-shadow: 0 0 10px white; animation: fall-and-fade linear forwards; pointer-events: none; z-index: 1000; }
@@ -91,6 +89,39 @@
     </style>
 </head>
 <body>
+    <div id="lava-container"></div>
+    
+    <div id="login-screen" class="screen visible">
+        <div class="glass-card" id="instructions-card">
+            <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
+            <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="glass-card" id="header-card">
+            <div id="login-view">
+                <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
+                <div class="button-group">
+                    <button id="signin-btn" class="secondary-btn">Sign In</button>
+                    <button id="register-btn" class="primary-btn">Register</button>
+                </div>
+            </div>
+            <div id="registration-view" class="hidden">
+                <h3>Welcome To The Hunt!</h3>
+                <div class="input-group">
+                    <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
+                    <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
+                </div>
+                <div class="button-group">
+                    <button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
+            <p>Hosted By the Canyon Activities Board at Grand Canyon University</p>
+        </footer>
+    </div>
+
     <div id="app-wrapper" class="screen">
         <main id="app-container">
             <section id="hunt-page" class="app-page">
@@ -103,12 +134,65 @@
                     <div id="qr-reader"></div>
                 </div>
             </section>
+            
+            <section id="map-page" class="app-page">
+                <h2>Campus Map</h2>
+                <div id="map-container">
+                    <img src="https://i.imgur.com/1aQCsPk.jpeg" alt="Campus Map">
+                    <div id="zone1" class="map-zone glass-card"><h5>Student Union</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone2" class="map-zone glass-card"><h5>The Grove</h5><p>Ducks Left: ?</p></div>
+                </div>
+            </section>
+
+            <section id="leaderboard-page" class="app-page">
+                <h2>Leaderboard</h2>
+                <div id="leaderboard-container" class="glass-card"><ul id="leaderboard-list"></ul></div>
+            </section>
+            
+            <section id="log-page" class="app-page">
+                <h2>Scan History</h2>
+                <div id="log-container" class="glass-card"><ul id="log-list"></ul></div>
+            </section>
+
+            <section id="info-page" class="app-page">
+                <h2>Information</h2>
+                <div id="info-container" class="glass-card" style="text-align:left;">
+                   <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
+                   <p>The player with the most points at the end of the event wins a prize!</p>
+                </div>
+                <button id="info-to-hunt-btn" class="primary-btn full-width-btn">Start Hunting!</button>
+            </section>
         </main>
-        </div>
+        <nav id="tab-bar">
+             <button class="tab-button" data-page="hunt-page">Scanner</button>
+             <button class="tab-button" data-page="map-page">Map</button>
+             <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+             <button class="tab-button" data-page="log-page">Log</button>
+             <button class="tab-button" data-page="info-page">Info</button>
+        </nav>
+    </div>
 
     <script>
-        // --- All JS is the same except for this one line ---
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
+
+        // --- GLOBAL STATE & DOM REFERENCES ---
+        let html5QrCode = null;
+        let currentUser = null;
+        let initialDuckId = null;
+        let ducksScannedCount = 0;
+        const loginScreen = document.getElementById('login-screen');
+        const appWrapper = document.getElementById('app-wrapper');
+        const loginView = document.getElementById('login-view');
+        const registrationView = document.getElementById('registration-view');
+
+        // --- ANIMATION FUNCTIONS ---
+        function triggerDuckAnimation() { /* ... unchanged ... */ }
+        function triggerFrostAnimation() { /* ... unchanged ... */ }
         
+        // --- CORE LOGIC ---
+        function checkForInitialDuck() { /* ... unchanged ... */ }
+
         async function onScanSuccess(decodedText) {
             if (!currentUser || (html5QrCode && html5QrCode.getState() !== Html5QrcodeScannerState.SCANNING)) return;
 
@@ -117,9 +201,7 @@
             let finalDuckId = decodedText;
             try {
                 const url = new URL(decodedText);
-                if (url.searchParams.has('duckId')) {
-                    finalDuckId = url.searchParams.get('duckId');
-                }
+                if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
             } catch (e) {}
 
             const payload = { action: "scanDuck", duckId: finalDuckId, studentId: currentUser.studentId };
@@ -140,8 +222,8 @@
                 } else {
                     const errorPop = document.createElement('div');
                     errorPop.className = 'point-pop';
-                    // MODIFIED: Changed the error color
-                    errorPop.style.color = 'var(--error-red)';
+                    // MODIFIED: Error pop-up is now white
+                    errorPop.style.color = 'white'; 
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
                     setTimeout(() => errorPop.remove(), 2000);
@@ -161,7 +243,18 @@
             }
         }
         
-        // --- All other functions are unchanged ---
+        async function signIn(studentId) { /* ... unchanged ... */ }
+        async function registerUser() { /* ... unchanged ... */ }
+        function showApp(user) { /* ... unchanged ... */ }
+        async function updateUserDashboard(newDuckScanned = false) { /* ... unchanged ... */ }
+        async function updateLeaderboard() { /* ... unchanged ... */ }
+        async function updateScanHistory() { /* ... unchanged ... */ }
+
+        function startScanner() { /* ... unchanged ... */ }
+        function stopScanner() { /* ... unchanged ... */ }
+        function switchPage(pageId) { /* ... unchanged ... */ }
+
+        document.addEventListener('DOMContentLoaded', () => { /* ... unchanged ... */ });
     </script>
 </body>
 </html>
