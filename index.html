@@ -106,20 +106,21 @@
         #qr-reader-container { padding: 0.5rem; flex-grow: 1; display: flex; }
         #qr-reader { width: 100%; border-radius: 15px; overflow: hidden; }
 
-        /* UPDATED: Simplified Map Styles */
-        #map-page { padding: 1rem 0 80px 0; } /* Remove side padding for full-width map */
+        /* UPDATED: Map Styles for Natural Scrolling */
+        #map-page { padding-left: 0; padding-right: 0; } /* Remove side padding for full-width map */
         #map-container {
-            width: 100%;
             flex-grow: 1;
+            overflow: auto; /* Enable native scrolling */
+            border-radius: 20px;
             position: relative;
         }
         #map-container img {
-            width: 100%;
-            height: auto; /* Let height adjust to maintain aspect ratio */
+            width: 175%; /* Make image larger than screen to appear zoomed in */
+            height: auto;
+            max-width: none; /* Override any potential max-width constraints */
         }
         .map-zone { position: absolute; padding: 0.8rem; }
         .map-zone h5 { margin: 0; } .map-zone p { margin: 0.25rem 0 0 0; font-size: 0.8rem; }
-        /* Note: Zone positioning may need adjustment based on map's aspect ratio */
         #zone1 { top: 25%; left: 50%; transform: translateX(-50%); } 
         #zone2 { top: 60%; left: 30%; transform: translateX(-50%); }
 
@@ -213,7 +214,8 @@
     </div>
 
     <script>
-        // All JS logic is the same, as we only changed the HTML and CSS for the map.
+        // REMOVED the complex map zoom/pan JavaScript to simplify the map
+        
         let html5QrCode = null;
         const loginScreenElements = document.querySelectorAll('.login-screen-element');
         const appWrapper = document.getElementById('app-wrapper');
