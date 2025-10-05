@@ -246,8 +246,6 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    // CORS Fix: All requests, including GETs, are sent as POST
-                    // The body contains the original action name and any data
                     body: JSON.stringify({ action, ...payload })
                 });
                 if (!response.ok) {
@@ -256,7 +254,6 @@
                 return await response.json();
             } catch (error) {
                 console.error(`Fetch error for action "${action}":`, error);
-                // Return a standardized error object so the app doesn't crash
                 return { status: "error", message: "Network error or script failure." };
             }
         }
@@ -298,13 +295,18 @@
                 const url = new URL(decodedText);
                 if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
             } catch (e) {}
-            if (claimedDucksCache.has(finalDuckId)) {
+            
+            // ** THE FIX IS HERE **
+            // Convert the scanned ID to lowercase for client-side validation
+            const lookupId = finalDuckId.trim().toLowerCase();
+
+            if (claimedDucksCache.has(lookupId)) {
                 const qrContainer = document.getElementById('qr-reader-container');
                 qrContainer.classList.add('error-flash');
                 setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
                 return;
             }
-            const duckInfo = duckDataCache[finalDuckId];
+            const duckInfo = duckDataCache[lookupId];
             if (!duckInfo) {
                 displayErrorPopup("Invalid Duck ID");
                 return;
@@ -319,8 +321,9 @@
                 }
                 localVirtualScanTimestamps.push(new Date().getTime());
             }
+            // Add the original (case-sensitive) ID to the queue for logging purposes
             scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-            claimedDucksCache.add(finalDuckId);
+            claimedDucksCache.add(lookupId);
             const points = duckInfo.points || 0;
             currentUser.points += points;
             const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
