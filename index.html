@@ -98,13 +98,13 @@
         }
         
         .location-card {
-            /* These cards retain their style to provide visual separation */
-            background: rgba(255, 255, 255, 0.1); 
+            /* FROST BLACK AND SLIGHTLY SMALLER */
+            background: var(--card-bg); /* Use frost black background */
             backdrop-filter: blur(8px); 
             -webkit-backdrop-filter: blur(8px);
             border: 1px solid var(--border-color); /* Consistent border */
-            border-radius: 15px; 
-            padding: 1.2rem 1.5rem; 
+            border-radius: 12px; /* Slightly smaller radius */
+            padding: 0.8rem 1.2rem; /* Reduced padding */
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
             
             display: flex;
@@ -122,12 +122,12 @@
 
         .location-details h4 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 1rem; /* Reduced size */
             font-weight: bold;
         }
 
         .location-details span {
-            font-size: 1.4rem;
+            font-size: 1.3rem; /* Reduced size */
             color: var(--green);
             font-weight: bold;
             margin-top: 0.25rem;
@@ -313,7 +313,19 @@
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <h2>Active Locations</h2>
                 <div id="map-container">
-                    <h4>Loading locations...</h4>
+                    <p style="font-weight: bold; margin-bottom: 1.5rem; text-align: center;">Percentage Of All Ducks Collected: 0%</p>
+                    <div class="location-card">
+                        <div class="location-details">
+                            <h4>The Library</h4>
+                            <span>3</span>
+                        </div>
+                    </div>
+                    <div class="location-card">
+                        <div class="location-details">
+                            <h4>Student Union</h4>
+                            <span>1</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -654,10 +666,33 @@
                 const totalPercentage = result.totalPercentage;
 
                 if (Object.keys(duckCounts).length === 0) {
-                    container.innerHTML = `
-                        <h4>No active duck locations found.</h4>
-                        <p style="font-weight: bold; margin-top: 1.5rem; text-align: center;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>
-                    `;
+                    // Inject sample data if no data is returned
+                    const sampleLocations = [
+                        { name: "The Library", count: 3, isVirtual: false },
+                        { name: "Student Union", count: 1, isVirtual: false },
+                        { name: "Residence Hall 1", count: 0, isVirtual: false },
+                        { name: "Virtual Codes (QR)", count: 5, isVirtual: true }
+                    ];
+
+                    let html = `<p style="font-weight: bold; margin-bottom: 1.5rem; text-align: center;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>`;
+
+                    // Build the cards using sample data for visualization
+                    sampleLocations.forEach(location => {
+                        const statusText = location.count === 0 ? 
+                            `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
+                            `<span>${location.count}</span>`;
+                        
+                        html += `
+                            <div class="location-card">
+                                <div class="location-details">
+                                    <h4>${location.name}</h4>
+                                    ${statusText}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
                     return;
                 }
 
@@ -684,7 +719,7 @@
                 // Build the cards
                 locationArray.forEach(location => {
                     const statusText = location.count === 0 ? 
-                        `<span style="color: grey; font-size: 1.4rem;">CLEARED</span>` : 
+                        `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
                         `<span>${location.count}</span>`;
                     
                     html += `
