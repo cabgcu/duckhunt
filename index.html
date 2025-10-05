@@ -48,7 +48,19 @@
         .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
         .location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
         #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-        .list-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); }
+        /* Reverted leaderboard list item styling to original functionality */
+        .list-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 1rem; 
+            background: var(--card-bg); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); 
+        }
         #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; } 
         .list-item .rank-text { font-weight: bold; font-size: 1rem; margin-left: 0.5rem; white-space: nowrap; }
         #log-list .list-item > div:first-child { display: flex; flex-direction: column; align-items: flex-start; }
@@ -299,7 +311,7 @@
                 if (batchResult.updatedUser) {
                     currentUser.points = batchResult.updatedUser.points;
                     document.getElementById('player-points').textContent = currentUser.points;
-                    // FLICKER FIX: Update duck count from server response
+                    
                     if (batchResult.updatedUser.duckCount !== undefined) {
                         document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
                     }
@@ -315,16 +327,11 @@
                 displayRevertPopup(batchResult.message || "A server error occurred.");
                 scanQueue = [...scansToSend, ...scanQueue];
             }
-
-            // FLICKER FIX: Removed the immediate updateUserDashboard call
-            // Rank and other data will update on the next periodic refresh.
         }
 
         function periodicDataRefresh() {
             if (!currentUser) return;
             updateUserDashboard();
-            updateLeaderboard();
-            updateDuckMap();
             postToAction('getClaimedDucks').then(result => {
                 if (result.status === 'success' && Array.isArray(result.claimed)) {
                      claimedDucksCache = new Set(result.claimed);
@@ -506,6 +513,7 @@
         async function updateLeaderboard() {
             const listElement = document.getElementById('leaderboard-list');
             if (listElement.innerHTML === '') {
+                 // Use simple list-item structure for loading state
                  listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
             }
             const leaderboardData = await postToAction('getLeaderboard');
@@ -514,11 +522,14 @@
                 return;
             }
             let html = '';
+            // Display top 10 players
             leaderboardData.slice(0, 10).forEach((player, index) => {
                 const rank = index + 1;
                 const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
                 const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
                 const displayName = `${player.firstName} ${lastNameInitial}`;
+                
+                // Original, correct HTML structure for your CSS:
                 html += `<li class="list-item"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
             });
             listElement.innerHTML = html;
@@ -545,7 +556,7 @@
             if (container.innerHTML === '') {
                 container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
             }
-            const result = await postToAction('getDuckCounts');
+            const result = await postToAction('getDuckCounts'); 
             if (result.status === 'success') {
                 const { locations, totalPercentage } = result;
                 if (!locations || Object.keys(locations).length === 0) {
@@ -553,11 +564,13 @@
                     return;
                 }
                 const locationArray = Object.entries(locations).map(([name, count]) => ({ name, count, isVirtual: name.toLowerCase().includes('virtual') }));
+                
                 locationArray.sort((a, b) => {
                     if (a.isVirtual !== b.isVirtual) return a.isVirtual ? 1 : -1;
                     if (b.count !== a.count) return b.count - a.count;
                     return a.name.localeCompare(b.name);
                 });
+                
                 let html = '';
                 locationArray.forEach(location => {
                     const plural = location.count === 1 ? 'Code Remains' : 'Codes Remain';
