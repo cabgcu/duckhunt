@@ -27,22 +27,18 @@
             padding: 1.5rem; 
         }
         
-        /* NEW: Frost Black Text Container Style */
-        .frost-text-box {
-            background: rgba(25, 25, 25, 0.5); /* Slightly darker/more opaque black */
-            backdrop-filter: blur(6px); /* Reduced blur */
-            -webkit-backdrop-filter: blur(6px); /* Reduced blur */
-            border: 1px solid rgba(255, 255, 255, 0.05); /* Very light border */
+        /* NEW: Transparent Heading Box Style (replaces h2.frost-text-box) */
+        .transparent-heading-box {
+            background: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
             border-radius: 10px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.5rem;
-            width: fit-content;
-            align-self: center;
-        }
-        .app-page h2.frost-text-box {
-            margin: 0 auto 1.5rem auto;
-            padding: 0.5rem 1.5rem;
-            font-size: 1.5rem;
+            padding: 0.75rem 0; /* Adjusted padding for standard heading */
+            margin: 0 auto 1.5rem auto; /* Ensures centering and spacing */
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
         }
 
         /* SCROLL & LAYOUT FIXES */
@@ -119,7 +115,7 @@
             border-radius: 5px;
             min-width: 250px; 
             text-shadow: 0 0 5px rgba(255,255,255,0.5); 
-            animation: float-up-short 5s ease-out forwards; /* Changed animation duration to 5s */
+            animation: float-up-short 5s ease-out forwards; 
             pointer-events: none; 
         }
         /* Error/Already Scanned Pop-up styles will be applied via JS as inline styles (pink border/shadow) */
@@ -163,10 +159,12 @@
             flex-direction: column;
         }
 
-        /* Map specific inner text box adjustment */
-        #map-container p {
+        /* Map specific inner text box adjustment (Percentage of Ducks) */
+        #map-container .transparent-heading-box {
             margin: 0 0 1.5rem 0; 
-            padding: 0;
+            padding: 0.75rem 1rem;
+            width: fit-content;
+            align-self: center;
         }
 
         /* ACTIVE LOCATIONS CARD LIST STYLES */
@@ -203,10 +201,9 @@
             font-weight: bold;
         }
 
-        /* 1. CHANGE: Location text (remaining codes count) to all white */
         .location-details span {
             font-size: 1.3rem; 
-            color: white; /* Changed from var(--green) to white */
+            color: white; 
             font-weight: bold;
             margin-top: 0.25rem;
         }
@@ -414,7 +411,7 @@
             <section id="hunt-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <div id="hunt-content-wrapper">
-                    <h2 class="frost-text-box" id="welcome-message"></h2>
+                    <h2 class="transparent-heading-box" id="welcome-message"></h2>
                     <div id="qr-reader-container" class="glass-card">
                         <div id="scanner-overlay-stats">
                             <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
@@ -429,9 +426,9 @@
             
             <section id="map-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="frost-text-box">Active Locations</h2>
+                <h2 class="transparent-heading-box">Active Locations</h2>
                 <div id="map-container">
-                    <p class="frost-text-box" style="margin-top: 0; margin-bottom: 1.5rem;">Percentage Of All Ducks Collected: 0%</p>
+                    <p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Percentage Of All Ducks Collected: 0%</p>
                     <div class="location-card">
                         <div class="location-details">
                             <h4>The Library</h4>
@@ -449,19 +446,19 @@
 
             <section id="leaderboard-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="frost-text-box">Leaderboard</h2>
+                <h2 class="transparent-heading-box">Leaderboard</h2>
                 <div id="leaderboard-container"><ul id="leaderboard-list"></ul></div>
             </section>
             
             <section id="log-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="frost-text-box">Scan History</h2>
+                <h2 class="transparent-heading-box">Scan History</h2>
                 <div id="log-container"><ul id="log-list"></ul></div>
             </section>
 
             <section id="info-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="frost-text-box">Information</h2>
+                <h2 class="transparent-heading-box">Information</h2>
                 <div id="info-container" style="text-align:left;">
                    <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
                    <p>The player with the most points at the end of the event wins a prize!</p>
@@ -849,14 +846,14 @@
                         { name: "Virtual Codes (QR)", count: 5, isVirtual: true }
                     ];
 
-                    let html = `<p class="frost-text-box" style="margin-top: 0; margin-bottom: 1.5rem;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>`;
+                    let html = `<p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>`;
 
                     // Build the cards using sample data for visualization
                     sampleLocations.forEach(location => {
                         const countText = location.count;
                         // Use "Code Remains" for 1, "Codes Remain" for others
                         const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; 
-                        // 1. CHANGE: Status text color is now white via the CSS update to .location-details span
+                        // Status text color is now white via the CSS update to .location-details span
                         const statusText = location.count === 0 ? 
                             `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
                             `<span>${countText} ${plural}</span>`; 
@@ -896,7 +893,7 @@
                 locationArray.forEach(location => {
                     const countText = location.count;
                     const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; // Pluralization check
-                    // 1. CHANGE: Status text color is now white via the CSS update to .location-details span
+                    // Status text color is now white via the CSS update to .location-details span
                     const statusText = location.count === 0 ? 
                         `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
                         `<span>${countText} ${plural}</span>`; 
@@ -912,7 +909,7 @@
                 });
                 
                 container.innerHTML = `
-                    <p class="frost-text-box" style="margin-top: 0; margin-bottom: 1.5rem;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>
+                    <p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>
                     ${html}
                 `;
 
