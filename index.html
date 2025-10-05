@@ -72,7 +72,6 @@
             max-width: 350px; 
             display: flex; 
             flex-direction: column; 
-            /* MODIFIED: Increased gap for spacing below QR scanner */
             gap: 0.75rem;
             align-items: center; 
             margin-top: -0.5rem; 
@@ -84,8 +83,16 @@
         @keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
         .point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 800; color: #FFFFFF; background: rgba(0, 0, 0, 0.7); border: 2px solid #FFFFFF; box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); padding: 0.5rem 1.5rem; border-radius: 5px; min-width: 250px; text-shadow: 0 0 5px rgba(255,255,255,0.5); animation: float-up-short 3s ease-out forwards; pointer-events: none; }
         @keyframes float-up-short { 0% { top: 85%; opacity: 1; } 50% { top: 70%; opacity: 1; } 100% { top: 70%; opacity: 0; } }
-        #scan-history-link { font-size: 0.9rem; color: var(--green); text-decoration: underline; cursor: pointer; margin-top: 0; font-weight: bold; }
-        #player-rank-display { margin-top: 0; /* Removed existing top margin, spacing is now handled by #hunt-content-wrapper gap */ font-size: 1.1rem; font-weight: 600; }
+        #scan-history-link { 
+            font-size: 0.9rem; 
+            color: var(--green); 
+            text-decoration: underline; 
+            cursor: pointer; 
+            /* MODIFIED: Added top margin here */
+            margin-top: 0.5rem; 
+            font-weight: bold; 
+        }
+        #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
         #log-page, #leaderboard-page, #info-page, #map-page { justify-content: flex-start; }
         
         #log-container, #leaderboard-container, #info-container, #map-container { 
