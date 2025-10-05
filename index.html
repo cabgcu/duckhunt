@@ -2,192 +2,694 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map Zone Area Selector - Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Duck Hunt 2025</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
-            --card-bg: rgba(25, 25, 25, 0.7);
-            --border-color: rgba(255, 255, 255, 0.2);
+            --green: #60A34D;
+            --pink: #ff69b4;
+            --card-bg: rgba(25, 25, 25, 0.4);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --glow-color: rgba(96, 163, 77, 0.7); /* Green glow */
         }
-        body { margin: 0; background-color: #000; color: white; font-family: system-ui, sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
+        .hidden { display: none !important; }
+        .glass-card { background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
         
-        h2 { text-align: center; margin: 1rem 0; }
+        /* SCROLL & LAYOUT FIXES */
+        #app-wrapper { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        #app-container {
+            flex: 1; 
+            overflow: hidden; 
+        }
+        .app-page { 
+            width: 100%; 
+            height: 100%; 
+            box-sizing: border-box; 
+            padding: 1rem; 
+            display: none; 
+            flex-direction: column; 
+            gap: 1.5rem; 
+        }
+        .app-page.active { display: flex; }
+        .app-page h2 { margin: 0; flex-shrink: 0; }
+        
+        #hunt-page { justify-content: center; align-items: center; }
+        #hunt-content-wrapper { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; display: flex; flex-direction: column; gap: 1rem; }
+        #hunt-content-wrapper .header-image { width: 80%; margin: -2rem auto 0.2rem auto; display: block; }
+        #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; }
+        #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 
-        /* Map Container: Takes remaining height, anchors selection box */
+        #log-page, #leaderboard-page, #info-page { justify-content: flex-start; }
+        #log-container, #leaderboard-container, #info-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            min-height: 0; 
+            background: none !important; 
+            padding: 0; 
+        }
+
+        .point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%), -50%); font-size: 1.5rem; font-weight: bold; color: white; background: rgba(0, 0, 0, 0.5); padding: 0.5rem 1.5rem; border-radius: 20px; min-width: 250px; box-sizing: border-box; text-shadow: none; animation: float-up-short 1.5s ease-out forwards; pointer-events: none; }
+        @keyframes float-up-short { to { top: 70%; opacity: 0; } }
+        
+        /* 🚀 NEW: CARD LIST STYLES FOR ACTIVE LOCATIONS */
+        #map-page {
+            gap: 0.5rem; 
+        }
         #map-container { 
-            flex-grow: 1; 
-            overflow: auto; 
-            position: relative; 
-            border-radius: 10px;
-            margin: 0 1rem;
-            cursor: crosshair; /* Indicates area selection mode */
+            flex: 1;
+            overflow-y: auto;
+            /* Applying glass look to the scroll container */
+            padding: 1.5rem; 
+            background: var(--card-bg) !important; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            
+            /* Inner card layout */
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* Spacing between distinct location cards */
         }
         
-        /* Map Image: 300% zoom with scrolling */
-        #map-container img { 
-            width: 300%; 
-            height: auto; 
-            max-width: none;
-            user-select: none;
-        } 
-
-        /* Visual Selection Box */
-        .selection-box {
-            position: absolute;
-            border: 2px dashed #ff69b4;
-            background-color: rgba(96, 163, 77, 0.3); /* Green tint */
-            z-index: 90;
-            pointer-events: none;
-            box-sizing: border-box;
+        .location-card {
+            /* 🚀 FIX: Increased vertical padding and slightly larger border-radius for 'squarer' look */
+            background: var(--card-bg);
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px); 
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; /* Use the default large radius */
+            padding: 2rem 1.5rem; /* Increased vertical padding (2rem) */
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Styling for the permanent highlight */
-        .highlighted-zone {
-            border: 2px solid #00ff73; /* Solid green border for final highlight */
-            background-color: rgba(96, 163, 77, 0.2); /* Lighter tint */
+        .location-card h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: bold;
         }
+
+        .location-card span {
+            font-size: 1.4rem;
+            color: var(--green);
+            font-weight: bold;
+        }
+        /* --- END NEW MAP STYLES --- */
+        
+        .button-group { display: flex; gap: 0.5rem; }
+        .button-group button, .full-width-btn { 
+            flex: 1; 
+            border-radius: 10px; 
+            padding: 12px 15px; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border: 2px solid var(--green); 
+            transition: all 0.3s ease; 
+            /* 💡 Button Glow Effect */
+            box-shadow: 0 0 0 rgba(96, 163, 77, 0); 
+        }
+        .primary-btn { background-color: var(--green); color: white; }
+        .secondary-btn { background-color: transparent; color: var(--green); }
+        
+        /* 💡 Button Hover Glow */
+        .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover {
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+
+        #lava-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        #lava-container::before, #lava-container::after { content: ''; position: absolute; width: 50vmax; height: 50vmax; border-radius: 50%; opacity: 0.6; mix-blend-mode: lighten; filter: blur(100px); }
+        #lava-container::before { background-color: var(--pink); top: -25vmax; left: -25vmax; animation: move-pink 25s infinite linear; }
+        #lava-container::after { background-color: var(--green); bottom: -25vmax; right: -25vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
+        .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
+        .screen.visible { opacity: 1; pointer-events: auto; }
+        #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        /* Instruction Card Layout for 'X' alignment */
+        #instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
+        #header-card { position: relative; width: 85%; max-width: 350px; }
+        #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
+        .input-group { display: flex; flex-direction: column; gap: 1rem; }
+        .reg-input, #login-studentid { 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 10px; 
+            padding: 12px 15px; 
+            font-size: 1rem; 
+            color: white; 
+            text-align: center;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .reg-input:hover, #login-studentid:hover {
+            border-color: var(--green);
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+
+        footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
+        .footer-logo { height: 40px; }
+        #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
+        .stat { text-align: center; }
+        .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
+        .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
+        
+        #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
+        .list-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        .list-item div { text-align: left; }
+        .list-item .primary-text { font-weight: bold; }
+        .list-item .secondary-text { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+        #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+        .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
+        .tab-button.active { color: var(--green); font-weight: bold; }
+        .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
+        @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
+        @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+        @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); } 50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); } }
+        @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); } 50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); } }
     </style>
 </head>
 <body>
-    <h2>Map Zone Area Selector (Click and Drag)</h2>
-    <div id="map-container">
-        <img id="mapImage" src="https://i.imgur.com/1aQCsPk.jpeg" alt="Campus Map">
+    <div id="lava-container"></div>
+    
+    <div id="login-screen" class="screen visible">
+        <div class="glass-card" id="instructions-card">
+            <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
+            <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="glass-card" id="header-card">
+            <div id="login-view">
+                <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
+                <div class="button-group">
+                    <button id="signin-btn" class="secondary-btn">Sign In</button>
+                    <button id="register-btn" class="primary-btn">Register</button>
+                </div>
+            </div>
+            <div id="registration-view" class="hidden">
+                <h3>Welcome To The Hunt!</h3>
+                <div class="input-group">
+                    <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
+                    <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
+                </div>
+                <div class="button-group">
+                    <button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
+            <p>Hosted By the Canyon Activities Board at Grand Canyon University</p>
+        </footer>
     </div>
-    <p style="text-align: center; font-size: 0.9em; margin: 1em;">Coordinates are printed to the Console (F12). Refresh the page to clear highlights.</p>
+
+    <div id="app-wrapper" class="screen">
+        <main id="app-container">
+            <section id="hunt-page" class="app-page">
+                <div id="hunt-content-wrapper">
+                    <img class="header-image" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                    <h2 id="welcome-message"></h2>
+                    <div id="qr-reader-container" class="glass-card">
+                        <div id="scanner-overlay-stats">
+                            <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
+                            <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
+                        </div>
+                        <div id="qr-reader"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="map-page" class="app-page">
+                <h2>Active Locations</h2>
+                <div id="map-container">
+                    <h4>Loading locations...</h4>
+                </div>
+            </section>
+
+            <section id="leaderboard-page" class="app-page">
+                <h2>Leaderboard</h2>
+                <div id="leaderboard-container" class="glass-card"><ul id="leaderboard-list"></ul></div>
+            </section>
+            
+            <section id="log-page" class="app-page">
+                <h2>Scan History</h2>
+                <div id="log-container" class="glass-card"><ul id="log-list"></ul></div>
+            </section>
+
+            <section id="info-page" class="app-page">
+                <h2>Information</h2>
+                <div id="info-container" class="glass-card" style="text-align:left;">
+                   <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
+                   <p>The player with the most points at the end of the event wins a prize!</p>
+                </div>
+                <button id="info-to-hunt-btn" class="primary-btn full-width-btn">Start Hunting!</button>
+            </section>
+        </main>
+        <nav id="tab-bar">
+             <button class="tab-button" data-page="hunt-page">Scanner</button>
+             <button class="tab-button" data-page="map-page">Map</button>
+             <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+             <button class="tab-button" data-page="log-page">Log</button>
+             <button class="tab-button" data-page="info-page">Info</button>
+        </nav>
+    </div>
 
     <script>
-        let startPoint = null;
-        let currentSelection = null;
-        const mapContainer = document.getElementById('map-container');
-        const img = document.getElementById('mapImage');
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
+
+        // --- GLOBAL STATE & DOM REFERENCES ---
+        let html5QrCode = null;
+        let currentUser = null;
+        let initialDuckId = null;
+        let ducksScannedCount = 0;
+        const loginScreen = document.getElementById('login-screen');
+        const appWrapper = document.getElementById('app-wrapper');
+        const loginView = document.getElementById('login-view');
+        const registrationView = document.getElementById('registration-view');
+
+        // --- ANIMATION FUNCTIONS ---
+        function triggerDuckAnimation() {
+            const duckCount = Math.floor(Math.random() * 3) + 3;
+            for (let i = 0; i < duckCount; i++) {
+                setTimeout(() => {
+                    const duck = document.createElement('div');
+                    duck.textContent = '🦆';
+                    duck.className = 'duck-animation';
+                    duck.style.top = `${30 + Math.random() * 40}%`;
+                    duck.style.animationDuration = `${1.5 + Math.random()}s`;
+                    document.body.appendChild(duck);
+                    setTimeout(() => duck.remove(), 2500);
+                }, i * 200);
+            }
+        }
+        function triggerGoldenDuckAnimation() {
+            const elementCount = 10;
+            for (let i = 0; i < elementCount; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.textContent = i % 2 === 0 ? '🦆' : '💰';
+                    el.className = 'duck-animation';
+                    el.style.top = `${20 + Math.random() * 60}%`;
+                    el.style.fontSize = `${30 + Math.random() * 20}px`;
+                    el.style.animationDuration = `${1.5 + Math.random() * 1.5}s`;
+                    document.body.appendChild(el);
+                    setTimeout(() => el.remove(), 3000);
+                }, i * 150);
+            }
+        }
+        function triggerFrostAnimation() {
+            const flakeCount = 15;
+            for (let i = 0; i < flakeCount; i++) {
+                const flake = document.createElement('div');
+                flake.textContent = '❄️';
+                flake.className = 'frost-animation';
+                flake.style.left = `${Math.random() * 100}vw`;
+                flake.style.animationDuration = `${2 + Math.random() * 3}s`;
+                flake.style.animationDelay = `${Math.random()}s`;
+                document.body.appendChild(flake);
+                setTimeout(() => flake.remove(), 5000);
+            }
+        }
+        
+        // --- CORE LOGIC ---
+        function checkForInitialDuck() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const duckId = urlParams.get('duckId');
+            if (duckId) {
+                initialDuckId = duckId;
+                showNotification("Duck found! Sign in or register to claim it.");
+            }
+        }
+
+        async function onScanSuccess(decodedText) {
+            if (!currentUser || (html5QrCode && html5QrCode.getState() !== Html5QrcodeScannerState.SCANNING)) return;
+
+            html5QrCode.pause();
+
+            let finalDuckId = decodedText;
+            try {
+                const url = new URL(decodedText);
+                if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+            } catch (e) {}
+
+            const payload = { action: "scanDuck", duckId: finalDuckId, studentId: currentUser.studentId };
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    const pointsPop = document.createElement('div');
+                    pointsPop.className = 'point-pop';
+                    pointsPop.textContent = `+${result.points}`;
+                    document.getElementById('qr-reader-container').appendChild(pointsPop);
+                    setTimeout(() => pointsPop.remove(), 1500);
+                    
+                    if (result.duckType === "Golden Duck") {
+                        triggerGoldenDuckAnimation();
+                    } else {
+                        triggerDuckAnimation();
+                    }
+                    
+                    updateUserDashboard(true);
+                } else {
+                    const errorPop = document.createElement('div');
+                    errorPop.className = 'point-pop';
+                    errorPop.style.color = 'white'; 
+                    errorPop.textContent = result.message;
+                    document.getElementById('qr-reader-container').appendChild(errorPop);
+                    setTimeout(() => errorPop.remove(), 4000);
+
+                    if (result.message.includes("Daily limit")) {
+                        triggerFrostAnimation();
+                    }
+                }
+            } catch (error) {
+                console.error("Scan error:", error);
+                
+                // Handle friendly timeout/busy message
+                let displayMessage = "Pardon Our Ducks, We Have A Lot Hunters Online At The Moment, Please Try Again Later";
+                
+                const errorPop = document.createElement('div');
+                    errorPop.className = 'point-pop';
+                    errorPop.style.color = 'white'; 
+                    errorPop.textContent = displayMessage;
+                    document.getElementById('qr-reader-container').appendChild(errorPop);
+                    setTimeout(() => errorPop.remove(), 5000);
+
+            } finally {
+                setTimeout(() => {
+                    if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.PAUSED) {
+                        html5QrCode.resume();
+                    }
+                }, 2000);
+            }
+        }
+        
+        async function signIn(studentId) {
+             try {
+                const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
+                const result = await response.json();
+                if (result.status === "success") {
+                    // Sign in success goes to the Scanner page (hunt-page)
+                    showApp(result.user, 'hunt-page'); 
+                } else {
+                    // Custom "User Not Found" message
+                    alert("Welcome To Duck Hunt! Please Register Before Signing In!");
+                }
+            } catch (error) {
+                alert("Error signing in.");
+                console.error(error);
+            }
+        }
+        
+        async function registerUser() {
+            const payload = {
+                action: "registerUser",
+                firstName: document.getElementById('reg-firstname').value.trim(),
+                lastName: document.getElementById('reg-lastname').value.trim(),
+                studentId: document.getElementById('reg-studentid').value.trim(),
+                email: document.getElementById('reg-email').value.trim()
+            };
+
+            if (!payload.firstName || !payload.studentId) {
+                return alert("First Name and Student ID are required.");
+            }
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    const userResponse = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${payload.studentId}`);
+                    const userResult = await userResponse.json();
+                    
+                    if (userResult.status === "success") {
+                         showApp(userResult.user, 'info-page'); // Go to info page after successful registration
+                    } else {
+                        alert("Registration succeeded, but automatic sign-in failed.");
+                    }
+                    
+                } else {
+                    alert(result.message); // Alert on registration error
+                }
+            } catch (error) {
+                alert("Error registering.");
+                console.error(error);
+            }
+        }
+
+        function showApp(user, initialPageId) {
+            currentUser = user;
+            ducksScannedCount = 0;
+            sessionStorage.setItem('currentUserStudentId', user.studentId);
+            loginScreen.classList.remove('visible');
+            appWrapper.classList.add('visible');
+            updateUserDashboard();
+            switchPage(initialPageId);
+            
+            fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
+                .then(res => res.json())
+                .then(scanData => {
+                    if (scanData && Array.isArray(scanData)) {
+                        ducksScannedCount = scanData.length;
+                        document.getElementById('player-ducks').textContent = ducksScannedCount;
+                    }
+                });
+
+            if (initialDuckId) {
+                onScanSuccess(initialDuckId);
+                initialDuckId = null; 
+            }
+        }
+        
+        async function updateUserDashboard(newDuckScanned = false) {
+            if (!currentUser) return;
+            if (newDuckScanned) {
+                ducksScannedCount++;
+            }
+            const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`);
+            const result = await response.json();
+             if (result.status === "success") {
+                currentUser = result.user;
+                document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+                document.getElementById('player-points').textContent = currentUser.points;
+                document.getElementById('player-ducks').textContent = ducksScannedCount;
+             }
+        }
+        
+        async function updateLeaderboard() {
+            const listElement = document.getElementById('leaderboard-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
+                const leaderboardData = await response.json();
+                let html = '';
+                leaderboardData.slice(0, 20).forEach((player, index) => {
+                    const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
+                    const displayName = `${player.firstName} ${lastNameInitial}`;
+                    html += `<li class="list-item"><div><div class="primary-text">${index + 1}. ${displayName}</div></div><span>${player.points}</span></li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading leaderboard.</li>';
+                console.error(error);
+            }
+        }
+        
+        async function updateScanHistory() {
+            const listElement = document.getElementById('log-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`);
+                const scanData = await response.json();
+
+                if (!scanData || scanData.length === 0) {
+                    listElement.innerHTML = '<li>You haven\'t scanned any ducks yet.</li>';
+                    return;
+                }
+                
+                let html = '';
+                scanData.forEach(scan => {
+                    const scanDate = new Date(scan.timestamp);
+                    const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    
+                    const points = scan.points || 0; 
+                    
+                    html += `<li class="list-item">
+                                <div>
+                                    <div class="primary-text">${scan.duckId}</div>
+                                    <div class="secondary-text">${scan.duckType || 'Duck'} - ${timeString}</div>
+                                </div>
+                                <span>+${points}</span>
+                            </li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading scan history.</li>';
+            }
+        }
+        
+        // 🚀 NEW: DYNAMIC LOCATION LIST FUNCTION
+        async function updateDuckMap() {
+            const container = document.getElementById('map-container');
+            container.innerHTML = '<h4>Loading locations...</h4>';
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getDuckCounts`);
+                const result = await response.json(); // Returns { locations: {}, totalPercentage: 0 }
+
+                const duckCounts = result.locations;
+                const totalPercentage = result.totalPercentage;
+
+                if (Object.keys(duckCounts).length === 0) {
+                    container.innerHTML = `
+                        <h4>No active duck locations found.</h4>
+                        <p style="font-weight: bold; margin-top: 1.5rem; text-align: center;">Completion: ${totalPercentage}%</p>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                
+                const sortedLocations = Object.entries(duckCounts).sort(([, countA], [, countB]) => countB - countA);
+
+                // Use the location-card class for the glass aesthetic on each list item
+                sortedLocations.forEach(([locationName, count]) => {
+                    const statusText = count === 0 ? `<span style="color: grey;">CLEARED</span>` : `<span>${count}</span>`;
+                    
+                    // Each location is a distinct, rounded glass card
+                    html += `
+                        <div class="location-card glass-card" style="border-radius: 20px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <h4>${locationName}</h4>
+                            ${statusText}
+                        </div>
+                    `;
+                });
+                
+                // Wrap content to replace the inner HTML (excluding the completion bar for now)
+                
+                // Add the completion bar/text below the card list
+                const completionBarHtml = `
+                    <p style="font-weight: bold; margin-top: 1.5rem; text-align: center;">Overall Hunt Completion: ${totalPercentage}%</p>
+                `;
+                
+                // Rebuild the container with all cards and the completion bar
+                container.innerHTML = html + completionBarHtml;
+
+
+            } catch (error) {
+                container.innerHTML = '<h4>Error loading location data.</h4>';
+                console.error("Error updating location list:", error);
+            }
+        }
+
+
+        function showNotification(message) {
+            const el = document.createElement('div');
+            el.className = 'glass-card';
+            el.id = 'scan-notification';
+            el.style.position = 'fixed';
+            el.style.top = '-150px';
+            el.style.left = '50%';
+            el.style.transform = 'translateX(-50%)';
+            el.style.zIndex = '999';
+            el.style.padding = '1rem 1.5rem';
+            el.style.width = '80%';
+            el.style.maxWidth = '350px';
+            el.style.boxSizing = 'border-box';
+            el.style.transition = 'top 0.5s ease-in-out';
+            el.innerHTML = `<p>${message}</p>`;
+            document.body.appendChild(el);
+            setTimeout(() => el.style.top = '20px', 10);
+            setTimeout(() => {
+                el.style.top = '-150px';
+                setTimeout(() => el.remove(), 500);
+            }, 3000);
+        }
+
+        function startScanner() {
+            if (document.getElementById('hunt-page')?.classList.contains('active')) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
+                .catch(err => console.log("QR Code scanner failed to start."));
+            }
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => {});
+            }
+        }
+
+        function switchPage(pageId) {
+            stopScanner();
+            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId)?.classList.add('active');
+            
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
+            
+            if (pageId === 'hunt-page') {
+                updateUserDashboard();
+                setTimeout(startScanner, 250);
+            }
+            if (pageId === 'leaderboard-page') {
+                updateLeaderboard();
+            }
+            if (pageId === 'log-page') {
+                updateScanHistory();
+            }
+            if (pageId === 'map-page') {
+                updateDuckMap(); // Call the card list update function
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            mapContainer.addEventListener('mousedown', selectionStart);
-            mapContainer.addEventListener('mousemove', selectionMove);
-            mapContainer.addEventListener('mouseup', selectionEnd);
-            console.log("Map Selector Ready. Click and drag on the map to define a zone.");
+            checkForInitialDuck();
+
+            const savedStudentId = sessionStorage.getItem('currentUserStudentId');
+            if (savedStudentId) {
+                signIn(savedStudentId);
+            }
+
+            document.getElementById('signin-btn').addEventListener('click', () => {
+                const studentId = document.getElementById('login-studentid').value.trim();
+                if (studentId) signIn(studentId);
+            });
+            document.getElementById('submit-btn').addEventListener('click', registerUser);
+            
+            document.getElementById('register-btn').addEventListener('click', () => {
+                loginView.classList.add('hidden');
+                registrationView.classList.remove('hidden');
+            });
+            document.getElementById('back-btn').addEventListener('click', () => {
+                registrationView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+            });
+
+            document.getElementById('close-instructions').addEventListener('click', () => {
+                document.getElementById('instructions-card').style.display = 'none';
+            });
+
+            document.getElementById('tab-bar').addEventListener('click', (e) => {
+                if (e.target.matches('.tab-button')) {
+                    switchPage(e.target.dataset.page);
+                }
+            });
         });
-
-        function selectionStart(e) {
-            if (e.button !== 0) return; 
-
-            const rect = mapContainer.getBoundingClientRect();
-            const scrollX = mapContainer.scrollLeft;
-            const scrollY = mapContainer.scrollTop;
-
-            // Capture the starting point relative to the 300% image origin
-            startPoint = {
-                x: (e.clientX - rect.left) + scrollX,
-                y: (e.clientY - rect.top) + scrollY,
-            };
-            
-            // Create the visual selection box element
-            if (!currentSelection) {
-                currentSelection = document.createElement('div');
-                currentSelection.className = 'selection-box';
-                mapContainer.appendChild(currentSelection);
-            } else {
-                // If existing, just reuse and make it visible/reset
-                currentSelection.style.display = 'block';
-                currentSelection.classList.remove('highlighted-zone');
-            }
-            
-            // Reset box dimensions and position
-            currentSelection.style.width = '0px';
-            currentSelection.style.height = '0px';
-            currentSelection.style.left = `${startPoint.x}px`;
-            currentSelection.style.top = `${startPoint.y}px`;
-
-            e.preventDefault();
-        }
-
-        function selectionMove(e) {
-            if (!startPoint || !currentSelection) return;
-
-            const rect = mapContainer.getBoundingClientRect();
-            const scrollX = mapContainer.scrollLeft;
-            const scrollY = mapContainer.scrollTop;
-            
-            // Current mouse position relative to the 300% image origin
-            const currentX = (e.clientX - rect.left) + scrollX;
-            const currentY = (e.clientY - rect.top) + scrollY;
-
-            // Calculate dimensions
-            const width = currentX - startPoint.x;
-            const height = currentY - startPoint.y;
-            
-            // Update the selection box position and size
-            currentSelection.style.left = `${Math.min(startPoint.x, currentX)}px`;
-            currentSelection.style.top = `${Math.min(startPoint.y, currentY)}px`;
-            currentSelection.style.width = `${Math.abs(width)}px`;
-            currentSelection.style.height = `${Math.abs(height)}px`;
-        }
-
-        function selectionEnd(e) {
-            if (!startPoint || !currentSelection) return;
-
-            // Get final mouse position
-            const rect = mapContainer.getBoundingClientRect();
-            const scrollX = mapContainer.scrollLeft;
-            const scrollY = mapContainer.scrollTop;
-            const endX = (e.clientX - rect.left) + scrollX;
-            const endY = (e.clientY - rect.top) + scrollY;
-
-            if (img.offsetWidth === 0) {
-                currentSelection.remove();
-                startPoint = null;
-                return;
-            }
-            
-            // Get final bounds in pixels
-            const finalLeftPx = Math.min(startPoint.x, endX);
-            const finalTopPx = Math.min(startPoint.y, endY);
-            const finalRightPx = Math.max(startPoint.x, endX);
-            const finalBottomPx = Math.max(startPoint.y, endY);
-            
-            // Convert to percentages relative to the 300% image size
-            const imageWidth = img.offsetWidth;
-            const imageHeight = img.offsetHeight;
-
-            const percentLeft = (finalLeftPx / imageWidth) * 100;
-            const percentTop = (finalTopPx / imageHeight) * 100;
-            const percentRight = (finalRightPx / imageWidth) * 100;
-            const percentBottom = (finalBottomPx / imageHeight) * 100;
-            
-            const percentWidth = percentRight - percentLeft;
-            const percentHeight = percentBottom - percentTop;
-
-            // Calculate the center point for standard pin placement
-            const percentCenterX = percentLeft + (percentWidth / 2);
-            const percentCenterY = percentTop + (percentHeight / 2);
-
-            // 🚀 Keep the highlight and style it permanently
-            currentSelection.classList.add('highlighted-zone');
-            
-            // Reset state for next selection
-            startPoint = null;
-            currentSelection = null; 
-            
-            // Report coordinates
-            console.log(`
-// --- AREA SELECTION FOR ZONE BOUNDARY ---
-
-/* To place a PIN in the center of this area (Recommended): */
-#zoneX {
-    top: ${percentCenterY.toFixed(2)}%;
-    left: ${percentCenterX.toFixed(2)}%;
-    transform: translate(-50%, -50%); /* Centers the pin */
-}
-
-/* For defining the RECTANGULAR BOUNDARY itself: */
-#zoneX_Boundary {
-    top: ${percentTop.toFixed(2)}%;
-    left: ${percentLeft.toFixed(2)}%;
-    width: ${percentWidth.toFixed(2)}%;
-    height: ${percentHeight.toFixed(2)}%;
-}
-            `);
-        }
     </script>
 </body>
 </html>
