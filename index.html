@@ -9,7 +9,7 @@
         :root {
             --green: #60A34D;
             --pink: #ff69b4;
-            --card-bg: rgba(25, 25, 25, 0.4); /* Dark base for frost */
+            --card-bg: rgba(25, 25, 25, 0.4);
             --border-color: rgba(96, 163, 77, 0.2); /* Frost black border accenting green */
             --glow-color: rgba(96, 163, 77, 0.7); /* Green glow */
         }
@@ -104,6 +104,31 @@
         }
         #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 
+        /* FIX: Corrected centering transform for point-pop and updated animation duration */
+        .point-pop { 
+            position: absolute; 
+            top: 85%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); /* Corrected: Centers horizontally and vertically */
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            color: white; 
+            background: rgba(0, 0, 0, 0.5); 
+            padding: 0.5rem 1.5rem; 
+            border-radius: 20px; 
+            min-width: 250px; 
+            box-sizing: border-box; 
+            text-shadow: none; 
+            animation: float-up-short 7s ease-out forwards; /* Changed animation duration to 7s */
+            pointer-events: none; 
+        }
+        /* Adjusted keyframe duration to match 7s display time */
+        @keyframes float-up-short { 
+            0% { top: 85%; opacity: 1; }
+            50% { top: 70%; opacity: 1; } /* Hold visibility for a long time */
+            100% { top: 70%; opacity: 0; } 
+        }
+
         /* Scan History Link Style */
         #scan-history-link {
             font-size: 0.9rem;
@@ -116,7 +141,7 @@
 
         #log-page, #leaderboard-page, #info-page { justify-content: flex-start; }
         
-        /* Containers that hold scrollable content (Now includes leaderboard-container) */
+        /* Containers that hold scrollable content */
         #log-container, #leaderboard-container, #info-container, #map-container { 
             flex: 1; 
             overflow-y: auto; 
@@ -138,9 +163,6 @@
             padding: 0;
         }
 
-        .point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%), -50%); font-size: 1.5rem; font-weight: bold; color: white; background: rgba(0, 0, 0, 0.5); padding: 0.5rem 1.5rem; border-radius: 20px; min-width: 250px; box-sizing: border-box; text-shadow: none; animation: float-up-short 1.5s ease-out forwards; pointer-events: none; }
-        @keyframes float-up-short { to { top: 70%; opacity: 0; } }
-        
         /* ACTIVE LOCATIONS CARD LIST STYLES */
         #map-page {
             gap: 0.5rem; 
@@ -195,12 +217,11 @@
             justify-content: space-between; 
             padding: 1rem; 
             
-            /* Reduced internal list item frost for contrast against darker container */
-            background: rgba(255, 255, 255, 0.02); 
-            backdrop-filter: blur(2px); 
-            -webkit-backdrop-filter: blur(2px);
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px);
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1); /* Lighter border for internal items */
+            border: 1px solid rgba(255, 255, 255, 0.1); 
         }
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         .list-item:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
@@ -512,7 +533,7 @@
                     pointsPop.className = 'point-pop';
                     pointsPop.textContent = `+${result.points}`;
                     document.getElementById('qr-reader-container').appendChild(pointsPop);
-                    setTimeout(() => pointsPop.remove(), 1500);
+                    setTimeout(() => pointsPop.remove(), 7000); // Changed to 7000ms
                     
                     if (result.duckType === "Golden Duck") {
                         triggerGoldenDuckAnimation();
@@ -527,7 +548,7 @@
                     errorPop.style.color = 'white'; 
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), 4000);
+                    setTimeout(() => errorPop.remove(), 7000); // Changed to 7000ms
 
                     if (result.message.includes("Daily limit")) {
                         triggerFrostAnimation();
@@ -544,7 +565,7 @@
                     errorPop.style.color = 'white'; 
                     errorPop.textContent = displayMessage;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), 5000);
+                    setTimeout(() => errorPop.remove(), 7000); // Changed to 7000ms
 
             } finally {
                 setTimeout(() => {
