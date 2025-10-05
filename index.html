@@ -109,8 +109,7 @@ font-weight: bold;
 
 #log-container, #leaderboard-container, #info-container, #map-container {
 flex: 1;
-/* Changed overflow-y from 'visible' to 'auto' for log-container to enable scrolling */
-overflow-y: visible; /* Keeping for other pages, changing in log-container below */
+overflow-y: visible; /* Keeping for other pages */
 min-height: 0;
 padding: var(--safe-padding) 0;
 position: relative;
@@ -493,6 +492,12 @@ if (!duckInfo) {
 displayErrorPopup("Invalid Duck ID");
 return;
 }
+
+// *** MOVED VIBRATION TO HERE FOR BEST COMPLIANCE WITH USER GESTURE ***
+// SUCCESS VIBRATION (Short triple burst for a good scan)
+triggerVibration([50, 50, 50]); 
+// *******************************************************************
+
 if (duckInfo.type === 'Virtual Duck') {
 const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
 localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
@@ -511,9 +516,6 @@ const currentDucks = parseInt(document.getElementById('player-ducks').textConten
 document.getElementById('player-ducks').textContent = currentDucks + 1;
 document.getElementById('player-points').textContent = currentUser.points;
 displaySuccessPopup(`+${points}`);
-
-// SUCCESS VIBRATION
-triggerVibration([50, 50, 50]); // Short triple burst for a good scan
 
 if (duckInfo.type === 'Golden Duck') {
 triggerGoldenDuckAnimation();
