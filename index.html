@@ -18,8 +18,8 @@
         body { 
             margin: 0; 
             background-color: #000; 
-            overflow-x: hidden; /* Prevent horizontal scroll */
-            /* 1. FIX: Ensures body takes up the full viewport height */
+            overflow-x: hidden; 
+            /* FIXED: Ensures full viewport height coverage for PWA display */
             min-height: 100vh; 
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
             color: white; 
@@ -42,14 +42,14 @@
         }
         #app-container { 
             flex: 1; 
-            /* 2. FIX: Allow the app container to scroll its content */
+            /* FIXED: Allow this container to scroll its content over the fixed background */
             overflow-y: auto; 
             height: calc(100vh - var(--tab-bar-height)); 
             padding-bottom: var(--safe-padding); 
         }
         .app-page { 
             width: 100%; 
-            /* 3. FIX: Ensure app-page uses min-height to push content down if needed */
+            /* FIXED: Use min-height 100% to ensure pages fill space even if content is short */
             min-height: 100%; 
             box-sizing: border-box; 
             padding: 0 var(--safe-padding); 
@@ -60,7 +60,14 @@
         }
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
-        .app-page .header-image-top { margin: 1.5rem auto 1rem auto; display: block; flex-shrink: 0; }
+        /* REVERTED: Restoring the original image size control */
+        .app-page .header-image-top { 
+            width: 60%; 
+            max-width: 250px; 
+            margin: 1.5rem auto 1rem auto; 
+            display: block; 
+            flex-shrink: 0; 
+        }
         
         #hunt-page { justify-content: flex-start; padding-top: 0; }
         #hunt-content-wrapper { position: relative; width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; margin-top: 0; flex-shrink: 0; }
@@ -74,10 +81,10 @@
         #player-rank-display { margin-top: 0.5rem; font-size: 1.1rem; font-weight: 600; }
         #log-page, #leaderboard-page, #info-page, #map-page { justify-content: flex-start; }
         
-        /* 4. FIX: Remove internal scroll on containers; let #app-container handle it */
+        /* FIXED: Removed internal overflow-y from these pages */
         #log-container, #leaderboard-container, #info-container, #map-container { 
             flex: 1; 
-            overflow-y: visible; /* Changed from auto to visible */
+            overflow-y: visible; 
             min-height: 0; 
             padding: var(--safe-padding) 0; 
             position: relative; 
@@ -123,7 +130,7 @@
         .secondary-btn { background-color: transparent; color: var(--green); }
         .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
         #lava-container { 
-            /* 5. FIX: Ensure background is fixed relative to viewport */
+            /* FIXED: Ensures background is fixed relative to viewport */
             position: fixed; 
             top: 0; 
             left: 0; 
