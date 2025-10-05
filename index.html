@@ -69,11 +69,11 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
         
-        /* HEADER IMAGE FOR ALL PAGES - MOVED UP SLIGHTLY */
+        /* HEADER IMAGE FOR ALL PAGES - BROUGHT DOWN SLIGHTLY (Tweak 1) */
         .app-page .header-image-top {
             width: 60%;
             max-width: 250px;
-            margin: 0.5rem auto 0.5rem auto;
+            margin: 1.5rem auto 1rem auto; /* Increased margin-top/bottom to push content down */
             display: block;
             flex-shrink: 0;
         }
@@ -91,7 +91,7 @@
             flex-direction: column; 
             gap: 0.5rem;
             align-items: center; 
-            margin-top: -1rem;
+            margin-top: -0.5rem; /* Reduced negative margin to compensate for header increase */
         }
         
         #hunt-content-wrapper .header-image { width: 80%; margin: -2rem auto 0.2rem auto; display: block; }
@@ -121,7 +121,7 @@
             border-radius: 5px;
             min-width: 250px; 
             text-shadow: 0 0 5px rgba(255,255,255,0.5); 
-            animation: float-up-short 5s ease-out forwards;
+            animation: float-up-short 3s ease-out forwards; /* Tweak 3: Reduced to 3s for faster feedback */
             pointer-events: none; 
         }
         @keyframes float-up-short { 
@@ -510,7 +510,8 @@
     <script>
         // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
-        const POPUP_DURATION_MS = 5000; 
+        // Tweak 3: Reduced duration for faster feedback
+        const POPUP_DURATION_MS = 3000; 
 
         // --- GLOBAL STATE & DOM REFERENCES ---
         let html5QrCode = null;
@@ -577,7 +578,6 @@
         }
 
         async function onScanSuccess(decodedText) {
-            // Note: This check allows the initialDuckId flow to execute even if the scanner isn't running
             if (!currentUser) return; 
 
             // Only pause if the scan is coming from the live scanner
@@ -659,7 +659,7 @@
                 if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.PAUSED) {
                     setTimeout(() => {
                         html5QrCode.resume();
-                    }, 2000);
+                    }, 500); // Tweak 3: Resume scanner faster after scan is processed
                 }
             }
         }
@@ -669,8 +669,8 @@
                 const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
                 const result = await response.json();
                 if (result.status === "success") {
-                    // Sign in success. If we have a duckId, send to hunt-page to claim it, otherwise go to hunt-page anyway.
-                    showApp(result.user, 'hunt-page'); // Always send to hunt-page after sign-in
+                    // Sign in success. Always send to hunt-page.
+                    showApp(result.user, 'hunt-page'); 
                 } else {
                     // If user is not found, alert them
                     if (initialDuckId) {
@@ -752,8 +752,7 @@
 
             switchPage(initialPageId);
 
-            // CRITICAL FIX: If user signs in (not registering) and an initial ID exists, claim it here.
-            // This handles returning users who scanned a QR code and then signed in.
+            // If user signs in (not registering) and an initial ID exists, claim it here.
             if (initialDuckId && initialPageId === 'hunt-page') { 
                 // Add a slight delay to ensure the scanner page DOM is fully ready
                 setTimeout(() => {
@@ -805,8 +804,6 @@
                 } else {
                     rankDisplay.textContent = 'Current Rank: Not Yet Ranked';
                 }
-            } else {
-                rankDisplay.textContent = ''; // Clear if error or no data
             }
         }
         
@@ -917,173 +914,4 @@
                         html += `
                             <div class="location-card">
                                 <div class="location-details">
-                                    <h4>${location.name}</h4>
-                                    ${statusText}
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    container.innerHTML = html;
-                    return;
-                    // End of block that uses sample data
-                }
-
-                let html = '';
-                
-                const locationArray = Object.entries(duckCounts).map(([name, count]) => ({
-                    name: name,
-                    count: count,
-                    isVirtual: name.toLowerCase().includes('virtual codes')
-                }));
-
-                locationArray.sort((a, b) => {
-                    if (a.isVirtual !== b.isVirtual) {
-                        return a.isVirtual ? 1 : -1;
-                    }
-                    return b.count - a.count;
-                });
-
-
-                // Build the cards using actual data
-                locationArray.forEach(location => {
-                    const countText = location.count;
-                    const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; // Pluralization check
-                    // Status text color is now white via the CSS update to .location-details span
-                    const statusText = location.count === 0 ? 
-                        `<span style="color: grey;">CLEARED</span>` : 
-                        `<span>${countText} ${plural}</span>`; 
-                    
-                    html += `
-                        <div class="location-card">
-                            <div class="location-details">
-                                <h4>${location.name}</h4>
-                                ${statusText}
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                container.innerHTML = `
-                    <p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>
-                    ${html}
-                `;
-
-            } catch (error) {
-                container.innerHTML = '<h4>Error loading location data.</h4>';
-                console.error("Error updating location list:", error);
-            }
-        }
-
-
-        function showNotification(message) {
-            const el = document.createElement('div');
-            el.className = 'glass-card';
-            el.id = 'scan-notification';
-            el.style.position = 'fixed';
-            el.style.top = '-150px';
-            el.style.left = '50%';
-            el.style.transform = 'translateX(-50%)';
-            el.style.zIndex = '999';
-            el.style.padding = '1rem 1.5rem';
-            el.style.width = '80%';
-            el.style.maxWidth = '350px';
-            el.style.boxSizing = 'border-box';
-            el.style.transition = 'top 0.5s ease-in-out';
-            el.innerHTML = `<p>${message}</p>`;
-            document.body.appendChild(el);
-            setTimeout(() => el.style.top = '20px', 10);
-            setTimeout(() => {
-                el.style.top = '-150px';
-                setTimeout(() => el.remove(), 500);
-            }, 3000);
-        }
-
-        function startScanner() {
-            if (document.getElementById('hunt-page')?.classList.contains('active')) {
-                html5QrCode = new Html5Qrcode("qr-reader");
-                // Added constraints object to ensure square box is requested
-                const config = { 
-                    fps: 10, 
-                    qrbox: { width: 250, height: 250 }, // Already square
-                    aspectRatio: 1.0, // Explicitly request 1:1 camera stream aspect ratio
-                    disableFlip: false 
-                };
-
-                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-                .catch(err => console.log("QR Code scanner failed to start."));
-            }
-        }
-
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().catch(err => {});
-            }
-        }
-
-        function switchPage(pageId) {
-            stopScanner();
-            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId)?.classList.add('active');
-            
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
-            
-            if (pageId === 'hunt-page') {
-                updateUserDashboard();
-                setTimeout(startScanner, 250);
-            }
-            if (pageId === 'leaderboard-page') {
-                updateLeaderboard();
-            }
-            if (pageId === 'log-page') {
-                updateScanHistory();
-            }
-            if (pageId === 'map-page') {
-                updateDuckMap(); // Call the card list update function
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            checkForInitialDuck();
-
-            const savedStudentId = sessionStorage.getItem('currentUserStudentId');
-            if (savedStudentId) {
-                signIn(savedStudentId);
-            }
-
-            document.getElementById('signin-btn').addEventListener('click', () => {
-                const studentId = document.getElementById('login-studentid').value.trim();
-                if (studentId) signIn(studentId);
-            });
-            document.getElementById('submit-btn').addEventListener('click', registerUser);
-            
-            document.getElementById('register-btn').addEventListener('click', () => {
-                loginView.classList.add('hidden');
-                registrationView.classList.remove('hidden');
-            });
-            document.getElementById('back-btn').addEventListener('click', () => {
-                registrationView.classList.add('hidden');
-                loginView.classList.remove('hidden');
-            });
-
-            document.getElementById('close-instructions').addEventListener('click', () => {
-                document.getElementById('instructions-card').style.display = 'none';
-            });
-            
-            document.getElementById('tab-bar').addEventListener('click', (e) => {
-                if (e.target.matches('.tab-button')) {
-                    switchPage(e.target.dataset.page);
-                }
-            });
-
-            // NEW: Add event listener for the Scan History link
-            document.getElementById('scan-history-link').addEventListener('click', (e) => {
-                e.preventDefault();
-                switchPage(e.target.dataset.page);
-            });
-        });
-    </script>
-</body>
-</html>
+                                    <h4>${location.name}
