@@ -1,795 +1,878 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Duck Hunt 2025</title>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <style>
-        :root {
-            --green: #60A34D;
-            --pink: #ff69b4;
-            --card-bg: rgba(0, 0, 0, 0.45);
-            --border-color: rgba(96, 163, 77, 0.2);
-            --glow-color: rgba(96, 163, 77, 0.7);
-            --tab-bar-height: 65px;
-            --safe-padding: 1rem;
-        }
-        body { 
-            margin: 0; 
-            background-color: #000; 
-            overflow-x: hidden; 
-            min-height: 100vh; 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
-            color: white; 
-            text-align: center; 
-        }
-        .hidden { display: none !important; }
-        .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-        .glass-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
-        .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
-        #app-wrapper { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        #app-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            height: calc(100vh - var(--tab-bar-height)); 
-            padding-bottom: var(--safe-padding); 
-        }
-        .app-page { 
-            width: 100%; 
-            min-height: 100%; 
-            box-sizing: border-box; 
-            padding: 0 var(--safe-padding); 
-            display: none; 
-            flex-direction: column; 
-            gap: 0; 
-            align-items: center; 
-        }
-        .app-page.active { display: flex; }
-        .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
-        .app-page .header-image-top { 
-            width: 80%; 
-            max-width: 300px; 
-            margin: 1rem auto 1rem auto; 
-            display: block; 
-            flex-shrink: 0; 
-        }
-        
-        #hunt-page { justify-content: flex-start; padding-top: 0; }
-        #hunt-content-wrapper { 
-            position: relative; 
-            width: 100%; 
-            max-width: 350px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 0.75rem;
-            align-items: center; 
-            margin-top: -0.5rem; 
-            flex-shrink: 0; 
-        }
-        #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 300px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
-        #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
-        #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
-        @keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
-        .point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 800; color: #FFFFFF; background: rgba(0, 0, 0, 0.7); border: 2px solid #FFFFFF; box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); padding: 0.5rem 1.5rem; border-radius: 5px; min-width: 250px; text-shadow: 0 0 5px rgba(255,255,255,0.5); animation: float-up-short 3s ease-out forwards; pointer-events: none; }
-        @keyframes float-up-short { 0% { top: 85%; opacity: 1; } 50% { top: 70%; opacity: 1; } 100% { top: 70%; opacity: 0; } }
-        
-        /* NEW CONTAINER TO ALIGN SCAN HISTORY AND RANK */
-        #scanner-footer-details {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.25rem; /* Space between the two elements */
-            margin-top: 0.5rem; /* Space below the QR container, replacing old margins */
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Duck Hunt 2025</title>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<style>
+:root {
+--green: #60A34D;
+--pink: #ff69b4;
+--card-bg: rgba(0, 0, 0, 0.45);
+--border-color: rgba(96, 163, 77, 0.2);
+--glow-color: rgba(96, 163, 77, 0.7);
+--tab-bar-height: 65px;
+--safe-padding: 1rem;
+}
+body {
+margin: 0;
+background-color: #000;
+overflow-x: hidden;
+min-height: 100vh;
+font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+color: white;
+text-align: center;
+}
+.hidden { display: none !important; }
+.spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
+.glass-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
+.transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
+#app-wrapper {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+display: flex;
+flex-direction: column;
+}
+#app-container {
+flex: 1;
+overflow-y: auto;
+height: calc(100vh - var(--tab-bar-height));
+padding-bottom: var(--safe-padding);
+}
+.app-page {
+width: 100%;
+min-height: 100%;
+box-sizing: border-box;
+padding: 0 var(--safe-padding);
+display: none;
+flex-direction: column;
+gap: 0;
+align-items: center;
+}
+.app-page.active { display: flex; }
+.app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
+.app-page .header-image-top {
+width: 80%;
+max-width: 300px;
+margin: 1rem auto 1rem auto;
+display: block;
+flex-shrink: 0;
+}
 
-        #scan-history-link { 
-            font-size: 0.9rem; 
-            color: var(--green); 
-            text-decoration: underline; 
-            cursor: pointer; 
-            margin-top: 0; /* Remove margin-top here, use parent gap */
-            font-weight: bold; 
-        }
-        #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
-        
-        #log-page, #leaderboard-page, #info-page, #map-page { justify-content: flex-start; }
-        
-        #log-container, #leaderboard-container, #info-container, #map-container { 
-            flex: 1; 
-            overflow-y: visible; 
-            min-height: 0; 
-            padding: var(--safe-padding) 0; 
-            position: relative; 
-            background: none; 
-            border-radius: 0; 
-            box-shadow: none; 
-            border: none; 
-            gap: 0.5rem; 
-            display: flex; 
-            flex-direction: column; 
-            width: 100%; 
-            max-width: 450px; 
-        }
-        #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
-        #info-container { text-align: center !important; }
-        #info-container p { max-width: 450px; width: 90%; margin: 0.5rem auto; }
-        .location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
-        .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
-        .location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
-        #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-        .list-item { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 1rem; 
-            background: var(--card-bg); 
-            backdrop-filter: blur(8px); 
-            -webkit-backdrop-filter: blur(8px); 
-            border-radius: 8px; 
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); 
-        }
-        #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; } 
-        .list-item .rank-text { font-weight: bold; font-size: 1rem; margin-left: 0.5rem; white-space: nowrap; }
-        #log-list .list-item > div:first-child { display: flex; flex-direction: column; align-items: flex-start; }
-        #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
-        #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
-        .list-item span { font-weight: bold; font-size: 1.1rem; }
-        .button-group { display: flex; gap: 0.5rem; }
-        .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
-        .primary-btn { background-color: var(--green); color: white; }
-        .secondary-btn { background-color: transparent; color: var(--green); }
-        .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
-        #lava-container { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: -1; 
-        }
-        #lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
-        #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
-        #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
-        .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
-        .screen.visible { opacity: 1; pointer-events: auto; }
-        #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-        .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-        #instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
-        #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
-        #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
-        .input-group { display: flex; flex-direction: column; gap: 1rem; }
-        .reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
-        footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .footer-logo { height: 50px; margin-bottom: 10px; } 
-        footer p { margin: 2px 0; }
-        #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
-        .stat { text-align: center; }
-        .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
-        .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-        #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
-        .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
-        .tab-button.active { color: var(--green); font-weight: bold; }
-        .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
-        .frost-animation { position: absolute; top: -20px; font-size: 1.5rem; color: white; pointer-events: none; z-index: 999; animation: fall-and-fade linear forwards; }
-        @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
-        @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
-        @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
-        @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
-    </style>
+#hunt-page { justify-content: flex-start; padding-top: 0; }
+#hunt-content-wrapper {
+position: relative;
+width: 100%;
+max-width: 350px;
+display: flex;
+flex-direction: column;
+gap: 0.75rem;
+align-items: center;
+margin-top: -0.5rem;
+flex-shrink: 0;
+}
+#qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 300px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+#qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
+#qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
+@keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
+.point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 800; color: #FFFFFF; background: rgba(0, 0, 0, 0.7); border: 2px solid #FFFFFF; box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); padding: 0.5rem 1.5rem; border-radius: 5px; min-width: 250px; text-shadow: 0 0 5px rgba(255,255,255,0.5); animation: float-up-short 3s ease-out forwards; pointer-events: none; }
+@keyframes float-up-short { 0% { top: 85%; opacity: 1; } 50% { top: 70%; opacity: 1; } 100% { top: 70%; opacity: 0; } }
+
+/* NEW CONTAINER TO ALIGN SCAN HISTORY AND RANK */
+#scanner-footer-details {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 0.25rem; /* Space between the two elements */
+margin-top: 0.5rem; /* Space below the QR container, replacing old margins */
+}
+#scan-history-link {
+font-size: 0.9rem;
+color: var(--green);
+text-decoration: underline;
+cursor: pointer;
+margin-top: 0; /* Remove margin-top here, use parent gap */
+font-weight: bold;
+}
+#player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
+
+#log-page, #leaderboard-page, #info-page, #map-page { justify-content: flex-start; }
+
+#log-container, #leaderboard-container, #info-container, #map-container {
+flex: 1;
+overflow-y: visible;
+min-height: 0;
+padding: var(--safe-padding) 0;
+position: relative;
+background: none;
+border-radius: 0;
+box-shadow: none;
+border: none;
+gap: 0.5rem;
+display: flex;
+flex-direction: column;
+width: 100%;
+max-width: 450px;
+}
+#map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
+#info-container { text-align: center !important; }
+#info-container p { max-width: 450px; width: 90%; margin: 0.5rem auto; }
+.location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+.location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
+.location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
+.location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
+#leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.list-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 1rem;
+background: var(--card-bg);
+backdrop-filter: blur(8px);
+-webkit-backdrop-filter: blur(8px);
+border-radius: 8px;
+border: 1px solid var(--border-color);
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+#leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
+.list-item .rank-text { font-weight: bold; font-size: 1rem; margin-left: 0.5rem; white-space: nowrap; }
+#log-list .list-item > div:first-child { display: flex; flex-direction: column; align-items: flex-start; }
+#log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
+#log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
+.list-item span { font-weight: bold; font-size: 1.1rem; }
+.button-group { display: flex; gap: 0.5rem; }
+.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+.primary-btn { background-color: var(--green); color: white; }
+.secondary-btn { background-color: transparent; color: var(--green); }
+.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
+#lava-container {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: -1;
+}
+#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
+#lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
+#lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
+.screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
+.screen.visible { opacity: 1; pointer-events: auto; }
+#login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
+.reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
+#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
+#header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
+#login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
+.input-group { display: flex; flex-direction: column; gap: 1rem; }
+.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.footer-logo { height: 50px; margin-bottom: 10px; }
+footer p { margin: 2px 0; }
+#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
+.stat { text-align: center; }
+.stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
+.stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
+#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+.tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
+.tab-button.active { color: var(--green); font-weight: bold; }
+.duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
+.frost-animation { position: absolute; top: -20px; font-size: 1.5rem; color: white; pointer-events: none; z-index: 999; animation: fall-and-fade linear forwards; }
+@keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
+@keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+@keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
+@keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
+
+/* NEW STYLES FOR FADING DUCK FEET */
+#duck-feet-background-container {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 0; /* Behind other content but above lava */
+pointer-events: none;
+overflow: hidden;
+}
+.fading-duck-feet {
+position: absolute;
+width: 50px;
+height: 50px;
+background-image: url('https://i.imgur.com/S23b6Wc.png');
+background-size: contain;
+background-repeat: no-repeat;
+opacity: 0;
+animation: fade-in-out linear forwards;
+pointer-events: none;
+}
+@keyframes fade-in-out {
+0% { opacity: 0; transform: scale(0.8); }
+20% { opacity: 0.6; transform: scale(1); }
+80% { opacity: 0.6; transform: scale(1); }
+100% { opacity: 0; transform: scale(1.2); }
+}
+</style>
 </head>
 <body>
-    <div id="lava-container"></div>
-    <div id="login-screen" class="screen visible">
-        <div class="glass-card" id="instructions-card">
-            <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
-            <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
-        </div>
-        <div class="glass-card" id="header-card">
-            <div id="login-view">
-                <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
-                <div class="button-group">
-                    <button id="signin-btn" class="secondary-btn">Sign In</button>
-                    <button id="register-btn" class="primary-btn">Register</button>
-                </div>
-            </div>
-            <div id="registration-view" class="hidden">
-                <h3 style="text-align: center;">Welcome To The Hunt!</h3>
-                <div class="input-group">
-                    <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
-                    <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
-                </div>
-                <div class="button-group">
-                    <button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button>
-                </div>
-            </div>
-        </div>
-        <footer>
-            <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
-            <p>Hosted by the Canyon Activities Board at Grand Canyon University</p>
-            <p>Follow Us At @CABGCU On Instagram</p> 
-        </footer>
-    </div>
-    <div id="app-wrapper" class="screen">
-        <main id="app-container">
-            <section id="hunt-page" class="app-page">
-                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <div id="hunt-content-wrapper">
-                    <h2 class="transparent-heading-box" id="welcome-message"></h2>
-                    <div id="qr-reader-container" class="glass-card">
-                        <div id="scanner-overlay-stats">
-                            <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
-                            <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
-                        </div>
-                        <div id="qr-reader"></div>
-                    </div>
-                    
-                    <div id="scanner-footer-details">
-                        <a id="scan-history-link" href="#" data-page="log-page">Scan History</a>
-                        <div id="player-rank-display"></div>
-                    </div>
-                    
-                </div>
-            </section>
-            <section id="map-page" class="app-page">
-                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="transparent-heading-box">Active Locations</h2>
-                <div id="map-container"></div>
-            </section>
-            <section id="leaderboard-page" class="app-page">
-                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="transparent-heading-box">Leaderboard</h2>
-                <div id="leaderboard-container"><ul id="leaderboard-list"></ul></div>
-            </section>
-            <section id="log-page" class="app-page">
-                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="transparent-heading-box">Scan History</h2>
-                <div id="log-container"><ul id="log-list"></ul></div>
-            </section>
-            <section id="info-page" class="app-page">
-                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2 class="transparent-heading-box">Information</h2>
-                <div id="info-container">
-                   <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
-                   <p>The player with the most points at the end of the event wins a prize!</p>
-                </div>
-            </section>
-        </main>
-        <nav id="tab-bar">
-              <button class="tab-button" data-page="hunt-page">Scanner</button>
-              <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
-              <button class="tab-button" data-page="map-page">Locations</button>
-              <button class="tab-button" data-page="info-page">Info</button>
-        </nav>
-    </div>
+<div id="lava-container"></div>
+<div id="duck-feet-background-container"></div>
+<div id="login-screen" class="screen visible">
+<div class="glass-card" id="instructions-card">
+<p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
+<button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+</div>
+<div class="glass-card" id="header-card">
+<div id="login-view">
+<img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
+<div class="button-group">
+<button id="signin-btn" class="secondary-btn">Sign In</button>
+<button id="register-btn" class="primary-btn">Register</button>
+</div>
+</div>
+<div id="registration-view" class="hidden">
+<h3 style="text-align: center;">Welcome To The Hunt!</h3>
+<div class="input-group">
+<input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
+<input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
+</div>
+<div class="button-group">
+<button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button>
+</div>
+</div>
+</div>
+<footer>
+<img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
+<p>Hosted by the Canyon Activities Board at Grand Canyon University</p>
+<p>Follow Us At @CABGCU On Instagram</p>
+</footer>
+</div>
+<div id="app-wrapper" class="screen">
+<main id="app-container">
+<section id="hunt-page" class="app-page">
+<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<div id="hunt-content-wrapper">
+<h2 class="transparent-heading-box" id="welcome-message"></h2>
+<div id="qr-reader-container" class="glass-card">
+<div id="scanner-overlay-stats">
+<div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
+<div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
+</div>
+<div id="qr-reader"></div>
+</div>
 
-    <script>
-        // --- CONFIGURATION ---
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
-        const POPUP_DURATION_MS = 2000;
-        const BATCH_SEND_INTERVAL_MS = 15000;
-        const DATA_REFRESH_INTERVAL_MS = 60000;
+<div id="scanner-footer-details">
+<a id="scan-history-link" href="#" data-page="log-page">Scan History</a>
+<div id="player-rank-display"></div>
+</div>
 
-        // --- GLOBAL STATE & DOM REFERENCES ---
-        let html5QrCode = null;
-        let currentUser = null;
-        let initialDuckId = null;
-        const loginScreen = document.getElementById('login-screen');
-        const appWrapper = document.getElementById('app-wrapper');
-        const loginView = document.getElementById('login-view');
-        const registrationView = document.getElementById('registration-view');
+</div>
+</section>
+<section id="map-page" class="app-page">
+<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<h2 class="transparent-heading-box">Active Locations</h2>
+<div id="map-container"></div>
+</section>
+<section id="leaderboard-page" class="app-page">
+<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<h2 class="transparent-heading-box">Leaderboard</h2>
+<div id="leaderboard-container"><ul id="leaderboard-list"></ul></div>
+</section>
+<section id="log-page" class="app-page">
+<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<h2 class="transparent-heading-box">Scan History</h2>
+<div id="log-container"><ul id="log-list"></ul></div>
+</section>
+<section id="info-page" class="app-page">
+<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<h2 class="transparent-heading-box">Information</h2>
+<div id="info-container">
+<p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
+<p>The player with the most points at the end of the event wins a prize!</p>
+</div>
+</section>
+</main>
+<nav id="tab-bar">
+<button class="tab-button" data-page="hunt-page">Scanner</button>
+<button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+<button class="tab-button" data-page="map-page">Locations</button>
+<button class="tab-button" data-page="info-page">Info</button>
+</nav>
+</div>
 
-        // --- CACHING & STATE ---
-        let duckDataCache = {};
-        let claimedDucksCache = new Set();
-        let localVirtualScanTimestamps = [];
-        let scanHistoryCache = [];
-        let scanQueue = [];
-        let batchSendTimer = null;
-        let dataRefreshTimer = null;
+<script>
+// --- CONFIGURATION ---
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
+const POPUP_DURATION_MS = 2000;
+const BATCH_SEND_INTERVAL_MS = 15000;
+const DATA_REFRESH_INTERVAL_MS = 60000;
 
-        // --- FETCH HELPER (FOR CORS FIX) ---
-        async function postToAction(action, payload = {}) {
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action, ...payload })
-                });
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return await response.json();
-            } catch (error) {
-                console.error(`Fetch error for action "${action}":`, error);
-                return { status: "error", message: "Network error or script failure." };
-            }
-        }
+// --- GLOBAL STATE & DOM REFERENCES ---
+let html5QrCode = null;
+let currentUser = null;
+let initialDuckId = null;
+const loginScreen = document.getElementById('login-screen');
+const appWrapper = document.getElementById('app-wrapper');
+const loginView = document.getElementById('login-view');
+const registrationView = document.getElementById('registration-view');
 
-        // --- ANIMATION FUNCTIONS ---
-        function triggerDuckAnimation() {
-            // Increased duck count for more flair (3-7 ducks now)
-            const duckCount = Math.floor(Math.random() * 5) + 3; 
-            for (let i = 0; i < duckCount; i++) {
-                setTimeout(() => {
-                    const duck = document.createElement('div');
-                    duck.textContent = '🦆';
-                    duck.className = 'duck-animation';
-                    duck.style.top = `${30 + Math.random() * 40}%`;
-                    duck.style.animationDuration = `${1.5 + Math.random()}s`;
-                    document.body.appendChild(duck);
-                    setTimeout(() => duck.remove(), 2500);
-                }, i * 150); // Slightly faster launch interval
-            }
-        }
+// --- CACHING & STATE ---
+let duckDataCache = {};
+let claimedDucksCache = new Set();
+let localVirtualScanTimestamps = [];
+let scanHistoryCache = [];
+let scanQueue = [];
+let batchSendTimer = null;
+let dataRefreshTimer = null;
 
-        function triggerGoldenDuckAnimation() {
-            // Golden duck animation using gold-related emojis
-            const emojis = ['🦆', '💰', '✨', '🪙', '⭐'];
-            const count = 10; // Launch 10 golden items
-            for (let i = 0; i < count; i++) {
-                setTimeout(() => {
-                    const item = document.createElement('div');
-                    item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    
-                    // Re-using frost-animation class for the falling effect
-                    item.className = 'frost-animation'; 
-                    item.style.fontSize = `${1.5 + Math.random()}rem`;
-                    item.style.color = '#FFD700'; // Gold color
-                    item.style.left = `${Math.random() * 100}vw`;
-                    item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`; // Shorter, more exciting fall
-                    item.style.animationDelay = `${Math.random() * 0.5}s`;
-                    document.body.appendChild(item);
-                    setTimeout(() => item.remove(), 5000);
-                }, i * 50);
-            }
-        }
+// --- FETCH HELPER (FOR CORS FIX) ---
+async function postToAction(action, payload = {}) {
+try {
+const response = await fetch(SCRIPT_URL, {
+method: 'POST',
+body: JSON.stringify({ action, ...payload })
+});
+if (!response.ok) {
+throw new Error(`Network response was not ok: ${response.statusText}`);
+}
+return await response.json();
+} catch (error) {
+console.error(`Fetch error for action "${action}":`, error);
+return { status: "error", message: "Network error or script failure." };
+}
+}
 
-        function triggerFrostAnimation() {
-            const flakeCount = 15;
-            for (let i = 0; i < flakeCount; i++) {
-                const flake = document.createElement('div');
-                flake.textContent = '❄️';
-                flake.className = 'frost-animation';
-                flake.style.left = `${Math.random() * 100}vw`;
-                flake.style.animationDuration = `${2 + Math.random() * 3}s`;
-                flake.style.animationDelay = `${Math.random()}s`;
-                document.body.appendChild(flake);
-                setTimeout(() => flake.remove(), 5000);
-            }
-        }
-        
-        // --- CORE SCANNING & SYNC LOGIC ---
-        async function onScanSuccess(decodedText) {
-            if (!currentUser) return;
-            let finalDuckId = decodedText;
-            try {
-                const url = new URL(decodedText);
-                if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-            } catch (e) {}
-            
-            const lookupId = finalDuckId.trim().toLowerCase();
+// --- ANIMATION FUNCTIONS ---
 
-            if (claimedDucksCache.has(lookupId)) {
-                const qrContainer = document.getElementById('qr-reader-container');
-                qrContainer.classList.add('error-flash');
-                setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-                return;
-            }
-            const duckInfo = duckDataCache[lookupId];
-            if (!duckInfo) {
-                displayErrorPopup("Invalid Duck ID");
-                return;
-            }
-            if (duckInfo.type === 'Virtual Duck') {
-                const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-                localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-                if (localVirtualScanTimestamps.length >= 10) {
-                    displayErrorPopup("Daily limit for Virtual Ducks reached.");
-                    triggerFrostAnimation();
-                    return;
-                }
-                localVirtualScanTimestamps.push(new Date().getTime());
-            }
-            scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-            claimedDucksCache.add(lookupId);
-            const points = duckInfo.points || 0;
-            currentUser.points += points;
-            const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
-            document.getElementById('player-ducks').textContent = currentDucks + 1;
-            document.getElementById('player-points').textContent = currentUser.points;
-            displaySuccessPopup(`+${points}`);
+/**
+* Creates and launches persistent duck feet animation in the background.
+* This animation fades in and out at random positions.
+*/
+function startRandomFadingDuckFeet() {
+const container = document.getElementById('duck-feet-background-container');
+const maxFeetOnScreen = 7; // Max number of feet visible at any time
+const minDelay = 1000; // Minimum delay between new feet appearing (1 second)
+const maxDelay = 3000; // Maximum delay between new feet appearing (3 seconds)
+const animationDuration = 6000; // Total duration for fade in/out (6 seconds)
 
-            if (duckInfo.type === 'Golden Duck') {
-                triggerGoldenDuckAnimation();
-            } else {
-                triggerDuckAnimation();
-            }
-        }
+function createFadingFeet() {
+// Remove oldest feet if too many are on screen
+const currentFeet = container.querySelectorAll('.fading-duck-feet');
+if (currentFeet.length >= maxFeetOnScreen) {
+currentFeet[0].remove();
+}
 
-        async function sendBatchScans() {
-            if (scanQueue.length === 0) return;
-            const scansToSend = [...scanQueue];
-            scanQueue = [];
+const feet = document.createElement('div');
+feet.className = 'fading-duck-feet';
 
-            const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+// Random position across the screen
+// Use innerWidth/innerHeight for the viewport dimensions
+const randomX = Math.random() * (window.innerWidth - 60); // 60px for feet width
+const randomY = Math.random() * (window.innerHeight - 60); // 60px for feet height
+feet.style.left = `${randomX}px`;
+feet.style.top = `${randomY}px`;
 
-            if (batchResult.status === "success") {
-                if (batchResult.updatedUser) {
-                    currentUser.points = batchResult.updatedUser.points;
-                    document.getElementById('player-points').textContent = currentUser.points;
-                    
-                    if (batchResult.updatedUser.duckCount !== undefined) {
-                        document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
-                    }
-                }
-                if (batchResult.results) {
-                    batchResult.results.forEach(result => {
-                        if (result.status !== "success") {
-                            displayRevertPopup(result.message || "A duck was claimed just before you!");
-                        }
-                    });
-                }
-            } else {
-                displayRevertPopup(batchResult.message || "A server error occurred.");
-                scanQueue = [...scansToSend, ...scanQueue];
-            }
-        }
+// Random scale and rotation for variation
+const randomScale = 0.7 + Math.random() * 0.6; // Scale between 0.7 and 1.3
+feet.style.transform = `scale(${randomScale}) rotate(${Math.random() * 360}deg)`;
 
-        function periodicDataRefresh() {
-            if (!currentUser) return;
-            updateUserDashboard();
-            postToAction('getClaimedDucks').then(result => {
-                if (result.status === 'success' && Array.isArray(result.claimed)) {
-                     claimedDucksCache = new Set(result.claimed);
-                }
-            });
-        }
+feet.style.animationDuration = `${animationDuration}ms`;
 
-        // --- APP INITIALIZATION & LOGIN ---
-        async function showApp(user, initialPageId) {
-            currentUser = user;
-            sessionStorage.setItem('currentUserStudentId', user.studentId);
-            try {
-                const [duckResult, historyResult, claimedDucksResult] = await Promise.all([
-                    postToAction('getDuckData'),
-                    postToAction('getScanHistory', { studentId: currentUser.studentId }),
-                    postToAction('getClaimedDucks')
-                ]);
+container.appendChild(feet);
 
-                if (duckResult.status === 'success') {
-                    duckDataCache = duckResult.ducks;
-                } else { throw new Error("Failed to load duck data."); }
+// Remove the feet after the animation is complete
+setTimeout(() => {
+feet.remove();
+}, animationDuration);
 
-                if (claimedDucksResult.status === 'success' && Array.isArray(claimedDucksResult.claimed)) {
-                    claimedDucksCache = new Set(claimedDucksResult.claimed);
-                }
+// Schedule the next feet creation
+const nextDelay = Math.random() * (maxDelay - minDelay) + minDelay;
+setTimeout(createFadingFeet, nextDelay);
+}
 
-                if (Array.isArray(historyResult)) {
-                    scanHistoryCache = historyResult;
-                    document.getElementById('player-ducks').textContent = historyResult.length;
-                    const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-                    localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
-                }
-            } catch (e) {
-                console.error("Failed to initialize app data:", e);
-                alert("Could not load game data. Please try again.");
-                const signinBtn = document.getElementById('signin-btn');
-                if (signinBtn) { signinBtn.disabled = false; signinBtn.innerHTML = "Sign In"; }
-                const submitBtn = document.getElementById('submit-btn');
-                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = "Submit"; }
-                return;
-            }
-            loginScreen.classList.remove('visible');
-            appWrapper.classList.add('visible');
-            if (batchSendTimer) clearInterval(batchSendTimer);
-            batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-            if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-            dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-            await updateUserDashboard();
-            switchPage(initialPageId);
-            if (initialDuckId) {
-                onScanSuccess(initialDuckId);
-                initialDuckId = null;
-            }
-        }
+// Start the first feet, and it will recursively schedule more
+createFadingFeet();
+}
 
-        async function signIn(studentId) {
-            const signinBtn = document.getElementById('signin-btn');
-            const originalText = signinBtn.innerHTML;
-            signinBtn.innerHTML = '<div class="spinner"></div>';
-            signinBtn.disabled = true;
+function triggerDuckAnimation() {
+// Increased duck count for more flair (3-7 ducks now)
+const duckCount = Math.floor(Math.random() * 5) + 3;
+for (let i = 0; i < duckCount; i++) {
+setTimeout(() => {
+const duck = document.createElement('div');
+duck.textContent = '🦆';
+duck.className = 'duck-animation';
+duck.style.top = `${30 + Math.random() * 40}%`;
+duck.style.animationDuration = `${1.5 + Math.random()}s`;
+document.body.appendChild(duck);
+setTimeout(() => duck.remove(), 2500);
+}, i * 150); // Slightly faster launch interval
+}
+}
 
-            const result = await postToAction('getUser', { studentId });
+function triggerGoldenDuckAnimation() {
+// Golden duck animation using gold-related emojis
+const emojis = ['🦆', '💰', '✨', '🪙', '⭐'];
+const count = 10; // Launch 10 golden items
+for (let i = 0; i < count; i++) {
+setTimeout(() => {
+const item = document.createElement('div');
+item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
 
-            if (result.status === "success") {
-                showApp(result.user, 'hunt-page'); 
-            } else {
-                alert("User not found! Please register before signing in.");
-                signinBtn.innerHTML = originalText;
-                signinBtn.disabled = false;
-            }
-        }
+// Re-using frost-animation class for the falling effect
+item.className = 'frost-animation';
+item.style.fontSize = `${1.5 + Math.random()}rem`;
+item.style.color = '#FFD700'; // Gold color
+item.style.left = `${Math.random() * 100}vw`;
+item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`; // Shorter, more exciting fall
+item.style.animationDelay = `${Math.random() * 0.5}s`;
+document.body.appendChild(item);
+setTimeout(() => item.remove(), 5000);
+}, i * 50);
+}
+}
 
-        async function registerUser() {
-            const submitBtn = document.getElementById('submit-btn');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<div class="spinner"></div>';
-            submitBtn.disabled = true;
-            const payload = {
-                firstName: document.getElementById('reg-firstname').value.trim(),
-                lastName: document.getElementById('reg-lastname').value.trim(),
-                studentId: document.getElementById('reg-studentid').value.trim(),
-                email: document.getElementById('reg-email').value.trim()
-            };
-            if (!payload.firstName || !payload.studentId) {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                return alert("First Name and Student ID are required.");
-            }
-            try {
-                const result = await postToAction('registerUser', payload);
-                if (result.status === "success") {
-                    const userResult = await postToAction('getUser', { studentId: payload.studentId });
-                    if (userResult.status === "success") {
-                        showApp(userResult.user, 'info-page');
-                    } else {
-                        throw new Error("Auto sign-in failed.");
-                    }
-                } else {
-                    alert(result.message);
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                }
-            } catch (error) {
-                alert("Error registering.");
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
-        }
+function triggerFrostAnimation() {
+const flakeCount = 15;
+for (let i = 0; i < flakeCount; i++) {
+const flake = document.createElement('div');
+flake.textContent = '❄️';
+flake.className = 'frost-animation';
+flake.style.left = `${Math.random() * 100}vw`;
+flake.style.animationDuration = `${2 + Math.random() * 3}s`;
+flake.style.animationDelay = `${Math.random()}s`;
+document.body.appendChild(flake);
+setTimeout(() => flake.remove(), 5000);
+}
+}
 
-        // --- UI & DATA DISPLAY FUNCTIONS ---
-        function displaySuccessPopup(message) {
-            const successPop = document.createElement('div');
-            successPop.className = 'point-pop';
-            successPop.textContent = message;
-            document.getElementById('qr-reader-container').appendChild(successPop);
-            setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
-        }
+// --- CORE SCANNING & SYNC LOGIC ---
+async function onScanSuccess(decodedText) {
+if (!currentUser) return;
+let finalDuckId = decodedText;
+try {
+const url = new URL(decodedText);
+if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+} catch (e) {}
 
-        function displayErrorPopup(message) {
-            const errorPop = document.createElement('div');
-            errorPop.className = 'point-pop'; 
-            errorPop.textContent = message;
-            document.getElementById('qr-reader-container').appendChild(errorPop);
-            setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
-        }
+const lookupId = finalDuckId.trim().toLowerCase();
 
-        function displayRevertPopup(message) {
-            const revertPop = document.createElement('div');
-            revertPop.className = 'point-pop'; 
-            revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</small>`;
-            document.getElementById('qr-reader-container').appendChild(revertPop);
-            setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
-        }
+if (claimedDucksCache.has(lookupId)) {
+const qrContainer = document.getElementById('qr-reader-container');
+qrContainer.classList.add('error-flash');
+setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+return;
+}
+const duckInfo = duckDataCache[lookupId];
+if (!duckInfo) {
+displayErrorPopup("Invalid Duck ID");
+return;
+}
+if (duckInfo.type === 'Virtual Duck') {
+const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+if (localVirtualScanTimestamps.length >= 10) {
+displayErrorPopup("Daily limit for Virtual Ducks reached.");
+triggerFrostAnimation();
+return;
+}
+localVirtualScanTimestamps.push(new Date().getTime());
+}
+scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+claimedDucksCache.add(lookupId);
+const points = duckInfo.points || 0;
+currentUser.points += points;
+const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
+document.getElementById('player-ducks').textContent = currentDucks + 1;
+document.getElementById('player-points').textContent = currentUser.points;
+displaySuccessPopup(`+${points}`);
 
-        async function updateUserDashboard(shouldUpdatePoints = true) {
-            if (!currentUser) return;
-            try {
-                const fetches = [
-                    postToAction('getLeaderboard'),
-                    postToAction('getScanHistory', { studentId: currentUser.studentId })
-                ];
-                if (shouldUpdatePoints) {
-                    fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
-                }
-                
-                const responses = await Promise.all(fetches);
-                let userResult, leaderboardData, historyResult;
+if (duckInfo.type === 'Golden Duck') {
+triggerGoldenDuckAnimation();
+} else {
+triggerDuckAnimation();
+}
+}
 
-                if (shouldUpdatePoints) {
-                    userResult = responses.shift();
-                    if (userResult.status === "success") {
-                        currentUser.points = userResult.user.points;
-                        document.getElementById('player-points').textContent = currentUser.points;
-                    }
-                }
-                
-                leaderboardData = responses[0];
-                historyResult = responses[1];
+async function sendBatchScans() {
+if (scanQueue.length === 0) return;
+const scansToSend = [...scanQueue];
+scanQueue = [];
 
-                document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
-                if (Array.isArray(leaderboardData)) {
-                    const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
-                    let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
-                    if (myRank === 1) rankText = '🥇 Rank 1';
-                    else if (myRank === 2) rankText = '🥈 Rank 2';
-                    else if (myRank === 3) rankText = '🥉 Rank 3';
-                    document.getElementById('player-rank-display').textContent = rankText;
-                }
-                if (Array.isArray(historyResult)) {
-                    scanHistoryCache = historyResult;
-                    document.getElementById('player-ducks').textContent = historyResult.length;
-                }
-            } catch (e) {
-                console.error("Failed to update dashboard", e);
-            }
-        }
+const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
 
-        async function updateLeaderboard() {
-            const listElement = document.getElementById('leaderboard-list');
-            if (listElement.innerHTML === '') {
-                 listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
-            }
-            const leaderboardData = await postToAction('getLeaderboard');
-            if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
-                listElement.innerHTML = '<li class="list-item" style="justify-content:center;">No one has scanned any ducks yet!</li>';
-                return;
-            }
-            let html = '';
-            // Display top 10 players
-            leaderboardData.slice(0, 10).forEach((player, index) => {
-                const rank = index + 1;
-                const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
-                const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
-                const displayName = `${player.firstName} ${lastNameInitial}`;
-                
-                // This HTML structure matches the CSS layout for proper two-column display
-                html += `<li class="list-item"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
-            });
-            listElement.innerHTML = html;
-        }
+if (batchResult.status === "success") {
+if (batchResult.updatedUser) {
+currentUser.points = batchResult.updatedUser.points;
+document.getElementById('player-points').textContent = currentUser.points;
 
-        function updateScanHistory() {
-            const listElement = document.getElementById('log-list');
-            const scanData = scanHistoryCache;
-            if (!scanData || scanData.length === 0) {
-                listElement.innerHTML = '<li class="list-item" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
-                return;
-            }
-            let html = '';
-            scanData.forEach(scan => {
-                const scanDate = new Date(scan.timestamp);
-                const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                html += `<li class="list-item"><div><div class="primary-text">${scan.duckType || 'Duck'}</div><div class="secondary-text">${scan.duckId} - ${timeString}</div></div><span>+${scan.points || 0}</span></li>`;
-            });
-            listElement.innerHTML = html;
-        }
+if (batchResult.updatedUser.duckCount !== undefined) {
+document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
+}
+}
+if (batchResult.results) {
+batchResult.results.forEach(result => {
+if (result.status !== "success") {
+displayRevertPopup(result.message || "A duck was claimed just before you!");
+}
+});
+}
+} else {
+displayRevertPopup(batchResult.message || "A server error occurred.");
+scanQueue = [...scansToSend, ...scanQueue];
+}
+}
 
-        async function updateDuckMap() {
-            const container = document.getElementById('map-container');
-            if (container.innerHTML === '') {
-                container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
-            }
-            const result = await postToAction('getDuckCounts'); 
-            if (result.status === 'success') {
-                const { locations, totalPercentage } = result;
-                if (!locations || Object.keys(locations).length === 0) {
-                    container.innerHTML = '<h4>No active locations found.</h4>';
-                    return;
-                }
-                const locationArray = Object.entries(locations).map(([name, count]) => ({ name, count, isVirtual: name.toLowerCase().includes('virtual') }));
-                
-                locationArray.sort((a, b) => {
-                    if (a.isVirtual !== b.isVirtual) return a.isVirtual ? 1 : -1;
-                    if (b.count !== a.count) return b.count - a.count;
-                    return a.name.localeCompare(b.name);
-                });
-                
-                let html = '';
-                locationArray.forEach(location => {
-                    const plural = location.count === 1 ? 'Code Remains' : 'Codes Remain';
-                    const statusText = location.count === 0 ? `<span style="color: grey;">CLEARED</span>` : `<span>${location.count} ${plural}</span>`;
-                    html += `<div class="location-card"><div class="location-details"><h4>${location.name}</h4>${statusText}</div></div>`;
-                });
-                container.innerHTML = `<p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Ducks Collected: ${totalPercentage}%</p>${html}`;
-            } else {
-                container.innerHTML = `<h4>Error loading location data.</h4><small>${result.message || ''}</small>`;
-            }
-        }
+function periodicDataRefresh() {
+if (!currentUser) return;
+updateUserDashboard();
+postToAction('getClaimedDucks').then(result => {
+if (result.status === 'success' && Array.isArray(result.claimed)) {
+claimedDucksCache = new Set(result.claimed);
+}
+});
+}
 
-        // --- UTILITY & NAVIGATION ---
-        function startScanner() {
-            if (document.getElementById('hunt-page')?.classList.contains('active')) {
-                html5QrCode = new Html5Qrcode("qr-reader");
-                const config = { fps: 10, qrbox: { width: 180, height: 180 }, aspectRatio: 1.0 }; 
-                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}).catch(err => console.log("QR scanner failed to start."));
-            }
-        }
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().catch(err => {});
-            }
-        }
-        function switchPage(pageId) {
-            stopScanner();
-            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId)?.classList.add('active');
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
-            if (pageId === 'hunt-page') {
-                updateUserDashboard();
-                setTimeout(startScanner, 250);
-            } else if (pageId === 'leaderboard-page') {
-                updateLeaderboard();
-            } else if (pageId === 'log-page') {
-                updateScanHistory();
-            } else if (pageId === 'map-page') {
-                updateDuckMap();
-            }
-        }
-        function checkForInitialDuck() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('duckId')) {
-                initialDuckId = urlParams.get('duckId');
-                showNotification("Duck found! Sign in or register to claim it.");
-            }
-        }
-        function showNotification(message) {
-            const el = document.createElement('div');
-            el.className = 'glass-card';
-            el.style.position = 'fixed';
-            el.style.top = '-150px';
-            el.style.left = '50%';
-            el.style.transform = 'translateX(-50%)';
-            el.style.zIndex = '999';
-            el.style.width = '80%';
-            el.style.maxWidth = '350px';
-            el.innerHTML = `<p>${message}</p>`;
-            document.body.appendChild(el);
-            setTimeout(() => el.style.top = '20px', 10);
-            setTimeout(() => {
-                el.style.top = '-150px';
-                setTimeout(() => el.remove(), 500);
-            }, 3000);
-        }
+// --- APP INITIALIZATION & LOGIN ---
+async function showApp(user, initialPageId) {
+currentUser = user;
+sessionStorage.setItem('currentUserStudentId', user.studentId);
+try {
+const [duckResult, historyResult, claimedDucksResult] = await Promise.all([
+postToAction('getDuckData'),
+postToAction('getScanHistory', { studentId: currentUser.studentId }),
+postToAction('getClaimedDucks')
+]);
 
-        // --- EVENT LISTENERS ---
-        document.addEventListener('DOMContentLoaded', () => {
-            checkForInitialDuck();
-            const savedStudentId = sessionStorage.getItem('currentUserStudentId');
-            if (savedStudentId) {
-                signIn(savedStudentId);
-            }
-            document.getElementById('signin-btn').addEventListener('click', () => {
-                const studentId = document.getElementById('login-studentid').value.trim();
-                if (studentId) signIn(studentId);
-            });
-            document.getElementById('submit-btn').addEventListener('click', registerUser);
-            document.getElementById('register-btn').addEventListener('click', () => {
-                loginView.classList.add('hidden');
-                registrationView.classList.remove('hidden');
-            });
-            document.getElementById('back-btn').addEventListener('click', () => {
-                registrationView.classList.add('hidden');
-                loginView.classList.remove('hidden');
-            });
-            document.getElementById('close-instructions').addEventListener('click', () => {
-                document.getElementById('instructions-card').style.display = 'none';
-            });
-            document.getElementById('tab-bar').addEventListener('click', (e) => {
-                if (e.target.matches('.tab-button')) {
-                    switchPage(e.target.dataset.page);
-                }
-            });
-            document.getElementById('scan-history-link').addEventListener('click', (e) => {
-                e.preventDefault();
-                switchPage(e.target.dataset.page);
-            });
-        });
-    </script>
+if (duckResult.status === 'success') {
+duckDataCache = duckResult.ducks;
+} else { throw new Error("Failed to load duck data."); }
+
+if (claimedDucksResult.status === 'success' && Array.isArray(claimedDucksResult.claimed)) {
+claimedDucksCache = new Set(claimedDucksResult.claimed);
+}
+
+if (Array.isArray(historyResult)) {
+scanHistoryCache = historyResult;
+document.getElementById('player-ducks').textContent = historyResult.length;
+const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
+}
+} catch (e) {
+console.error("Failed to initialize app data:", e);
+alert("Could not load game data. Please try again.");
+const signinBtn = document.getElementById('signin-btn');
+if (signinBtn) { signinBtn.disabled = false; signinBtn.innerHTML = "Sign In"; }
+const submitBtn = document.getElementById('submit-btn');
+if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = "Submit"; }
+return;
+}
+loginScreen.classList.remove('visible');
+appWrapper.classList.add('visible');
+if (batchSendTimer) clearInterval(batchSendTimer);
+batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+await updateUserDashboard();
+switchPage(initialPageId);
+if (initialDuckId) {
+onScanSuccess(initialDuckId);
+initialDuckId = null;
+}
+}
+
+async function signIn(studentId) {
+const signinBtn = document.getElementById('signin-btn');
+const originalText = signinBtn.innerHTML;
+signinBtn.innerHTML = '<div class="spinner"></div>';
+signinBtn.disabled = true;
+
+const result = await postToAction('getUser', { studentId });
+
+if (result.status === "success") {
+showApp(result.user, 'hunt-page');
+} else {
+alert("User not found! Please register before signing in.");
+signinBtn.innerHTML = originalText;
+signinBtn.disabled = false;
+}
+}
+
+async function registerUser() {
+const submitBtn = document.getElementById('submit-btn');
+const originalText = submitBtn.innerHTML;
+submitBtn.innerHTML = '<div class="spinner"></div>';
+submitBtn.disabled = true;
+const payload = {
+firstName: document.getElementById('reg-firstname').value.trim(),
+lastName: document.getElementById('reg-lastname').value.trim(),
+studentId: document.getElementById('reg-studentid').value.trim(),
+email: document.getElementById('reg-email').value.trim()
+};
+if (!payload.firstName || !payload.studentId) {
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+return alert("First Name and Student ID are required.");
+}
+try {
+const result = await postToAction('registerUser', payload);
+if (result.status === "success") {
+const userResult = await postToAction('getUser', { studentId: payload.studentId });
+if (userResult.status === "success") {
+showApp(userResult.user, 'info-page');
+} else {
+throw new Error("Auto sign-in failed.");
+}
+} else {
+alert(result.message);
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+}
+} catch (error) {
+alert("Error registering.");
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+}
+}
+
+// --- UI & DATA DISPLAY FUNCTIONS ---
+function displaySuccessPopup(message) {
+const successPop = document.createElement('div');
+successPop.className = 'point-pop';
+successPop.textContent = message;
+document.getElementById('qr-reader-container').appendChild(successPop);
+setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
+}
+
+function displayErrorPopup(message) {
+const errorPop = document.createElement('div');
+errorPop.className = 'point-pop';
+errorPop.textContent = message;
+document.getElementById('qr-reader-container').appendChild(errorPop);
+setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
+}
+
+function displayRevertPopup(message) {
+const revertPop = document.createElement('div');
+revertPop.className = 'point-pop';
+revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</small>`;
+document.getElementById('qr-reader-container').appendChild(revertPop);
+setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
+}
+
+async function updateUserDashboard(shouldUpdatePoints = true) {
+if (!currentUser) return;
+try {
+const fetches = [
+postToAction('getLeaderboard'),
+postToAction('getScanHistory', { studentId: currentUser.studentId })
+];
+if (shouldUpdatePoints) {
+fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
+}
+
+const responses = await Promise.all(fetches);
+let userResult, leaderboardData, historyResult;
+
+if (shouldUpdatePoints) {
+userResult = responses.shift();
+if (userResult.status === "success") {
+currentUser.points = userResult.user.points;
+document.getElementById('player-points').textContent = currentUser.points;
+}
+}
+
+leaderboardData = responses[0];
+historyResult = responses[1];
+
+document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+if (Array.isArray(leaderboardData)) {
+const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
+let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
+if (myRank === 1) rankText = '🥇 Rank 1';
+else if (myRank === 2) rankText = '🥈 Rank 2';
+else if (myRank === 3) rankText = '🥉 Rank 3';
+document.getElementById('player-rank-display').textContent = rankText;
+}
+if (Array.isArray(historyResult)) {
+scanHistoryCache = historyResult;
+document.getElementById('player-ducks').textContent = historyResult.length;
+}
+} catch (e) {
+console.error("Failed to update dashboard", e);
+}
+}
+
+async function updateLeaderboard() {
+const listElement = document.getElementById('leaderboard-list');
+if (listElement.innerHTML === '') {
+listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
+}
+const leaderboardData = await postToAction('getLeaderboard');
+if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
+listElement.innerHTML = '<li class="list-item" style="justify-content:center;">No one has scanned any ducks yet!</li>';
+return;
+}
+let html = '';
+// Display top 10 players
+leaderboardData.slice(0, 10).forEach((player, index) => {
+const rank = index + 1;
+const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
+const displayName = `${player.firstName} ${lastNameInitial}`;
+
+// This HTML structure matches the CSS layout for proper two-column display
+html += `<li class="list-item"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
+});
+listElement.innerHTML = html;
+}
+
+function updateScanHistory() {
+const listElement = document.getElementById('log-list');
+const scanData = scanHistoryCache;
+if (!scanData || scanData.length === 0) {
+listElement.innerHTML = '<li class="list-item" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
+return;
+}
+let html = '';
+scanData.forEach(scan => {
+const scanDate = new Date(scan.timestamp);
+const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+html += `<li class="list-item"><div><div class="primary-text">${scan.duckType || 'Duck'}</div><div class="secondary-text">${scan.duckId} - ${timeString}</div></div><span>+${scan.points || 0}</span></li>`;
+});
+listElement.innerHTML = html;
+}
+
+async function updateDuckMap() {
+const container = document.getElementById('map-container');
+if (container.innerHTML === '') {
+container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
+}
+const result = await postToAction('getDuckCounts');
+if (result.status === 'success') {
+const { locations, totalPercentage } = result;
+if (!locations || Object.keys(locations).length === 0) {
+container.innerHTML = '<h4>No active locations found.</h4>';
+return;
+}
+const locationArray = Object.entries(locations).map(([name, count]) => ({ name, count, isVirtual: name.toLowerCase().includes('virtual') }));
+
+locationArray.sort((a, b) => {
+if (a.isVirtual !== b.isVirtual) return a.isVirtual ? 1 : -1;
+if (b.count !== a.count) return b.count - a.count;
+return a.name.localeCompare(b.name);
+});
+
+let html = '';
+locationArray.forEach(location => {
+const plural = location.count === 1 ? 'Code Remains' : 'Codes Remain';
+const statusText = location.count === 0 ? `<span style="color: grey;">CLEARED</span>` : `<span>${location.count} ${plural}</span>`;
+html += `<div class="location-card"><div class="location-details"><h4>${location.name}</h4>${statusText}</div></div>`;
+});
+container.innerHTML = `<p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Ducks Collected: ${totalPercentage}%</p>${html}`;
+} else {
+container.innerHTML = `<h4>Error loading location data.</h4><small>${result.message || ''}</small>`;
+}
+}
+
+// --- UTILITY & NAVIGATION ---
+function startScanner() {
+if (document.getElementById('hunt-page')?.classList.contains('active')) {
+html5QrCode = new Html5Qrcode("qr-reader");
+const config = { fps: 10, qrbox: { width: 180, height: 180 }, aspectRatio: 1.0 };
+html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}).catch(err => console.log("QR scanner failed to start."));
+}
+}
+function stopScanner() {
+if (html5QrCode && html5QrCode.isScanning) {
+html5QrCode.stop().catch(err => {});
+}
+}
+function switchPage(pageId) {
+stopScanner();
+document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+document.getElementById(pageId)?.classList.add('active');
+document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
+if (pageId === 'hunt-page') {
+updateUserDashboard();
+setTimeout(startScanner, 250);
+} else if (pageId === 'leaderboard-page') {
+updateLeaderboard();
+} else if (pageId === 'log-page') {
+updateScanHistory();
+} else if (pageId === 'map-page') {
+updateDuckMap();
+}
+}
+function checkForInitialDuck() {
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('duckId')) {
+initialDuckId = urlParams.get('duckId');
+showNotification("Duck found! Sign in or register to claim it.");
+}
+}
+function showNotification(message) {
+const el = document.createElement('div');
+el.className = 'glass-card';
+el.style.position = 'fixed';
+el.style.top = '-150px';
+el.style.left = '50%';
+el.style.transform = 'translateX(-50%)';
+el.style.zIndex = '999';
+el.style.width = '80%';
+el.style.maxWidth = '350px';
+el.innerHTML = `<p>${message}</p>`;
+document.body.appendChild(el);
+setTimeout(() => el.style.top = '20px', 10);
+setTimeout(() => {
+el.style.top = '-150px';
+setTimeout(() => el.remove(), 500);
+}, 3000);
+}
+
+// --- EVENT LISTENERS ---
+document.addEventListener('DOMContentLoaded', () => {
+// Start continuous feet animation immediately
+startRandomFadingDuckFeet();
+
+checkForInitialDuck();
+const savedStudentId = sessionStorage.getItem('currentUserStudentId');
+if (savedStudentId) {
+signIn(savedStudentId);
+}
+document.getElementById('signin-btn').addEventListener('click', () => {
+const studentId = document.getElementById('login-studentid').value.trim();
+if (studentId) signIn(studentId);
+});
+document.getElementById('submit-btn').addEventListener('click', registerUser);
+document.getElementById('register-btn').addEventListener('click', () => {
+loginView.classList.add('hidden');
+registrationView.classList.remove('hidden');
+});
+document.getElementById('back-btn').addEventListener('click', () => {
+registrationView.classList.add('hidden');
+loginView.classList.remove('hidden');
+});
+document.getElementById('close-instructions').addEventListener('click', () => {
+document.getElementById('instructions-card').style.display = 'none';
+});
+document.getElementById('tab-bar').addEventListener('click', (e) => {
+if (e.target.matches('.tab-button')) {
+switchPage(e.target.dataset.page);
+}
+});
+document.getElementById('scan-history-link').addEventListener('click', (e) => {
+e.preventDefault();
+switchPage(e.target.dataset.page);
+});
+});
+</script>
 </body>
 </html>
