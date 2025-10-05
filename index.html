@@ -29,7 +29,6 @@
             padding: 1.5rem; 
         }
         
-        /* Ensure transparent heading text is centered */
         .transparent-heading-box {
             background: none;
             backdrop-filter: none;
@@ -44,7 +43,6 @@
             text-align: center; 
         }
 
-        /* SCROLL & LAYOUT FIXES (CRITICAL MOBILE FIXES HERE) */
         #app-wrapper { 
             position: fixed; 
             top: 0; 
@@ -56,25 +54,23 @@
         }
         #app-container {
             flex: 1; 
-            overflow-y: hidden; /* Prevent this container from scrolling itself */
-            /* New: Calculate space above the fixed bottom bar */
+            overflow-y: hidden;
             height: calc(100vh - var(--tab-bar-height)); 
-            padding-bottom: var(--safe-padding); /* Padding above the tab bar */
+            padding-bottom: var(--safe-padding);
         }
         .app-page { 
             width: 100%; 
-            height: 100%; /* Take full height of parent #app-container */
+            height: 100%;
             box-sizing: border-box; 
-            padding: 0 var(--safe-padding); /* Removed vertical padding, handled by sub-containers/margins */
+            padding: 0 var(--safe-padding);
             display: none; 
             flex-direction: column; 
-            gap: 0; /* Managed spacing internally */
+            gap: 0;
             align-items: center; 
         }
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
         
-        /* HEADER IMAGE FOR ALL PAGES - SHIFTED DOWN */
         .app-page .header-image-top {
             width: 60%;
             max-width: 250px;
@@ -83,10 +79,9 @@
             flex-shrink: 0;
         }
 
-        /* Hunt Page Layout - TIGHTENED */
         #hunt-page { 
             justify-content: flex-start; 
-            padding-top: 0; /* Padding handled by margins/header */
+            padding-top: 0;
         }
         #hunt-content-wrapper { 
             position: relative; 
@@ -102,7 +97,6 @@
         
         #hunt-content-wrapper .header-image { width: 80%; margin: -2rem auto 0.2rem auto; display: block; }
         
-        /* FROST BLACK BORDER ACCENT: QR Container */
         #qr-reader-container { 
             padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; 
             border: 2px solid var(--border-color);
@@ -111,7 +105,6 @@
         }
         #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 
-        /* FIX: Corrected centering transform for point-pop and animation duration */
         .point-pop { 
             position: absolute; 
             top: 85%; 
@@ -136,7 +129,6 @@
             100% { top: 70%; opacity: 0; } 
         }
 
-        /* Scan History Link Style */
         #scan-history-link {
             font-size: 0.9rem;
             color: var(--green);
@@ -156,12 +148,11 @@
             justify-content: flex-start; 
         }
         
-        /* CONTAINERS THAT NEED SCROLLING (CRITICAL FIX) */
         #log-container, #leaderboard-container, #info-container, #map-container { 
-            flex: 1; /* Allows container to shrink/grow */
-            overflow-y: auto; /* Enable vertical scrolling */
-            min-height: 0; /* IMPORTANT: Prevents flex children from overflowing parent when content is large */
-            padding: var(--safe-padding) 0; /* Add scrollable padding */
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding: var(--safe-padding) 0;
             position: relative;
             background: none; 
             border-radius: 0; 
@@ -174,7 +165,6 @@
             max-width: 450px; 
         }
 
-        /* Map specific inner text box adjustment (Percentage of Ducks) */
         #map-container .transparent-heading-box {
             margin: 0 auto 1.5rem auto; 
             padding: 0.75rem 1rem;
@@ -182,7 +172,6 @@
             align-self: center;
         }
 
-        /* Center text content on Info Page */
         #info-container { 
             text-align: center !important; 
         }
@@ -192,11 +181,6 @@
             margin: 0.5rem auto; 
         }
 
-        /* ACTIVE LOCATIONS CARD LIST STYLES */
-        #map-page {
-            gap: 0.5rem; 
-        }
-        
         .location-card {
             background: var(--card-bg); 
             backdrop-filter: blur(8px); 
@@ -205,7 +189,6 @@
             border-radius: 12px;
             padding: 0.8rem 1.2rem;
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-            
             display: flex;
             justify-content: space-between;
             align-items: flex-start; 
@@ -219,21 +202,18 @@
             text-align: center;
             width: 100%; 
         }
-
         .location-details h4 {
             margin: 0;
-            font-size: 1rem; /* SHRUNK from 1.1rem to 1rem */
+            font-size: 1rem;
             font-weight: bold;
         }
-
         .location-details span {
-            font-size: 1.rem; /* SHRUNK from 1.1rem to 1rem */
+            font-size: 1rem;
             color: white; 
             font-weight: bold;
             margin-top: 0.25rem;
         }
         
-        /* 🏆 LEADERBOARD & LOG LIST STYLE - APPLIED BLACK FROST */
         #leaderboard-list, #log-list { 
             list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; 
             gap: 0.5rem; 
@@ -243,7 +223,6 @@
             align-items: center; 
             justify-content: space-between; 
             padding: 1rem; 
-            
             background: var(--card-bg); 
             backdrop-filter: blur(8px); 
             -webkit-backdrop-filter: blur(8px);
@@ -254,7 +233,6 @@
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid var(--border-color); }
         .list-item:last-child { border-bottom: 1px solid var(--border-color); }
 
-        /* --- LEADERBOARD SPECIFIC STYLES --- */
         #leaderboard-list .list-item > div:first-child { 
             display: flex; 
             align-items: center;
@@ -269,10 +247,7 @@
             margin-left: 0.5rem; 
             white-space: nowrap;
         }
-        /* --- END LEADERBOARD SPECIFIC STYLES --- */
 
-
-        /* --- LOG SPECIFIC STYLES --- */
         #log-list .list-item > div:first-child { 
             display: flex; 
             flex-direction: column; 
@@ -292,7 +267,6 @@
             color: rgba(255,255,255,0.7); 
             margin-top: 0.2rem; 
         }
-        /* --- END LOG SPECIFIC STYLES --- */
 
         .list-item span { font-weight: bold; font-size: 1.1rem; }
         
@@ -311,13 +285,11 @@
         .primary-btn { background-color: var(--green); color: white; }
         .secondary-btn { background-color: transparent; color: var(--green); }
         
-        /* 💡 Button/Input Hover Glow (Green) */
         .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover {
             box-shadow: 0 0 10px var(--glow-color);
         }
 
         #lava-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        /* UPDATED: Larger, more saturated glowing elements */
         #lava-container::before, #lava-container::after { 
             content: ''; 
             position: absolute; 
@@ -335,19 +307,16 @@
         .screen.visible { opacity: 1; pointer-events: auto; }
         #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         
-        /* Apply Green Glow to Input Fields on Hover */
         .reg-input:hover, #login-studentid:hover {
             border-color: var(--green);
             box-shadow: 0 0 10px var(--glow-color);
         }
-        /* ADDED: Green glow on focus for input fields, removing default outline */
         .reg-input:focus, #login-studentid:focus {
-            outline: none; /* Remove default blue outline */
+            outline: none;
             border-color: var(--green);
             box-shadow: 0 0 10px var(--glow-color);
         }
         
-        /* Instruction Card Layout for 'X' alignment */
         #instructions-card { 
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; 
             background: var(--card-bg); 
@@ -377,7 +346,7 @@
         }
         .footer-logo { 
             height: 50px; 
-            margin-bottom: 10px; /* Increased margin-bottom */
+            margin-bottom: 10px;
         } 
         footer p { 
             margin: 2px 0; 
@@ -418,7 +387,20 @@
         }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
         .tab-button.active { color: var(--green); font-weight: bold; }
+        
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
+        
+        /* SNOWFLAKE ANIMATION FIX */
+        .frost-animation {
+            position: absolute;
+            top: -20px;
+            font-size: 1.5rem;
+            color: white;
+            pointer-events: none;
+            z-index: 999;
+            animation: fall-and-fade linear forwards;
+        }
+
         @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
         @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
         @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
@@ -601,9 +583,8 @@
         async function onScanSuccess(decodedText) {
             if (!currentUser) return; 
 
-            // Only pause if the scan is coming from the live scanner
             if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
-                 html5QrCode.pause();
+               html5QrCode.pause();
             }
 
             let finalDuckId = decodedText;
@@ -622,7 +603,6 @@
                     const pointsPop = document.createElement('div');
                     pointsPop.className = 'point-pop';
                     pointsPop.textContent = `+${result.points}`;
-                    // Success pop-up uses the green glow default from .point-pop's original CSS
                     document.getElementById('qr-reader-container').appendChild(pointsPop);
                     setTimeout(() => pointsPop.remove(), POPUP_DURATION_MS); 
                     
@@ -637,8 +617,6 @@
                     const errorPop = document.createElement('div');
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
-                    
-                    // Error/Already Scanned styles (no pink outline)
                     errorPop.style.background = 'var(--card-bg)';
                     errorPop.style.backdropFilter = 'blur(8px)';
                     errorPop.style.webkitBackdropFilter = 'blur(8px)';
@@ -657,13 +635,11 @@
             } catch (error) {
                 console.error("Scan error:", error);
                 
-                // Handle friendly timeout/busy message
                 let displayMessage = "Pardon Our Ducks, We Have A Lot Hunters Online At The Moment, Please Try Again Later";
                 
                 const errorPop = document.createElement('div');
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
-                    // Network error styling (no pink outline)
                     errorPop.style.background = 'var(--card-bg)';
                     errorPop.style.backdropFilter = 'blur(8px)';
                     errorPop.style.webkitBackdropFilter = 'blur(8px)';
@@ -676,34 +652,32 @@
                     setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); 
 
             } finally {
-                // Only resume if we paused it in the first place (i.e. it came from the scanner)
+                // SCANNER RESUME FIX
                 if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.PAUSED) {
                     setTimeout(() => {
                         html5QrCode.resume();
-                    }, 500); 
+                    }, POPUP_DURATION_MS); 
                 }
             }
         }
         
         async function signIn(studentId) {
              try {
-                const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
-                const result = await response.json();
-                if (result.status === "success") {
-                    // Sign in success. Always send to hunt-page.
-                    showApp(result.user, 'hunt-page'); 
-                } else {
-                    // If user is not found, alert them
-                    if (initialDuckId) {
+                 const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
+                 const result = await response.json();
+                 if (result.status === "success") {
+                     showApp(result.user, 'hunt-page'); 
+                 } else {
+                     if (initialDuckId) {
                          alert("Duck found! Please register with your Student ID to claim it.");
-                    } else {
-                        alert("Welcome To Duck Hunt! Please Register Before Signing In!");
-                    }
-                }
-            } catch (error) {
-                alert("Error signing in.");
-                console.error(error);
-            }
+                     } else {
+                         alert("Welcome To Duck Hunt! Please Register Before Signing In!");
+                     }
+                 }
+             } catch (error) {
+                 alert("Error signing in.");
+                 console.error(error);
+             }
         }
         
         async function registerUser() {
@@ -728,23 +702,20 @@
                     const userResult = await userResponse.json();
                     
                     if (userResult.status === "success") {
-                            // After registration, always send to info page, but ensure duck is claimed if present
-                            showApp(userResult.user, 'info-page'); 
-                            
-                            // If a duckId was saved from the URL scan, claim it immediately after successful registration
-                            if (initialDuckId) {
-                                // Add a slight delay to ensure user state is fully set and ready to process scan
-                                setTimeout(() => {
-                                    onScanSuccess(initialDuckId);
-                                    initialDuckId = null; // Clear the ID after attempting to claim it
-                                }, 500);
-                            }
+                        showApp(userResult.user, 'info-page'); 
+                        
+                        if (initialDuckId) {
+                            setTimeout(() => {
+                                onScanSuccess(initialDuckId);
+                                initialDuckId = null;
+                            }, 500);
+                        }
                     } else {
                         alert("Registration succeeded, but automatic sign-in failed.");
                     }
                     
                 } else {
-                    alert(result.message); // Alert on registration error
+                    alert(result.message);
                 }
             } catch (error) {
                 alert("Error registering.");
@@ -759,7 +730,6 @@
             loginScreen.classList.remove('visible');
             appWrapper.classList.add('visible');
             
-            // Initial calls to update dashboard and fetch counts
             await updateUserDashboard(); 
             
             fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
@@ -773,12 +743,10 @@
 
             switchPage(initialPageId);
 
-            // If user signs in (not registering) and an initial ID exists, claim it here.
             if (initialDuckId && initialPageId === 'hunt-page') { 
-                // Add a slight delay to ensure the scanner page DOM is fully ready
                 setTimeout(() => {
                      onScanSuccess(initialDuckId);
-                     initialDuckId = null; // Clear the ID after attempting to claim it
+                     initialDuckId = null;
                 }, 500); 
             }
         }
@@ -789,7 +757,6 @@
                 ducksScannedCount++;
             }
             
-            // Fetch User Data and Leaderboard Data concurrently
             const [userResponse, leaderboardResponse] = await Promise.all([
                 fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`),
                 fetch(`${SCRIPT_URL}?action=getLeaderboard`)
@@ -805,7 +772,6 @@
                 document.getElementById('player-ducks').textContent = ducksScannedCount;
             }
 
-            // Find and display rank
             const rankDisplay = document.getElementById('player-rank-display');
             if (leaderboardData && Array.isArray(leaderboardData)) {
                 const myRank = leaderboardData.findIndex(player => player.studentId === currentUser.studentId) + 1;
@@ -841,14 +807,12 @@
                 }
 
                 let html = '';
-                // MODIFIED: Limiting to the top 6 players only
                 leaderboardData.slice(0, 6).forEach((player, index) => {
                     const rank = index + 1;
                     const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
                     const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
                     const displayName = `${player.firstName} ${lastNameInitial}`;
                     
-                    // The inner HTML structure is kept simple for leaderboard for clean alignment
                     html += `
                         <li class="list-item">
                             <div>
@@ -884,7 +848,6 @@
                     
                     const points = scan.points || 0; 
                     
-                    // FIX: Ensures Duck Type is primary, Code and Time are secondary
                     html += `<li class="list-item">
                                 <div>
                                     <div class="primary-text">${scan.duckType || 'Duck'}</div> 
@@ -900,14 +863,13 @@
             }
         }
         
-        // 🚀 DYNAMIC LOCATION LIST FUNCTION
         async function updateDuckMap() {
             const container = document.getElementById('map-container');
             container.innerHTML = '<h4>Loading locations...</h4>';
 
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getDuckCounts`);
-                const result = await response.json(); // Returns { locations: {}, totalPercentage: 0 }
+                const result = await response.json(); 
 
                 const duckCounts = result.locations;
                 const totalPercentage = result.totalPercentage;
@@ -923,12 +885,9 @@
 
                     let html = `<p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>`;
 
-                    // Build the cards using sample data for visualization
                     sampleLocations.forEach(location => {
                         const countText = location.count;
-                        // Use "Code Remains" for 1, "Codes Remain" for others
                         const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; 
-                        // Status text color is now white via the CSS update to .location-details span
                         const statusText = location.count === 0 ? 
                             `<span style="color: grey;">CLEARED</span>` : 
                             `<span>${countText} ${plural}</span>`; 
@@ -945,7 +904,6 @@
 
                     container.innerHTML = html;
                     return;
-                    // End of block that uses sample data
                 }
 
                 let html = '';
@@ -964,11 +922,9 @@
                 });
 
 
-                // Build the cards using actual data
                 locationArray.forEach(location => {
                     const countText = location.count;
-                    const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; // Pluralization check
-                    // Status text color is now white via the CSS update to .location-details span
+                    const plural = countText === 1 ? 'Code Remains' : 'Codes Remain';
                     const statusText = location.count === 0 ? 
                         `<span style="color: grey;">CLEARED</span>` : 
                         `<span>${countText} ${plural}</span>`; 
@@ -1058,7 +1014,7 @@
                 updateScanHistory();
             }
             if (pageId === 'map-page') {
-                updateDuckMap(); // Call the card list update function
+                updateDuckMap();
             }
         }
 
@@ -1096,7 +1052,6 @@
                 }
             });
 
-            // NEW: Add event listener for the Scan History link
             document.getElementById('scan-history-link').addEventListener('click', (e) => {
                 e.preventDefault();
                 switchPage(e.target.dataset.page);
