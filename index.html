@@ -307,9 +307,10 @@
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
-        let dragOffset = { x: 0, y: 0 }; // Store offset for smooth drag
-        let activePin = null;
-
+        
+        // 🚀 FIX: Declare drag variables globally (once)
+        let activePin = null; 
+        let dragOffset = { x: 0, y: 0 }; 
         // --- ANIMATION FUNCTIONS ---
         function triggerDuckAnimation() {
             const duckCount = Math.floor(Math.random() * 3) + 3;
@@ -626,10 +627,7 @@
             }
         }
 
-        // 🚀 DRAG/DROP DEBUGGING FUNCTIONS 
-        let activePin = null;
-        let dragOffset = { x: 0, y: 0 }; // Stores offset between mouse and pin corner
-
+        // DEBUGGING FUNCTION: Initializes drag listeners
         function makeMapZonesDraggable() {
             const mapContainer = document.getElementById('map-container');
             const mapZones = mapContainer.querySelectorAll('.map-zone');
@@ -640,6 +638,7 @@
                 zone.addEventListener('mousedown', dragStart);
             });
             
+            // Listeners must be attached to the container to capture mouse events outside the pin during drag
             mapContainer.removeEventListener('mousemove', dragging);
             mapContainer.removeEventListener('mouseup', dragEnd);
             
@@ -658,7 +657,8 @@
                 const pinRect = activePin.getBoundingClientRect();
                 const containerRect = pin.offsetParent.getBoundingClientRect();
 
-                // 🚀 FIX: Calculate the offset between the mouse click and the pin's top-left corner
+                // FIX: Calculate the offset between the mouse click and the pin's top-left corner
+                // This ensures the pin moves smoothly without jumping
                 dragOffset.x = e.clientX - pinRect.left;
                 dragOffset.y = e.clientY - pinRect.top;
 
@@ -674,16 +674,16 @@
 
             if (!img) return;
 
-            // 1. Calculate the raw mouse position relative to the container's top-left
+            // 1. Calculate the raw mouse position relative to the start of the scrollable content
             const containerRect = mapContainer.getBoundingClientRect();
             const scrollX = mapContainer.scrollLeft;
             const scrollY = mapContainer.scrollTop;
             
-            // Raw mouse position on the 300% image (before centering)
+            // Raw mouse position on the 300% image (start of pin should align with mouse adjusted by dragOffset)
             const rawX = (e.clientX - containerRect.left + scrollX);
             const rawY = (e.clientY - containerRect.top + scrollY);
             
-            // New pin origin point, adjusted by the drag offset (maintains smooth drag)
+            // New pin origin (top-left) position on the image, adjusted by the drag offset
             const newPinOriginX = rawX - dragOffset.x;
             const newPinOriginY = rawY - dragOffset.y;
 
