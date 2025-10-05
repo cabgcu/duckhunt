@@ -167,8 +167,7 @@
         #map-container { flex-grow: 1; overflow: auto; position: relative; border-radius: 20px; }
         .map-zone { position: absolute; padding: 0.8rem; }
         
-        /* 🚀 MAP COORDINATES (Placeholder/Example locations) */
-        /* NOTE: Replace these coordinates using the console debugging method */
+        /* 🚀 MAP COORDINATES (7 ZONES) - Replace with your console output! */
         #zone1 { top: 21.97%; left: 16.38%; transform: translate(-50%, -50%); }
         #zone2 { top: 48.42%; left: 28.79%; transform: translate(-50%, -50%); }
         #zone3 { top: 37.49%; left: 23.88%; transform: translate(-50%, -50%); }
@@ -582,6 +581,7 @@
             }
         }
         
+        // 🚀 MAP FUNCTIONS WITH DEBUGGING HOOKS
         async function updateDuckMap() {
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getDuckCounts`);
@@ -613,7 +613,7 @@
                     }
                 });
                 
-                // 🚀 Attach the click listener when the map loads
+                // Attach the click listener when the map loads
                 attachMapClickListener(); 
 
             } catch (error) {
@@ -621,50 +621,40 @@
             }
         }
 
-        // 🚀 NEW DEBUGGING FUNCTION
+        // DEBUGGING FUNCTION: Attaches listener to the map container
         function attachMapClickListener() {
             const mapContainer = document.getElementById('map-container');
             
-            // Remove any existing listener to prevent duplicates
             mapContainer.removeEventListener('click', handleMapClick); 
-
-            // Attach the new handler
             mapContainer.addEventListener('click', handleMapClick);
             console.log("MapClickListener attached. Click on the map to get coordinates.");
         }
 
-        // 🚀 NEW HANDLER FUNCTION
+        // DEBUGGING FUNCTION: Calculates and displays coordinates on click
         function handleMapClick(event) {
             const mapContainer = document.getElementById('map-container');
             const img = document.querySelector('#map-container img');
 
-            if (!img) return; // Ensure image is present
+            if (!img) return;
 
-            // Get the bounding rectangle of the imageWrapper (where the 300% image lives)
+            // 1. Calculate positions and offsets
             const rect = mapContainer.getBoundingClientRect();
-            
-            // Calculate click position relative to the wrapper's top-left corner
             const clickX = event.clientX - rect.left;
             const clickY = event.clientY - rect.top;
-
-            // Get the scroll offset (since the map is scrollable)
             const scrollX = mapContainer.scrollLeft;
             const scrollY = mapContainer.scrollTop;
-            
-            // Calculate the TRUE position relative to the start of the 300% image
             const trueX = clickX + scrollX;
             const trueY = clickY + scrollY;
 
-            // Calculate percentages relative to the FULL image dimensions (img.offsetWidth, img.offsetHeight)
+            // 2. Calculate percentages relative to the FULL 300% image width/height
             const percentX = (trueX / img.offsetWidth) * 100;
             const percentY = (trueY / img.offsetHeight) * 100;
 
-            // 1. Output coordinates to the console for easy copying
+            // 3. Output coordinates to the console for easy copying
             console.log(`
                 // --- NEW COORDINATE ---
                 // Click at (${event.clientX}, ${event.clientY})
                 // Scrolled to (${scrollX}, ${scrollY})
-                // Map Container Size (for reference): ${mapContainer.offsetWidth}x${mapContainer.offsetHeight}
                 // Target Location (Paste into CSS):
 #zoneX {
     top: ${percentY.toFixed(2)}%;
@@ -673,7 +663,7 @@
 }
             `);
 
-            // 2. Add a temporary visual marker (optional, but helpful)
+            // 4. Add a temporary visual marker (perfectly centered)
             const marker = document.createElement('div');
             marker.style.cssText = `
                 position: absolute;
@@ -681,11 +671,12 @@
                 height: 10px;
                 background-color: yellow;
                 border-radius: 50%;
-                transform: translate(-50%, -50%);
-                pointer-events: none;
                 z-index: 99;
+                /* 🚀 FIX APPLIED HERE: Use transform to perfectly center the marker */
+                transform: translate(-50%, -50%);
                 left: ${percentX}%;
                 top: ${percentY}%;
+                pointer-events: none;
             `;
             mapContainer.appendChild(marker);
             
