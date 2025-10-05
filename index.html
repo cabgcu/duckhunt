@@ -45,32 +45,32 @@
             font-size: 1.5rem;
         }
 
-        /* Frosted Black Glass Countdown Style */
+        /* FIX: Frosted Black Glass Countdown Style - MADE SMALLER */
         #lipsync-countdown-card {
-            background: var(--card-bg); 
+            background: var(--card-bg); /* Use dark frosted background */
             backdrop-filter: blur(10px); 
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-color); /* Use frost accent border */
             color: #FFFFFF;
-            padding: 1rem 1.5rem;
-            border-radius: 20px;
+            padding: 0.8rem 1.2rem; /* Adjusted padding: smaller */
+            border-radius: 20px; /* Use standard rounding */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            font-family: system-ui, sans-serif;
-            width: 80%; /* Slightly reduced percentage width */
-            max-width: 300px; /* Reduced max width */
+            font-family: system-ui, sans-serif; /* Use clean font */
+            width: 85%;
+            max-width: 300px; /* Reduced max-width */
             margin-top: 1rem;
         }
         #lipsync-countdown-card h4 {
             margin: 0 0 0.5rem 0;
-            font-size: 1.1rem;
+            font-size: 1.0rem; /* Reduced font size */
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--green);
         }
         #countdown-timer {
-            font-size: 2.2rem;
+            font-size: 2.0rem; /* Reduced font size */
             font-weight: 800;
-            text-shadow: 0 0 5px var(--glow-color);
+            text-shadow: 0 0 5px var(--glow-color); /* Subtle green glow on text */
             letter-spacing: 2px;
             display: block;
         }
@@ -256,34 +256,46 @@
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         .list-item:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 
-        /* List item content stacking */
-        .list-item > div:first-child { 
+        /* --- LEADERBOARD SPECIFIC STYLES --- */
+        #leaderboard-list .list-item > div:first-child { 
             display: flex; 
             align-items: center;
         } 
-        
-        .list-item > div > div:nth-child(2) {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+        #leaderboard-list .list-item > div > div:nth-child(2) {
+            display: block;
+            flex-direction: row;
         }
-
         .list-item .rank-text { 
             font-weight: bold; 
             font-size: 1rem;
             margin-left: 0.5rem; 
             white-space: nowrap;
         }
-        
-        .list-item .primary-text { 
+        /* --- END LEADERBOARD SPECIFIC STYLES --- */
+
+
+        /* --- LOG SPECIFIC STYLES --- */
+        #log-list .list-item > div:first-child { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start;
+        }
+        #log-list .list-item > div > div:nth-child(2) {
+            display: block;
+            margin-top: 0;
+        }
+        #log-list .list-item .primary-text { 
             font-weight: bold; 
             font-size: 1.1rem;
+            margin-bottom: 0;
         }
-        .list-item .secondary-text { 
+        #log-list .list-item .secondary-text { 
             font-size: 0.85rem; 
             color: rgba(255,255,255,0.7); 
             margin-top: 0.2rem; 
         }
+        /* --- END LOG SPECIFIC STYLES --- */
+
         .list-item span { font-weight: bold; }
         
         .button-group { display: flex; gap: 0.5rem; }
@@ -307,23 +319,80 @@
         }
 
         #lava-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        /* UPDATED: Larger, edge-to-edge glowing elements */
+        /* UPDATED: Larger, more saturated glowing elements */
         #lava-container::before, #lava-container::after { 
             content: ''; 
             position: absolute; 
-            width: 150vmax;
-            height: 150vmax;
+            width: 70vmax;
+            height: 70vmax;
             border-radius: 50%; 
             opacity: 0.8;
             mix-blend-mode: lighten; 
-            filter: blur(150px);
+            filter: blur(120px);
         }
-        #lava-container::before { background-color: var(--pink); top: -75vmax; left: -75vmax; animation: move-pink 25s infinite linear; }
-        #lava-container::after { background-color: var(--green); bottom: -75vmax; right: -75vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
+        #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
+        #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
         
-        /* Adjusted keyframes to account for much larger elements */
-        @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 150vmax), 0); } 50% { transform: translate(calc(100vw - 150vmax), calc(100vh - 150vmax)); } 75% { transform: translate(0, calc(100vh - 150vmax)); } }
-        @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 150vmax), 0); } 50% { transform: translate(calc(-100vw + 150vmax), calc(-100vh + 150vmax)); } 75% { transform: translate(0, calc(-100vh + 150vmax)); } }
+        .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
+        .screen.visible { opacity: 1; pointer-events: auto; }
+        #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        /* Instruction Card Layout for 'X' alignment */
+        #instructions-card { 
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; 
+            background: var(--card-bg); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        #header-card { position: relative; width: 85%; max-width: 300px; /* Reduced max-width for sign-in screen */ }
+        #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
+        .input-group { display: flex; flex-direction: column; gap: 1rem; }
+        .reg-input, #login-studentid { 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 10px; 
+            padding: 12px 15px; 
+            font-size: 1rem; 
+            color: white; 
+            text-align: center;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .reg-input:hover, #login-studentid:hover {
+            border-color: var(--green);
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+
+        footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
+        .footer-logo { height: 40px; }
+        #scanner-overlay-stats { 
+            position: absolute; top: 0; left: 0; right: 0; z-index: 10; 
+            background: rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; 
+        }
+        .stat { text-align: center; }
+        .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
+        .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
+        
+        #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
+        .log-list-item { 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+        .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
+        .tab-button.active { color: var(--green); font-weight: bold; }
+        .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
+        @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
+        @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+        @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
+        @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
     </style>
 </head>
 <body>
@@ -335,7 +404,7 @@
             <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
 
-        <div class="glass-card" id="header-card" style="max-width: 300px;">
+        <div class="glass-card" id="header-card">
             <div id="login-view">
                 <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
@@ -356,7 +425,7 @@
             </div>
         </div>
 
-        <div id="lipsync-countdown-card" style="text-align: center; max-width: 300px; width: 80%;">
+        <div id="lipsync-countdown-card" style="text-align: center;">
             <h4>Lip Sync: For Good</h4>
             <span id="countdown-timer">Loading...</span>
         </div>
@@ -460,6 +529,7 @@
             // If the event time has already passed today, set it for tomorrow
             if (eventDate <= now) {
                 // Check if it's already past 8:00 PM. If so, set it for tomorrow at 8:00 PM.
+                // Since the current time is 8:31 PM MST (20:31:17), the event is over for today.
                 eventDate.setDate(eventDate.getDate() + 1);
             }
 
@@ -563,7 +633,7 @@
                     pointsPop.className = 'point-pop';
                     pointsPop.textContent = `+${result.points}`;
                     document.getElementById('qr-reader-container').appendChild(pointsPop);
-                    setTimeout(() => pointsPop.remove(), 7000); // Changed to 7000ms
+                    setTimeout(() => pointsPop.remove(), 7000); 
                     
                     if (result.duckType === "Golden Duck") {
                         triggerGoldenDuckAnimation();
@@ -604,3 +674,400 @@
                     }
                 }, 2000);
             }
+        }
+        
+        async function signIn(studentId) {
+             try {
+                const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
+                const result = await response.json();
+                if (result.status === "success") {
+                    // Sign in success goes to the Scanner page (hunt-page)
+                    showApp(result.user, 'hunt-page'); 
+                } else {
+                    // Custom "User Not Found" message
+                    alert("Welcome To Duck Hunt! Please Register Before Signing In!");
+                }
+            } catch (error) {
+                alert("Error signing in.");
+                console.error(error);
+            }
+        }
+        
+        async function registerUser() {
+            const payload = {
+                action: "registerUser",
+                firstName: document.getElementById('reg-firstname').value.trim(),
+                lastName: document.getElementById('reg-lastname').value.trim(),
+                studentId: document.getElementById('reg-studentid').value.trim(),
+                email: document.getElementById('reg-email').value.trim()
+            };
+
+            if (!payload.firstName || !payload.studentId) {
+                return alert("First Name and Student ID are required.");
+            }
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    const userResponse = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${payload.studentId}`);
+                    const userResult = await userResponse.json();
+                    
+                    if (userResult.status === "success") {
+                         showApp(userResult.user, 'info-page'); // Go to info page after successful registration
+                    } else {
+                        alert("Registration succeeded, but automatic sign-in failed.");
+                    }
+                    
+                } else {
+                    alert(result.message); // Alert on registration error
+                }
+            } catch (error) {
+                alert("Error registering.");
+                console.error(error);
+            }
+        }
+
+        async function showApp(user, initialPageId) {
+            currentUser = user;
+            ducksScannedCount = 0;
+            sessionStorage.setItem('currentUserStudentId', user.studentId);
+            loginScreen.classList.remove('visible');
+            appWrapper.classList.add('visible');
+            
+            // Initial calls to update dashboard and fetch counts
+            await updateUserDashboard(); 
+            
+            fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
+                .then(res => res.json())
+                .then(scanData => {
+                    if (scanData && Array.isArray(scanData)) {
+                        ducksScannedCount = scanData.length;
+                        document.getElementById('player-ducks').textContent = ducksScannedCount;
+                    }
+                });
+
+            switchPage(initialPageId);
+
+            if (initialDuckId) {
+                onScanSuccess(initialDuckId);
+                initialDuckId = null; 
+            }
+        }
+        
+        async function updateUserDashboard(newDuckScanned = false) {
+            if (!currentUser) return;
+            if (newDuckScanned) {
+                ducksScannedCount++;
+            }
+            
+            // Fetch User Data and Leaderboard Data concurrently
+            const [userResponse, leaderboardResponse] = await Promise.all([
+                fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`),
+                fetch(`${SCRIPT_URL}?action=getLeaderboard`)
+            ]);
+            
+            const userResult = await userResponse.json();
+            const leaderboardData = await leaderboardResponse.json();
+            
+            if (userResult.status === "success") {
+                currentUser = userResult.user;
+                document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+                document.getElementById('player-points').textContent = currentUser.points;
+                document.getElementById('player-ducks').textContent = ducksScannedCount;
+            }
+
+            // Find and display rank
+            const rankDisplay = document.getElementById('player-rank-display');
+            if (leaderboardData && Array.isArray(leaderboardData)) {
+                const myRank = leaderboardData.findIndex(player => player.studentId === currentUser.studentId) + 1;
+                const totalPlayers = leaderboardData.length;
+                
+                if (myRank > 0) {
+                    const rankText = myRank === 1 ? '🥇 Rank 1' : myRank === 2 ? '🥈 Rank 2' : myRank === 3 ? '🥉 Rank 3' : `Rank: ${myRank}`;
+                    rankDisplay.textContent = `${rankText} of ${totalPlayers} Hunters`;
+                } else {
+                    rankDisplay.textContent = 'Current Rank: Not Yet Ranked';
+                }
+            } else {
+                rankDisplay.textContent = ''; // Clear if error or no data
+            }
+        }
+        
+        async function updateLeaderboard() {
+            const listElement = document.getElementById('leaderboard-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
+                const leaderboardData = await response.json();
+                
+                if (!leaderboardData || leaderboardData.length === 0) {
+                    listElement.innerHTML = '<li>No one has scanned any ducks yet! Be the first!</li>';
+                    return;
+                }
+
+                let html = '';
+                leaderboardData.slice(0, 20).forEach((player, index) => {
+                    const rank = index + 1;
+                    const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+                    const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
+                    const displayName = `${player.firstName} ${lastNameInitial}`;
+                    
+                    // The inner HTML structure is kept simple for leaderboard for clean alignment
+                    html += `
+                        <li class="list-item">
+                            <div>
+                                ${emoji}
+                                <div class="rank-text">${displayName}</div>
+                            </div>
+                            <span>${player.points} pts</span>
+                        </li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading leaderboard.</li>';
+                console.error(error);
+            }
+        }
+        
+        async function updateScanHistory() {
+            const listElement = document.getElementById('log-list');
+            listElement.innerHTML = '<li>Loading...</li>';
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`);
+                const scanData = await response.json();
+
+                if (!scanData || scanData.length === 0) {
+                    listElement.innerHTML = '<li>You haven\'t scanned any ducks yet.</li>';
+                    return;
+                }
+                
+                let html = '';
+                scanData.forEach(scan => {
+                    const scanDate = new Date(scan.timestamp);
+                    const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    
+                    const points = scan.points || 0; 
+                    
+                    // FIX: Ensures Duck Type is primary, Code and Time are secondary
+                    html += `<li class="list-item">
+                                <div>
+                                    <div class="primary-text">${scan.duckType || 'Duck'}</div> 
+                                    <div class="secondary-text">${scan.duckId} - ${timeString}</div>
+                                </div>
+                                <span>+${points}</span>
+                            </li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = '<li>Error loading scan history.</li>';
+            }
+        }
+        
+        // 🚀 DYNAMIC LOCATION LIST FUNCTION
+        async function updateDuckMap() {
+            const container = document.getElementById('map-container');
+            container.innerHTML = '<h4>Loading locations...</h4>';
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getDuckCounts`);
+                const result = await response.json(); // Returns { locations: {}, totalPercentage: 0 }
+
+                const duckCounts = result.locations;
+                const totalPercentage = result.totalPercentage;
+
+                if (Object.keys(duckCounts).length === 0) {
+                    // Start of block that uses sample data if the server returns no locations
+                    const sampleLocations = [
+                        { name: "The Library", count: 3, isVirtual: false },
+                        { name: "Student Union", count: 1, isVirtual: false },
+                        { name: "Residence Hall 1", count: 0, isVirtual: false },
+                        { name: "Virtual Codes (QR)", count: 5, isVirtual: true }
+                    ];
+
+                    let html = `<p class="frost-text-box" style="margin-top: 0; margin-bottom: 1.5rem;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>`;
+
+                    // Build the cards using sample data for visualization
+                    sampleLocations.forEach(location => {
+                        const countText = location.count;
+                        // Use "Code Remains" for 1, "Codes Remain" for others
+                        const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; 
+                        const statusText = location.count === 0 ? 
+                            `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
+                            `<span>${countText} ${plural}</span>`; 
+                        
+                        html += `
+                            <div class="location-card">
+                                <div class="location-details">
+                                    <h4>${location.name}</h4>
+                                    ${statusText}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                    return;
+                    // End of block that uses sample data
+                }
+
+                let html = '';
+                
+                const locationArray = Object.entries(duckCounts).map(([name, count]) => ({
+                    name: name,
+                    count: count,
+                    isVirtual: name.toLowerCase().includes('virtual codes')
+                }));
+
+                locationArray.sort((a, b) => {
+                    if (a.isVirtual !== b.isVirtual) {
+                        return a.isVirtual ? 1 : -1;
+                    }
+                    return b.count - a.count;
+                });
+
+
+                // Build the cards using actual data
+                locationArray.forEach(location => {
+                    const countText = location.count;
+                    const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; // Pluralization check
+                    const statusText = location.count === 0 ? 
+                        `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
+                        `<span>${countText} ${plural}</span>`; 
+                    
+                    html += `
+                        <div class="location-card">
+                            <div class="location-details">
+                                <h4>${location.name}</h4>
+                                ${statusText}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = `
+                    <p class="frost-text-box" style="margin-top: 0; margin-bottom: 1.5rem;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>
+                    ${html}
+                `;
+
+            } catch (error) {
+                container.innerHTML = '<h4>Error loading location data.</h4>';
+                console.error("Error updating location list:", error);
+            }
+        }
+
+
+        function showNotification(message) {
+            const el = document.createElement('div');
+            el.className = 'glass-card';
+            el.id = 'scan-notification';
+            el.style.position = 'fixed';
+            el.style.top = '-150px';
+            el.style.left = '50%';
+            el.style.transform = 'translateX(-50%)';
+            el.style.zIndex = '999';
+            el.style.padding = '1rem 1.5rem';
+            el.style.width = '80%';
+            el.style.maxWidth = '350px';
+            el.style.boxSizing = 'border-box';
+            el.style.transition = 'top 0.5s ease-in-out';
+            el.innerHTML = `<p>${message}</p>`;
+            document.body.appendChild(el);
+            setTimeout(() => el.style.top = '20px', 10);
+            setTimeout(() => {
+                el.style.top = '-150px';
+                setTimeout(() => el.remove(), 500);
+            }, 3000);
+        }
+
+        function startScanner() {
+            if (document.getElementById('hunt-page')?.classList.contains('active')) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                // Added constraints object to ensure square box is requested
+                const config = { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 }, // Already square
+                    aspectRatio: 1.0, // Explicitly request 1:1 camera stream aspect ratio
+                    disableFlip: false 
+                };
+
+                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => console.log("QR Code scanner failed to start."));
+            }
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => {});
+            }
+        }
+
+        function switchPage(pageId) {
+            stopScanner();
+            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId)?.classList.add('active');
+            
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
+            
+            if (pageId === 'hunt-page') {
+                updateUserDashboard();
+                setTimeout(startScanner, 250);
+            }
+            if (pageId === 'leaderboard-page') {
+                updateLeaderboard();
+            }
+            if (pageId === 'log-page') {
+                updateScanHistory();
+            }
+            if (pageId === 'map-page') {
+                updateDuckMap(); // Call the card list update function
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start the Lip Sync Countdown immediately on page load
+            startCountdown();
+
+            checkForInitialDuck();
+
+            const savedStudentId = sessionStorage.getItem('currentUserStudentId');
+            if (savedStudentId) {
+                signIn(savedStudentId);
+            }
+
+            document.getElementById('signin-btn').addEventListener('click', () => {
+                const studentId = document.getElementById('login-studentid').value.trim();
+                if (studentId) signIn(studentId);
+            });
+            document.getElementById('submit-btn').addEventListener('click', registerUser);
+            
+            document.getElementById('register-btn').addEventListener('click', () => {
+                loginView.classList.add('hidden');
+                registrationView.classList.remove('hidden');
+            });
+            document.getElementById('back-btn').addEventListener('click', () => {
+                registrationView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+            });
+
+            document.getElementById('close-instructions').addEventListener('click', () => {
+                document.getElementById('instructions-card').style.display = 'none';
+            });
+            
+            document.getElementById('tab-bar').addEventListener('click', (e) => {
+                if (e.target.matches('.tab-button')) {
+                    switchPage(e.target.dataset.page);
+                }
+            });
+
+            // NEW: Add event listener for the Scan History link
+            document.getElementById('scan-history-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage(e.target.dataset.page);
+            });
+        });
+    </script>
+</body>
+</html>
