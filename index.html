@@ -48,7 +48,6 @@
         .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
         .location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
         #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-        /* Reverted leaderboard list item styling to original functionality */
         .list-item { 
             display: flex; 
             align-items: center; 
@@ -180,8 +179,8 @@
         </main>
         <nav id="tab-bar">
               <button class="tab-button" data-page="hunt-page">Scanner</button>
-              <button class="tab-button" data-page="map-page">Locations</button>
               <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+              <button class="tab-button" data-page="map-page">Locations</button>
               <button class="tab-button" data-page="info-page">Info</button>
         </nav>
     </div>
@@ -230,7 +229,8 @@
 
         // --- ANIMATION FUNCTIONS ---
         function triggerDuckAnimation() {
-            const duckCount = Math.floor(Math.random() * 3) + 3;
+            // Increased duck count for more flair (3-7 ducks now)
+            const duckCount = Math.floor(Math.random() * 5) + 3; 
             for (let i = 0; i < duckCount; i++) {
                 setTimeout(() => {
                     const duck = document.createElement('div');
@@ -240,9 +240,32 @@
                     duck.style.animationDuration = `${1.5 + Math.random()}s`;
                     document.body.appendChild(duck);
                     setTimeout(() => duck.remove(), 2500);
-                }, i * 200);
+                }, i * 150); // Slightly faster launch interval
             }
         }
+
+        function triggerGoldenDuckAnimation() {
+            // Golden duck animation using gold-related emojis
+            const emojis = ['🦆', '💰', '✨', '🪙', '⭐'];
+            const count = 10; // Launch 10 golden items
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const item = document.createElement('div');
+                    item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    
+                    // Re-using frost-animation class for the falling effect
+                    item.className = 'frost-animation'; 
+                    item.style.fontSize = `${1.5 + Math.random()}rem`;
+                    item.style.color = '#FFD700'; // Gold color
+                    item.style.left = `${Math.random() * 100}vw`;
+                    item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`; // Shorter, more exciting fall
+                    item.style.animationDelay = `${Math.random() * 0.5}s`;
+                    document.body.appendChild(item);
+                    setTimeout(() => item.remove(), 5000);
+                }, i * 50);
+            }
+        }
+
         function triggerFrostAnimation() {
             const flakeCount = 15;
             for (let i = 0; i < flakeCount; i++) {
@@ -297,7 +320,12 @@
             document.getElementById('player-ducks').textContent = currentDucks + 1;
             document.getElementById('player-points').textContent = currentUser.points;
             displaySuccessPopup(`+${points}`);
-            triggerDuckAnimation();
+
+            if (duckInfo.type === 'Golden Duck') {
+                triggerGoldenDuckAnimation();
+            } else {
+                triggerDuckAnimation();
+            }
         }
 
         async function sendBatchScans() {
@@ -338,7 +366,7 @@
                 }
             });
         }
-        
+
         // --- APP INITIALIZATION & LOGIN ---
         async function showApp(user, initialPageId) {
             currentUser = user;
@@ -386,7 +414,7 @@
                 initialDuckId = null;
             }
         }
-        
+
         async function signIn(studentId) {
             const signinBtn = document.getElementById('signin-btn');
             const originalText = signinBtn.innerHTML;
@@ -403,7 +431,7 @@
                 signinBtn.disabled = false;
             }
         }
-        
+
         async function registerUser() {
             const submitBtn = document.getElementById('submit-btn');
             const originalText = submitBtn.innerHTML;
@@ -449,19 +477,18 @@
             document.getElementById('qr-reader-container').appendChild(successPop);
             setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
         }
+
         function displayErrorPopup(message) {
             const errorPop = document.createElement('div');
-            errorPop.className = 'point-pop';
-            errorPop.style.background = '#d9534f';
+            errorPop.className = 'point-pop'; 
             errorPop.textContent = message;
             document.getElementById('qr-reader-container').appendChild(errorPop);
             setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
         }
+
         function displayRevertPopup(message) {
             const revertPop = document.createElement('div');
-            revertPop.className = 'point-pop';
-            revertPop.style.background = '#f0ad4e';
-            revertPop.style.borderColor = '#eea236';
+            revertPop.className = 'point-pop'; 
             revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</small>`;
             document.getElementById('qr-reader-container').appendChild(revertPop);
             setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
@@ -509,11 +536,10 @@
                 console.error("Failed to update dashboard", e);
             }
         }
-        
+
         async function updateLeaderboard() {
             const listElement = document.getElementById('leaderboard-list');
             if (listElement.innerHTML === '') {
-                 // Use simple list-item structure for loading state
                  listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
             }
             const leaderboardData = await postToAction('getLeaderboard');
@@ -529,12 +555,12 @@
                 const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
                 const displayName = `${player.firstName} ${lastNameInitial}`;
                 
-                // Original, correct HTML structure for your CSS:
+                // This HTML structure matches the CSS layout for proper two-column display
                 html += `<li class="list-item"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
             });
             listElement.innerHTML = html;
         }
-        
+
         function updateScanHistory() {
             const listElement = document.getElementById('log-list');
             const scanData = scanHistoryCache;
@@ -550,7 +576,7 @@
             });
             listElement.innerHTML = html;
         }
-        
+
         async function updateDuckMap() {
             const container = document.getElementById('map-container');
             if (container.innerHTML === '') {
@@ -582,7 +608,7 @@
                 container.innerHTML = `<h4>Error loading location data.</h4><small>${result.message || ''}</small>`;
             }
         }
-        
+
         // --- UTILITY & NAVIGATION ---
         function startScanner() {
             if (document.getElementById('hunt-page')?.classList.contains('active')) {
@@ -638,7 +664,7 @@
                 setTimeout(() => el.remove(), 500);
             }, 3000);
         }
-        
+
         // --- EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
             checkForInitialDuck();
