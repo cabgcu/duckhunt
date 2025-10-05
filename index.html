@@ -171,7 +171,7 @@
             cursor: grab; /* Indicates the pins are draggable */
         }
         
-        /* 🚀 MAP COORDINATES (7 ZONES) - Replace with your console output! */
+        /* 🚀 MAP COORDINATES (7 ZONES) - REPLACE THESE WITH YOUR GENERATED OUTPUT */
         #zone1 { top: 21.97%; left: 16.38%; transform: translate(-50%, -50%); }
         #zone2 { top: 48.42%; left: 28.79%; transform: translate(-50%, -50%); }
         #zone3 { top: 37.49%; left: 23.88%; transform: translate(-50%, -50%); }
@@ -308,6 +308,7 @@
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
         let dragOffset = { x: 0, y: 0 }; // Store offset for smooth drag
+        let activePin = null;
 
         // --- ANIMATION FUNCTIONS ---
         function triggerDuckAnimation() {
@@ -657,9 +658,9 @@
                 const pinRect = activePin.getBoundingClientRect();
                 const containerRect = pin.offsetParent.getBoundingClientRect();
 
-                // Calculate the offset between the mouse position and the pin's top-left corner
-                dragOffset.x = e.clientX - (pinRect.left - containerRect.left);
-                dragOffset.y = e.clientY - (pinRect.top - containerRect.top);
+                // 🚀 FIX: Calculate the offset between the mouse click and the pin's top-left corner
+                dragOffset.x = e.clientX - pinRect.left;
+                dragOffset.y = e.clientY - pinRect.top;
 
                 e.preventDefault(); 
             }
@@ -673,20 +674,25 @@
 
             if (!img) return;
 
-            // 1. Calculate the new pin position relative to the container's top-left
+            // 1. Calculate the raw mouse position relative to the container's top-left
             const containerRect = mapContainer.getBoundingClientRect();
             const scrollX = mapContainer.scrollLeft;
             const scrollY = mapContainer.scrollTop;
             
-            // New position (in pixels) on the 300% image:
-            const newX = (e.clientX - containerRect.left + scrollX) - dragOffset.x;
-            const newY = (e.clientY - containerRect.top + scrollY) - dragOffset.y;
+            // Raw mouse position on the 300% image (before centering)
+            const rawX = (e.clientX - containerRect.left + scrollX);
+            const rawY = (e.clientY - containerRect.top + scrollY);
+            
+            // New pin origin point, adjusted by the drag offset (maintains smooth drag)
+            const newPinOriginX = rawX - dragOffset.x;
+            const newPinOriginY = rawY - dragOffset.y;
 
             // 2. Calculate percentages relative to the FULL 300% image dimensions
-            const percentX = (newX + (activePin.offsetWidth / 2)) / img.offsetWidth * 100;
-            const percentY = (newY + (activePin.offsetHeight / 2)) / img.offsetHeight * 100;
-
-            // Apply new position (Pin center tracks mouse smoothly):
+            // To get the percentage for the *center* of the pin, we add half the pin's size to the origin.
+            const percentX = (newPinOriginX + (activePin.offsetWidth / 2)) / img.offsetWidth * 100;
+            const percentY = (newPinOriginY + (activePin.offsetHeight / 2)) / img.offsetHeight * 100;
+            
+            // 3. Apply new position to the active pin (pin center tracks mouse smoothly):
             activePin.style.left = `${percentX}%`;
             activePin.style.top = `${percentY}%`;
         }
