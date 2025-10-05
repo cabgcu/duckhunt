@@ -59,13 +59,26 @@
         .point-pop { position: absolute; top: 85%; left: 50%; transform: translateX(-50%); font-size: 1.5rem; font-weight: bold; color: white; background: rgba(0, 0, 0, 0.5); padding: 0.5rem 1.5rem; border-radius: 20px; min-width: 250px; box-sizing: border-box; text-shadow: none; animation: float-up-short 1.5s ease-out forwards; pointer-events: none; }
         @keyframes float-up-short { to { top: 70%; opacity: 0; } }
         
-        #map-container img { width: 300%; height: auto; max-width: none; }
+        /* Map Styling */
+        #map-container img { width: 300%; height: auto; max-width: none; } 
+        #map-container { position: relative; } /* Anchor for absolute pins */
+        
+        /* FIX: Reduce Pin Size and Padding to Prevent Clumping/Overlap */
+        .map-zone.glass-card {
+            padding: 0.5rem 0.8rem; 
+            max-width: 150px;
+        }
+        .map-zone h5, .map-zone p {
+            font-size: 0.8rem; 
+            margin: 0;
+            line-height: 1.2;
+        }
+        
         #log-page .list-item { justify-content: space-between; }
         #log-page .list-item div { text-align: left; }
         
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { 
-            flex: 1; 
             border-radius: 10px; 
             padding: 12px 15px; 
             font-size: 1.1rem; 
@@ -73,9 +86,12 @@
             cursor: pointer; 
             border: 2px solid var(--green); 
             transition: all 0.3s ease; 
-            /* Button Glow Effect Base */
             box-shadow: 0 0 0 rgba(96, 163, 77, 0); 
         }
+        .button-group button { 
+             flex: 1;
+        }
+        
         .primary-btn { background-color: var(--green); color: white; }
         .secondary-btn { background-color: transparent; color: var(--green); }
         
@@ -91,7 +107,38 @@
         .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
         .screen.visible { opacity: 1; pointer-events: auto; }
         #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        #instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
+        
+        /* Instruction Card Layout for 'X' alignment */
+        #instructions-card { 
+            position: absolute; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            padding: 0.8rem 1.2rem; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 450px; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: row; 
+            justify-content: space-between; 
+            align-items: center; 
+            z-index: 101; 
+        }
+        #instructions-card p {
+            margin: 0;
+            flex-grow: 1; 
+        }
+        #close-instructions {
+            background: none; 
+            border: none; 
+            color: white; 
+            font-size: 1.5rem; 
+            cursor: pointer; 
+            position: relative;
+            padding: 0 0 0 10px; 
+        }
+        
         #header-card { position: relative; width: 85%; max-width: 350px; }
         #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
         .input-group { display: flex; flex-direction: column; gap: 1rem; }
@@ -119,8 +166,17 @@
         #map-page { padding-left: 0; padding-right: 0; }
         #map-container { flex-grow: 1; overflow: auto; position: relative; border-radius: 20px; }
         .map-zone { position: absolute; padding: 0.8rem; }
-        #zone1 { top: 25%; left: 50%; transform: translateX(-50%); } 
-        #zone2 { top: 60%; left: 30%; transform: translateX(-50%); }
+        
+        /* 🚀 MAP COORDINATES (Placeholder/Example locations) */
+        /* NOTE: Replace these coordinates using the console debugging method */
+        #zone1 { top: 21.97%; left: 16.38%; transform: translate(-50%, -50%); }
+        #zone2 { top: 48.42%; left: 28.79%; transform: translate(-50%, -50%); }
+        #zone3 { top: 37.49%; left: 23.88%; transform: translate(-50%, -50%); }
+        #zone4 { top: 37.02%; left: 34.46%; transform: translate(-50%, -50%); }
+        #zone5 { top: 32.63%; left: 59.71%; transform: translate(-50%, -50%); }
+        #zone6 { top: 70.48%; left: 48.83%; transform: translate(-50%, -50%); }
+        #zone7 { top: 41.88%; left: 52.88%; transform: translate(-50%, -50%); }
+        
         #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
         .list-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
         .list-item div { text-align: left; }
@@ -142,8 +198,12 @@
     
     <div id="login-screen" class="screen visible">
         <div class="glass-card" id="instructions-card">
-            <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
-            <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <p style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                Tap <strong>Share</strong> 
+                <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height: 1.1em; vertical-align: middle;"> 
+                to Add to Home Screen!
+            </p>
+            <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer; position: relative; padding: 0 0 0 10px;">&times;</button>
         </div>
         <div class="glass-card" id="header-card">
             <div id="login-view">
@@ -167,7 +227,8 @@
         </div>
         <footer>
             <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
-            <p>Hosted By the Canyon Activities Board at Grand Canyon University</p>
+            <p style="margin-top: 0;">Hosted By the Canyon Activities Board at Grand Canyon University</p>
+            <p style="margin: 0; font-weight: bold;">Follow us @CABGCU on Instagram</p>
         </footer>
     </div>
 
@@ -191,8 +252,15 @@
                 <h2>Campus Map</h2>
                 <div id="map-container">
                     <img src="https://i.imgur.com/1aQCsPk.jpeg" alt="Campus Map">
-                    <div id="zone1" class="map-zone glass-card"><h5>Student Union</h5><p>Ducks Left: ?</p></div>
-                    <div id="zone2" class="map-zone glass-card"><h5>The Grove</h5><p>Ducks Left: ?</p></div>
+                    
+                    <div id="zone1" class="map-zone glass-card"><h5>Location A</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone2" class="map-zone glass-card"><h5>Location B</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone3" class="map-zone glass-card"><h5>Location C</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone4" class="map-zone glass-card"><h5>Location D</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone5" class="map-zone glass-card"><h5>Location E</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone6" class="map-zone glass-card"><h5>Location F</h5><p>Ducks Left: ?</p></div>
+                    <div id="zone7" class="map-zone glass-card"><h5>Location G</h5><p>Ducks Left: ?</p></div>
+                    
                 </div>
             </section>
 
@@ -212,7 +280,6 @@
                    <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
                    <p>The player with the most points at the end of the event wins a prize!</p>
                 </div>
-                <button id="info-to-hunt-btn" class="primary-btn full-width-btn">Start Hunting!</button>
             </section>
         </main>
         <nav id="tab-bar">
@@ -306,7 +373,16 @@
             const payload = { action: "scanDuck", duckId: finalDuckId, studentId: currentUser.studentId };
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || "Network request failed.");
+                }
+
                 const result = await response.json();
                 
                 if (result.status === "success") {
@@ -337,6 +413,17 @@
                 }
             } catch (error) {
                 console.error("Scan error:", error);
+                
+                // Handle friendly timeout/busy message
+                let displayMessage = "Pardon Our Ducks, We Have A Lot Hunters Online At The Moment, Please Try Again Later";
+                
+                const errorPop = document.createElement('div');
+                errorPop.className = 'point-pop';
+                errorPop.style.color = 'white'; 
+                errorPop.textContent = displayMessage;
+                document.getElementById('qr-reader-container').appendChild(errorPop);
+                setTimeout(() => errorPop.remove(), 5000);
+
             } finally {
                 setTimeout(() => {
                     if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.PAUSED) {
@@ -351,9 +438,11 @@
                 const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
                 const result = await response.json();
                 if (result.status === "success") {
-                    showApp(result.user);
+                    // Sign in success goes to the Scanner page (hunt-page)
+                    showApp(result.user, 'hunt-page'); 
                 } else {
-                    alert(result.message);
+                    // Custom "User Not Found" message
+                    alert("Welcome To Duck Hunt! Please Register Before Signing In!");
                 }
             } catch (error) {
                 alert("Error signing in.");
@@ -377,9 +466,21 @@
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await response.json();
-                alert(result.message);
+                
                 if (result.status === "success") {
-                    signIn(payload.studentId);
+                    // Fetch the user data to sign them in
+                    const userResponse = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${payload.studentId}`);
+                    const userResult = await userResponse.json();
+                    
+                    if (userResult.status === "success") {
+                         // Registration success goes to the Info page (info-page)
+                         showApp(userResult.user, 'info-page');
+                    } else {
+                        alert("Registration succeeded, but automatic sign-in failed.");
+                    }
+                    
+                } else {
+                    alert(result.message); // Alert on registration error
                 }
             } catch (error) {
                 alert("Error registering.");
@@ -387,14 +488,17 @@
             }
         }
 
-        function showApp(user) {
+        // Modified to accept a specific page ID for the initial switch
+        function showApp(user, initialPageId) {
             currentUser = user;
             ducksScannedCount = 0;
             sessionStorage.setItem('currentUserStudentId', user.studentId);
             loginScreen.classList.remove('visible');
             appWrapper.classList.add('visible');
             updateUserDashboard();
-            switchPage('hunt-page');
+            
+            // Redirect to the specified initial page ID (hunt-page or info-page)
+            switchPage(initialPageId);
             
             fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
                 .then(res => res.json())
@@ -430,7 +534,6 @@
             const listElement = document.getElementById('leaderboard-list');
             listElement.innerHTML = '<li>Loading...</li>';
             try {
-                // This call is now real-time (no caching in script)
                 const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
                 const leaderboardData = await response.json();
                 let html = '';
@@ -450,7 +553,6 @@
             const listElement = document.getElementById('log-list');
             listElement.innerHTML = '<li>Loading...</li>';
             try {
-                // The Google Script now returns the 'points' property with the scan data
                 const response = await fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`);
                 const scanData = await response.json();
 
@@ -464,7 +566,6 @@
                     const scanDate = new Date(scan.timestamp);
                     const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
                     
-                    // Safely display points, assuming the script returns it (or 0 if not found)
                     const points = scan.points || 0; 
                     
                     html += `<li class="list-item">
@@ -480,6 +581,117 @@
                 listElement.innerHTML = '<li>Error loading scan history.</li>';
             }
         }
+        
+        async function updateDuckMap() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getDuckCounts`);
+                const duckCounts = await response.json(); // e.g., { "Location A": 5, "Location B": 10 }
+
+                const mapPins = document.querySelectorAll('.map-zone');
+
+                mapPins.forEach(pinElement => {
+                    const h5Element = pinElement.querySelector('h5');
+                    const pElement = pinElement.querySelector('p');
+                    
+                    if (h5Element && pElement) {
+                        const locationName = h5Element.textContent.trim();
+                        const count = duckCounts[locationName];
+
+                        if (count !== undefined) {
+                            pElement.textContent = `Ducks Left: ${count}`;
+                            
+                            if (count === 0) {
+                                pinElement.style.opacity = 0.6;
+                                pElement.textContent = 'Ducks Left: 0 (CLEARED)';
+                            } else {
+                                pinElement.style.opacity = 1;
+                            }
+                        } else {
+                            pElement.textContent = 'Ducks Left: N/A';
+                            pinElement.style.opacity = 0.8; 
+                        }
+                    }
+                });
+                
+                // 🚀 Attach the click listener when the map loads
+                attachMapClickListener(); 
+
+            } catch (error) {
+                console.error("Error updating duck map:", error);
+            }
+        }
+
+        // 🚀 NEW DEBUGGING FUNCTION
+        function attachMapClickListener() {
+            const mapContainer = document.getElementById('map-container');
+            
+            // Remove any existing listener to prevent duplicates
+            mapContainer.removeEventListener('click', handleMapClick); 
+
+            // Attach the new handler
+            mapContainer.addEventListener('click', handleMapClick);
+            console.log("MapClickListener attached. Click on the map to get coordinates.");
+        }
+
+        // 🚀 NEW HANDLER FUNCTION
+        function handleMapClick(event) {
+            const mapContainer = document.getElementById('map-container');
+            const img = document.querySelector('#map-container img');
+
+            if (!img) return; // Ensure image is present
+
+            // Get the bounding rectangle of the imageWrapper (where the 300% image lives)
+            const rect = mapContainer.getBoundingClientRect();
+            
+            // Calculate click position relative to the wrapper's top-left corner
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+
+            // Get the scroll offset (since the map is scrollable)
+            const scrollX = mapContainer.scrollLeft;
+            const scrollY = mapContainer.scrollTop;
+            
+            // Calculate the TRUE position relative to the start of the 300% image
+            const trueX = clickX + scrollX;
+            const trueY = clickY + scrollY;
+
+            // Calculate percentages relative to the FULL image dimensions (img.offsetWidth, img.offsetHeight)
+            const percentX = (trueX / img.offsetWidth) * 100;
+            const percentY = (trueY / img.offsetHeight) * 100;
+
+            // 1. Output coordinates to the console for easy copying
+            console.log(`
+                // --- NEW COORDINATE ---
+                // Click at (${event.clientX}, ${event.clientY})
+                // Scrolled to (${scrollX}, ${scrollY})
+                // Map Container Size (for reference): ${mapContainer.offsetWidth}x${mapContainer.offsetHeight}
+                // Target Location (Paste into CSS):
+#zoneX {
+    top: ${percentY.toFixed(2)}%;
+    left: ${percentX.toFixed(2)}%;
+    transform: translate(-50%, -50%); /* Centers the pin's center on the click point */
+}
+            `);
+
+            // 2. Add a temporary visual marker (optional, but helpful)
+            const marker = document.createElement('div');
+            marker.style.cssText = `
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background-color: yellow;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                z-index: 99;
+                left: ${percentX}%;
+                top: ${percentY}%;
+            `;
+            mapContainer.appendChild(marker);
+            
+            // Remove the marker after a few seconds
+            setTimeout(() => marker.remove(), 4000);
+        }
 
         function showNotification(message) {
             const el = document.createElement('div');
@@ -492,7 +704,7 @@
             el.style.zIndex = '999';
             el.style.padding = '1rem 1.5rem';
             el.style.width = '80%';
-            el.style.maxWidth = '350px';
+            el.maxWidth = '350px';
             el.style.boxSizing = 'border-box';
             el.style.transition = 'top 0.5s ease-in-out';
             el.innerHTML = `<p>${message}</p>`;
@@ -536,6 +748,9 @@
             if (pageId === 'log-page') {
                 updateScanHistory();
             }
+            if (pageId === 'map-page') {
+                updateDuckMap(); 
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -543,6 +758,7 @@
 
             const savedStudentId = sessionStorage.getItem('currentUserStudentId');
             if (savedStudentId) {
+                // If a student ID is saved, try to sign them in
                 signIn(savedStudentId);
             }
 
@@ -563,9 +779,6 @@
 
             document.getElementById('close-instructions').addEventListener('click', () => {
                 document.getElementById('instructions-card').style.display = 'none';
-            });
-            document.getElementById('info-to-hunt-btn').addEventListener('click', () => {
-                switchPage('hunt-page');
             });
 
             document.getElementById('tab-bar').addEventListener('click', (e) => {
