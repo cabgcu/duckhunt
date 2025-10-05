@@ -12,6 +12,8 @@
             --card-bg: rgba(0, 0, 0, 0.45); /* Darker Frost Black Base */
             --border-color: rgba(96, 163, 77, 0.2); /* Frost black border accenting green */
             --glow-color: rgba(96, 163, 77, 0.7); /* Green glow */
+            --tab-bar-height: 65px; /* Define tab bar height for calculation */
+            --safe-padding: 1rem; /* Standard padding */
         }
         body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
         .hidden { display: none !important; }
@@ -19,8 +21,8 @@
         /* UNIFIED FROSTED GLASS STYLE (Darkened) */
         .glass-card { 
             background: var(--card-bg); 
-            backdrop-filter: blur(8px); /* Reduced blur */
-            -webkit-backdrop-filter: blur(8px); /* Reduced blur */
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); 
             border: 1px solid var(--border-color);
             border-radius: 20px; 
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); 
@@ -42,7 +44,7 @@
             text-align: center; 
         }
 
-        /* SCROLL & LAYOUT FIXES */
+        /* SCROLL & LAYOUT FIXES (CRITICAL MOBILE FIXES HERE) */
         #app-wrapper { 
             position: fixed; 
             top: 0; 
@@ -54,27 +56,29 @@
         }
         #app-container {
             flex: 1; 
-            overflow: hidden; 
+            overflow-y: hidden; /* Prevent this container from scrolling itself */
+            /* New: Calculate space above the fixed bottom bar */
+            height: calc(100vh - var(--tab-bar-height)); 
+            padding-bottom: var(--safe-padding); /* Padding above the tab bar */
         }
         .app-page { 
             width: 100%; 
-            height: 100%; 
+            height: 100%; /* Take full height of parent #app-container */
             box-sizing: border-box; 
-            padding: 1rem; 
+            padding: 0 var(--safe-padding); /* Removed vertical padding, handled by sub-containers/margins */
             display: none; 
             flex-direction: column; 
-            gap: 1.5rem; 
+            gap: 0; /* Managed spacing internally */
             align-items: center; 
         }
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
         
-        /* HEADER IMAGE FOR ALL PAGES - MOVED DOWN (Fix: only adjusted the margins) */
+        /* HEADER IMAGE FOR ALL PAGES - MOVED DOWN */
         .app-page .header-image-top {
             width: 60%;
             max-width: 250px;
-            /* Changed from 0.5rem auto 1rem auto to push it down more: */
-            margin: 2rem auto 2rem auto; /* Increased top and bottom margin */
+            margin: 2rem auto 2rem auto; 
             display: block;
             flex-shrink: 0;
         }
@@ -82,7 +86,7 @@
         /* Hunt Page Layout - TIGHTENED */
         #hunt-page { 
             justify-content: flex-start; 
-            padding-top: 0.5rem;
+            padding-top: 0; /* Padding handled by margins/header */
         }
         #hunt-content-wrapper { 
             position: relative; 
@@ -92,8 +96,8 @@
             flex-direction: column; 
             gap: 0.5rem;
             align-items: center; 
-            /* Reverted back to the original tight spacing */
             margin-top: 0; 
+            flex-shrink: 0;
         }
         
         #hunt-content-wrapper .header-image { width: 80%; margin: -2rem auto 0.2rem auto; display: block; }
@@ -152,12 +156,12 @@
             justify-content: flex-start; 
         }
         
-        /* Containers that hold scrollable content */
-        #log-container, #leaderboard-container, #map-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            min-height: 0; 
-            padding: 0; 
+        /* CONTAINERS THAT NEED SCROLLING (CRITICAL FIX) */
+        #log-container, #leaderboard-container, #info-container, #map-container { 
+            flex: 1; /* Allows container to shrink/grow */
+            overflow-y: auto; /* Enable vertical scrolling */
+            min-height: 0; /* IMPORTANT: Prevents flex children from overflowing parent when content is large */
+            padding: var(--safe-padding) 0; /* Add scrollable padding */
             position: relative;
             background: none; 
             border-radius: 0; 
@@ -170,36 +174,22 @@
             max-width: 450px; 
         }
 
-        /* Center text content on Info Page */
-        #info-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            min-height: 0; 
-            padding: 0; 
-            position: relative;
-            background: none; 
-            border-radius: 0; 
-            box-shadow: none; 
-            border: none; 
-            gap: 0.5rem; 
-            display: flex;
-            flex-direction: column;
-            text-align: center !important; 
-            width: 100%;
-            max-width: 450px; 
-        }
-        #info-container p {
-            max-width: 450px;
-            width: 90%;
-            margin: 0.5rem auto; 
-        }
-
         /* Map specific inner text box adjustment (Percentage of Ducks) */
         #map-container .transparent-heading-box {
             margin: 0 auto 1.5rem auto; 
             padding: 0.75rem 1rem;
             width: fit-content;
             align-self: center;
+        }
+
+        /* Center text content on Info Page */
+        #info-container { 
+            text-align: center !important; 
+        }
+        #info-container p {
+            max-width: 450px;
+            width: 90%;
+            margin: 0.5rem auto; 
         }
 
         /* ACTIVE LOCATIONS CARD LIST STYLES */
@@ -247,7 +237,6 @@
         #leaderboard-list, #log-list { 
             list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; 
             gap: 0.5rem; 
-            padding: 0;
         }
         .list-item { 
             display: flex; 
@@ -255,11 +244,11 @@
             justify-content: space-between; 
             padding: 1rem; 
             
-            background: var(--card-bg); /* Use Darker Frost Black Base */
-            backdrop-filter: blur(8px); /* Ensure good blur for list item */
+            background: var(--card-bg); 
+            backdrop-filter: blur(8px); 
             -webkit-backdrop-filter: blur(8px);
             border-radius: 8px;
-            border: 1px solid var(--border-color); /* Use frost accent border */
+            border: 1px solid var(--border-color); 
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
         }
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid var(--border-color); }
@@ -388,7 +377,7 @@
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
         
-        #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
+        #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
         .log-list-item { 
             background: rgba(255, 255, 255, 0.05); 
             backdrop-filter: blur(4px); 
@@ -396,7 +385,20 @@
             border-radius: 5px;
             border-bottom: 1px solid var(--border-color);
         }
-        #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+        #tab-bar { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            height: var(--tab-bar-height); 
+            z-index: 150; 
+            background: rgba(10, 10, 10, 0.5); 
+            backdrop-filter: blur(15px); 
+            -webkit-backdrop-filter: blur(15px); 
+            border-top: 1px solid var(--border-color); 
+            display: flex; 
+            justify-content: space-around; 
+        }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
         .tab-button.active { color: var(--green); font-weight: bold; }
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
@@ -1000,7 +1002,6 @@
         function startScanner() {
             if (document.getElementById('hunt-page')?.classList.contains('active')) {
                 html5QrCode = new Html5Qrcode("qr-reader");
-                // Tweak 2: Increased FPS to 20 for faster scanning
                 const config = { 
                     fps: 20, 
                     qrbox: { width: 250, height: 250 }, 
