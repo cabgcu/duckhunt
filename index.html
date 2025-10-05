@@ -27,18 +27,19 @@
             padding: 1.5rem; 
         }
         
-        /* NEW: Transparent Heading Box Style (replaces h2.frost-text-box) */
+        /* TWEAK 1: Ensure transparent heading is centered text */
         .transparent-heading-box {
             background: none;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
             border: none;
             border-radius: 10px;
-            padding: 0.75rem 0; /* Adjusted padding for standard heading */
-            margin: 0 auto 1.5rem auto; /* Ensures centering and spacing */
+            padding: 0.75rem 0;
+            margin: 0 auto 1.5rem auto;
             width: 100%;
             max-width: 450px;
             box-sizing: border-box;
+            text-align: center; /* TWEAK 1: Center the text inside */
         }
 
         /* SCROLL & LAYOUT FIXES */
@@ -65,27 +66,32 @@
             gap: 1.5rem; 
         }
         .app-page.active { display: flex; }
-        .app-page h2 { margin: 0; flex-shrink: 0; }
+        .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; /* TWEAK 1: Ensure all H2s are centered */ }
         
         /* HEADER IMAGE FOR ALL PAGES - MOVED UP SLIGHTLY */
         .app-page .header-image-top {
-            width: 60%; /* Reduced width */
-            max-width: 250px; /* Reduced max-width */
-            margin: 0.5rem auto 0.5rem auto; /* Reduced margin to bring content up */
+            width: 60%;
+            max-width: 250px;
+            margin: 0.5rem auto 0.5rem auto;
             display: block;
             flex-shrink: 0;
         }
 
         /* Hunt Page Layout - TIGHTENED */
-        #hunt-page { justify-content: flex-start; align-items: center; }
+        #hunt-page { 
+            justify-content: flex-start; 
+            align-items: center; 
+            padding-top: 0.5rem;
+        }
         #hunt-content-wrapper { 
             position: relative; 
             width: 100%; 
             max-width: 350px; 
             display: flex; 
             flex-direction: column; 
-            gap: 0.5rem; /* Reduced gap between elements */
+            gap: 0.5rem;
             align-items: center; 
+            margin-top: -1rem;
         }
         
         #hunt-content-wrapper .header-image { width: 80%; margin: -2rem auto 0.2rem auto; display: block; }
@@ -115,10 +121,9 @@
             border-radius: 5px;
             min-width: 250px; 
             text-shadow: 0 0 5px rgba(255,255,255,0.5); 
-            animation: float-up-short 5s ease-out forwards; 
+            animation: float-up-short 5s ease-out forwards;
             pointer-events: none; 
         }
-        /* Error/Already Scanned Pop-up styles will be applied via JS as inline styles (pink border/shadow) */
         @keyframes float-up-short { 
             0% { top: 85%; opacity: 1; }
             50% { top: 70%; opacity: 1; }
@@ -131,12 +136,12 @@
             color: var(--green);
             text-decoration: underline;
             cursor: pointer;
-            margin-top: 0; /* Reduced margin to bring content up */
+            margin-top: 0;
             font-weight: bold;
         }
 
         #player-rank-display {
-            margin-top: 0.5rem; /* Reduced margin to bring content up */
+            margin-top: 0.5rem;
             font-size: 1.1rem;
             font-weight: 600;
         }
@@ -161,7 +166,7 @@
 
         /* Map specific inner text box adjustment (Percentage of Ducks) */
         #map-container .transparent-heading-box {
-            margin: 0 0 1.5rem 0; 
+            margin: 0 auto 1.5rem auto; 
             padding: 0.75rem 1rem;
             width: fit-content;
             align-self: center;
@@ -197,17 +202,16 @@
 
         .location-details h4 {
             margin: 0;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
         }
 
         .location-details span {
-            font-size: 1.3rem; 
+            font-size: 1.1rem;
             color: white; 
             font-weight: bold;
             margin-top: 0.25rem;
         }
-        /* --- END NEW MAP STYLES --- */
         
         /* 🏆 LEADERBOARD & LOG LIST STYLE - APPLIED BLACK FROST */
         #leaderboard-list, #log-list { 
@@ -271,7 +275,7 @@
         }
         /* --- END LOG SPECIFIC STYLES --- */
 
-        .list-item span { font-weight: bold; }
+        .list-item span { font-weight: bold; font-size: 1.1rem; }
         
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { 
@@ -288,7 +292,7 @@
         .primary-btn { background-color: var(--green); color: white; }
         .secondary-btn { background-color: transparent; color: var(--green); }
         
-        /* 💡 Button Hover Glow */
+        /* 💡 Button Hover Glow (Green) */
         .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover {
             box-shadow: 0 0 10px var(--glow-color);
         }
@@ -312,6 +316,12 @@
         .screen.visible { opacity: 1; pointer-events: auto; }
         #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         
+        /* TWEAK 2: Apply Green Glow to Input Fields on Hover */
+        .reg-input:hover, #login-studentid:hover {
+            border-color: var(--green);
+            box-shadow: 0 0 10px var(--glow-color); /* TWEAK 2: Use green glow */
+        }
+        
         /* Instruction Card Layout for 'X' alignment */
         #instructions-card { 
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; 
@@ -333,10 +343,6 @@
             color: white; 
             text-align: center;
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-        .reg-input:hover, #login-studentid:hover {
-            border-color: var(--green);
-            box-shadow: 0 0 10px var(--glow-color);
         }
 
         footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
@@ -389,8 +395,7 @@
                 </div>
             </div>
             <div id="registration-view" class="hidden">
-                <h3>Welcome To The Hunt!</h3>
-                <div class="input-group">
+                <h3 style="text-align: center;">Welcome To The Hunt!</h3> <div class="input-group">
                     <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
                     <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
                 </div>
@@ -477,7 +482,6 @@
     <script>
         // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
-        // 3. CHANGE: Pop-up display duration in milliseconds
         const POPUP_DURATION_MS = 5000; 
 
         // --- GLOBAL STATE & DOM REFERENCES ---
@@ -567,7 +571,7 @@
                     pointsPop.textContent = `+${result.points}`;
                     // Success pop-up uses the green glow default from .point-pop's original CSS
                     document.getElementById('qr-reader-container').appendChild(pointsPop);
-                    setTimeout(() => pointsPop.remove(), POPUP_DURATION_MS); /* Use new duration */
+                    setTimeout(() => pointsPop.remove(), POPUP_DURATION_MS); 
                     
                     if (result.duckType === "Golden Duck") {
                         triggerGoldenDuckAnimation();
@@ -581,18 +585,17 @@
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
                     
-                    // 2. CHANGE: Apply frosted rounded glass styles to the error pop-up
+                    // Error/Already Scanned styles (no pink outline)
                     errorPop.style.background = 'var(--card-bg)';
                     errorPop.style.backdropFilter = 'blur(8px)';
                     errorPop.style.webkitBackdropFilter = 'blur(8px)';
-                    errorPop.style.borderRadius = '15px'; // Rounded corners for glass effect
-                    errorPop.style.border = '1px solid var(--pink)'; 
-                    errorPop.style.boxShadow = '0 0 10px var(--pink)';
-                    // ------------------------------------
+                    errorPop.style.borderRadius = '15px'; 
+                    errorPop.style.border = '1px solid #FFFFFF'; 
+                    errorPop.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)'; 
                     
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); /* Use new duration */
+                    setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); 
 
                     if (result.message.includes("Daily limit")) {
                         triggerFrostAnimation();
@@ -607,17 +610,17 @@
                 const errorPop = document.createElement('div');
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
-                    // Use error/busy styling for network error too - with frosted glass
+                    // Network error styling (no pink outline)
                     errorPop.style.background = 'var(--card-bg)';
                     errorPop.style.backdropFilter = 'blur(8px)';
                     errorPop.style.webkitBackdropFilter = 'blur(8px)';
-                    errorPop.style.borderRadius = '15px'; // Rounded corners for glass effect
-                    errorPop.style.border = '1px solid var(--pink)'; 
-                    errorPop.style.boxShadow = '0 0 10px var(--pink)'; 
+                    errorPop.style.borderRadius = '15px'; 
+                    errorPop.style.border = '1px solid #FFFFFF'; 
+                    errorPop.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)'; 
                     
                     errorPop.textContent = displayMessage;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); /* Use new duration */
+                    setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); 
 
             } finally {
                 setTimeout(() => {
@@ -822,6 +825,7 @@
                 listElement.innerHTML = html;
             } catch (error) {
                 listElement.innerHTML = '<li class="list-item" style="justify-content:center;">Error loading scan history.</li>';
+                console.error(error);
             }
         }
         
@@ -855,7 +859,7 @@
                         const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; 
                         // Status text color is now white via the CSS update to .location-details span
                         const statusText = location.count === 0 ? 
-                            `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
+                            `<span style="color: grey;">CLEARED</span>` : 
                             `<span>${countText} ${plural}</span>`; 
                         
                         html += `
@@ -895,7 +899,7 @@
                     const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; // Pluralization check
                     // Status text color is now white via the CSS update to .location-details span
                     const statusText = location.count === 0 ? 
-                        `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
+                        `<span style="color: grey;">CLEARED</span>` : 
                         `<span>${countText} ${plural}</span>`; 
                     
                     html += `
