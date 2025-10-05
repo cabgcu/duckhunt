@@ -74,11 +74,12 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
         
-        /* HEADER IMAGE FOR ALL PAGES - SHIFTED UP */
+        /* HEADER IMAGE FOR ALL PAGES - SHIFTED DOWN */
         .app-page .header-image-top {
             width: 60%;
             max-width: 250px;
-            margin: 0.5rem auto 1rem auto; /* REDUCED TOP MARGIN TO SHIFT PAGE UP */
+            /* MODIFIED: Increased margin-top to move header down */
+            margin: 1.5rem auto 1rem auto; 
             display: block;
             flex-shrink: 0;
         }
@@ -227,7 +228,7 @@
         }
 
         .location-details span {
-            font-size: 1rem; /* SHRUNK from 1.1rem to 1rem */
+            font-size: 1.rem; /* SHRUNK from 1.1rem to 1rem */
             color: white; 
             font-weight: bold;
             margin-top: 0.25rem;
@@ -504,10 +505,10 @@
             </section>
         </main>
         <nav id="tab-bar">
-             <button class="tab-button" data-page="hunt-page">Scanner</button>
-             <button class="tab-button" data-page="map-page">Locations</button>
-             <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
-             <button class="tab-button" data-page="info-page">Info</button>
+               <button class="tab-button" data-page="hunt-page">Scanner</button>
+               <button class="tab-button" data-page="map-page">Locations</button>
+               <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+               <button class="tab-button" data-page="info-page">Info</button>
         </nav>
     </div>
 
@@ -823,7 +824,8 @@
                 }
 
                 let html = '';
-                leaderboardData.slice(0, 20).forEach((player, index) => {
+                // MODIFIED: Limiting to the top 6 players only
+                leaderboardData.slice(0, 6).forEach((player, index) => {
                     const rank = index + 1;
                     const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
                     const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
