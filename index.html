@@ -119,7 +119,7 @@
             border-radius: 5px;
             min-width: 250px; 
             text-shadow: 0 0 5px rgba(255,255,255,0.5); 
-            animation: float-up-short 7s ease-out forwards;
+            animation: float-up-short 5s ease-out forwards; /* Changed animation duration to 5s */
             pointer-events: none; 
         }
         /* Error/Already Scanned Pop-up styles will be applied via JS as inline styles (pink border/shadow) */
@@ -203,9 +203,10 @@
             font-weight: bold;
         }
 
+        /* 1. CHANGE: Location text (remaining codes count) to all white */
         .location-details span {
             font-size: 1.3rem; 
-            color: var(--green);
+            color: white; /* Changed from var(--green) to white */
             font-weight: bold;
             margin-top: 0.25rem;
         }
@@ -413,7 +414,7 @@
             <section id="hunt-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <div id="hunt-content-wrapper">
-                    <h2 id="welcome-message"></h2>
+                    <h2 class="frost-text-box" id="welcome-message"></h2>
                     <div id="qr-reader-container" class="glass-card">
                         <div id="scanner-overlay-stats">
                             <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
@@ -428,7 +429,7 @@
             
             <section id="map-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2>Active Locations</h2>
+                <h2 class="frost-text-box">Active Locations</h2>
                 <div id="map-container">
                     <p class="frost-text-box" style="margin-top: 0; margin-bottom: 1.5rem;">Percentage Of All Ducks Collected: 0%</p>
                     <div class="location-card">
@@ -448,19 +449,19 @@
 
             <section id="leaderboard-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2>Leaderboard</h2>
+                <h2 class="frost-text-box">Leaderboard</h2>
                 <div id="leaderboard-container"><ul id="leaderboard-list"></ul></div>
             </section>
             
             <section id="log-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2>Scan History</h2>
+                <h2 class="frost-text-box">Scan History</h2>
                 <div id="log-container"><ul id="log-list"></ul></div>
             </section>
 
             <section id="info-page" class="app-page">
                 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-                <h2>Information</h2>
+                <h2 class="frost-text-box">Information</h2>
                 <div id="info-container" style="text-align:left;">
                    <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
                    <p>The player with the most points at the end of the event wins a prize!</p>
@@ -479,6 +480,8 @@
     <script>
         // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
+        // 3. CHANGE: Pop-up display duration in milliseconds
+        const POPUP_DURATION_MS = 5000; 
 
         // --- GLOBAL STATE & DOM REFERENCES ---
         let html5QrCode = null;
@@ -567,7 +570,7 @@
                     pointsPop.textContent = `+${result.points}`;
                     // Success pop-up uses the green glow default from .point-pop's original CSS
                     document.getElementById('qr-reader-container').appendChild(pointsPop);
-                    setTimeout(() => pointsPop.remove(), 7000); 
+                    setTimeout(() => pointsPop.remove(), POPUP_DURATION_MS); /* Use new duration */
                     
                     if (result.duckType === "Golden Duck") {
                         triggerGoldenDuckAnimation();
@@ -581,14 +584,18 @@
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
                     
-                    // --- APPLIED FROSTED ERROR STYLES ---
-                    errorPop.style.border = '2px solid var(--pink)'; 
+                    // 2. CHANGE: Apply frosted rounded glass styles to the error pop-up
+                    errorPop.style.background = 'var(--card-bg)';
+                    errorPop.style.backdropFilter = 'blur(8px)';
+                    errorPop.style.webkitBackdropFilter = 'blur(8px)';
+                    errorPop.style.borderRadius = '15px'; // Rounded corners for glass effect
+                    errorPop.style.border = '1px solid var(--pink)'; 
                     errorPop.style.boxShadow = '0 0 10px var(--pink)';
                     // ------------------------------------
                     
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), 7000);
+                    setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); /* Use new duration */
 
                     if (result.message.includes("Daily limit")) {
                         triggerFrostAnimation();
@@ -603,13 +610,17 @@
                 const errorPop = document.createElement('div');
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
-                    // Use error/busy styling for network error too
-                    errorPop.style.border = '2px solid var(--pink)'; 
+                    // Use error/busy styling for network error too - with frosted glass
+                    errorPop.style.background = 'var(--card-bg)';
+                    errorPop.style.backdropFilter = 'blur(8px)';
+                    errorPop.style.webkitBackdropFilter = 'blur(8px)';
+                    errorPop.style.borderRadius = '15px'; // Rounded corners for glass effect
+                    errorPop.style.border = '1px solid var(--pink)'; 
                     errorPop.style.boxShadow = '0 0 10px var(--pink)'; 
                     
                     errorPop.textContent = displayMessage;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), 7000);
+                    setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); /* Use new duration */
 
             } finally {
                 setTimeout(() => {
@@ -659,7 +670,7 @@
                     const userResult = await userResponse.json();
                     
                     if (userResult.status === "success") {
-                         showApp(userResult.user, 'info-page'); // Go to info page after successful registration
+                            showApp(userResult.user, 'info-page'); // Go to info page after successful registration
                     } else {
                         alert("Registration succeeded, but automatic sign-in failed.");
                     }
@@ -749,13 +760,13 @@
         
         async function updateLeaderboard() {
             const listElement = document.getElementById('leaderboard-list');
-            listElement.innerHTML = '<li>Loading...</li>';
+            listElement.innerHTML = '<li class="list-item" style="justify-content:center;">Loading...</li>';
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
                 const leaderboardData = await response.json();
                 
                 if (!leaderboardData || leaderboardData.length === 0) {
-                    listElement.innerHTML = '<li>No one has scanned any ducks yet! Be the first!</li>';
+                    listElement.innerHTML = '<li class="list-item" style="justify-content:center;">No one has scanned any ducks yet! Be the first!</li>';
                     return;
                 }
 
@@ -778,20 +789,20 @@
                 });
                 listElement.innerHTML = html;
             } catch (error) {
-                listElement.innerHTML = '<li>Error loading leaderboard.</li>';
+                listElement.innerHTML = '<li class="list-item" style="justify-content:center;">Error loading leaderboard.</li>';
                 console.error(error);
             }
         }
         
         async function updateScanHistory() {
             const listElement = document.getElementById('log-list');
-            listElement.innerHTML = '<li>Loading...</li>';
+            listElement.innerHTML = '<li class="list-item" style="justify-content:center;">Loading...</li>';
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`);
                 const scanData = await response.json();
 
                 if (!scanData || scanData.length === 0) {
-                    listElement.innerHTML = '<li>You haven\'t scanned any ducks yet.</li>';
+                    listElement.innerHTML = '<li class="list-item" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
                     return;
                 }
                 
@@ -813,7 +824,7 @@
                 });
                 listElement.innerHTML = html;
             } catch (error) {
-                listElement.innerHTML = '<li>Error loading scan history.</li>';
+                listElement.innerHTML = '<li class="list-item" style="justify-content:center;">Error loading scan history.</li>';
             }
         }
         
@@ -845,6 +856,7 @@
                         const countText = location.count;
                         // Use "Code Remains" for 1, "Codes Remain" for others
                         const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; 
+                        // 1. CHANGE: Status text color is now white via the CSS update to .location-details span
                         const statusText = location.count === 0 ? 
                             `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
                             `<span>${countText} ${plural}</span>`; 
@@ -884,6 +896,7 @@
                 locationArray.forEach(location => {
                     const countText = location.count;
                     const plural = countText === 1 ? 'Code Remains' : 'Codes Remain'; // Pluralization check
+                    // 1. CHANGE: Status text color is now white via the CSS update to .location-details span
                     const statusText = location.count === 0 ? 
                         `<span style="color: grey; font-size: 1.3rem;">CLEARED</span>` : 
                         `<span>${countText} ${plural}</span>`; 
