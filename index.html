@@ -485,8 +485,8 @@
 
     <script>
         // --- CONFIGURATION ---
-        // ATTENTION: The SCRIPT_URL must be the correct, currently deployed Google Apps Script URL.
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZx0xH8dFCFk2yVfTxox6e/exec'; 
+        // ATTENTION: The SCRIPT_URL has been updated to the confirmed correct URL.
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec'; 
         const POPUP_DURATION_MS = 5000; 
 
         // --- GLOBAL STATE & DOM REFERENCES ---
@@ -570,11 +570,12 @@
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await response.json();
                 
-                // --- SUCCESS HANDLING ---
+                // --- SUCCESS HANDLING (POINTS AWARDED) ---
                 if (result.status === "success") {
                     const pointsPop = document.createElement('div');
                     pointsPop.className = 'point-pop';
-                    pointsPop.textContent = `+${result.points}`;
+                    // The points should be awarded here if result.points is correctly returned by the server.
+                    pointsPop.textContent = `+${result.points}`; 
                     
                     // Reset/Ensure default success styles (White border/Dark glow - defined in CSS .point-pop)
                     pointsPop.style.background = 'rgba(0, 0, 0, 0.7)';
@@ -592,6 +593,7 @@
                         triggerDuckAnimation();
                     }
                     
+                    // THIS FUNCTION UPDATES THE POINTS DISPLAY ON THE SCANNER PAGE
                     updateUserDashboard(true);
                 
                 // --- ERROR HANDLING (Already Scanned / Limit Reached) ---
@@ -600,7 +602,7 @@
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
                     
-                    // Apply Frosted Glass style with NO PINK OUTLINE (using subdued border-color)
+                    // Apply Frosted Glass style with NO PINK OUTLINE (subdued border-color)
                     errorPop.style.background = 'var(--card-bg)';
                     errorPop.style.backdropFilter = 'blur(8px)';
                     errorPop.style.webkitBackdropFilter = 'blur(8px)';
@@ -625,7 +627,7 @@
                 const errorPop = document.createElement('div');
                     errorPop.className = 'point-pop';
                     errorPop.style.color = 'white'; 
-                    // Apply Frosted Glass style with NO PINK OUTLINE (using subdued border-color)
+                    // Apply Frosted Glass style with NO PINK OUTLINE (subdued border-color)
                     errorPop.style.background = 'var(--card-bg)';
                     errorPop.style.backdropFilter = 'blur(8px)';
                     errorPop.style.webkitBackdropFilter = 'blur(8px)';
