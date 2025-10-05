@@ -102,8 +102,24 @@
             border: 2px solid var(--border-color);
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             max-width: 350px;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
         #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
+
+        /* New animation for the red ring effect */
+        #qr-reader-container.error-flash {
+            animation: flash-red 0.5s ease;
+        }
+        @keyframes flash-red {
+            0%, 100% { 
+                box-shadow: 0 0 10px rgba(0,0,0,0.5); 
+                border-color: var(--border-color); 
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); 
+                border-color: rgba(255, 0, 0, 0.9); 
+            }
+        }
 
         .point-pop { 
             position: absolute; 
@@ -339,6 +355,16 @@
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
+        /* Style for the new loading view */
+        #loading-view {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem 0;
+        }
+
         footer { 
             position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; 
             color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; 
@@ -425,6 +451,10 @@
                     <button id="register-btn" class="primary-btn">Register</button>
                 </div>
             </div>
+            <div id="loading-view" class="hidden">
+                <h3>Welcome To Duck Hunt</h3>
+                <p>Please Wait!</p>
+            </div>
             <div id="registration-view" class="hidden">
                 <h3 style="text-align: center;">Welcome To The Hunt!</h3>
                 <div class="input-group">
@@ -509,10 +539,10 @@
         let html5QrCode = null;
         let currentUser = null;
         let initialDuckId = null;
-        let ducksScannedCount = 0;
         const loginScreen = document.getElementById('login-screen');
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
+        const loadingView = document.getElementById('loading-view');
         const registrationView = document.getElementById('registration-view');
 
         // --- CACHING & OPTIMISTIC UPDATES STATE ---
@@ -538,7 +568,7 @@
                 }, i * 200);
             }
         }
-       
+        
         function triggerFrostAnimation() {
             const flakeCount = 15;
             for (let i = 0; i < flakeCount; i++) {
@@ -565,7 +595,10 @@
 
             // 1. Master check against all claimed ducks
             if (claimedDucksCache.has(finalDuckId)) {
-                displayErrorPopup("This duck has already been claimed!");
+                // MODIFIED: Show red ring flash instead of popup
+                const qrContainer = document.getElementById('qr-reader-container');
+                qrContainer.classList.add('error-flash');
+                setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
                 return;
             }
 
@@ -596,9 +629,11 @@
             
             const points = duckInfo.points || 0;
             currentUser.points += points;
-            ducksScannedCount++;
+            // Optimistically update duck count, will be corrected by server sync
+            const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
+            document.getElementById('player-ducks').textContent = currentDucks + 1;
+            
             document.getElementById('player-points').textContent = currentUser.points;
-            document.getElementById('player-ducks').textContent = ducksScannedCount;
             displaySuccessPopup(`+${points}`);
             triggerDuckAnimation();
         }
@@ -633,8 +668,12 @@
                 console.error("Batch send error:", error);
                 scanQueue = [...scansToSend, ...scanQueue]; // Put scans back to retry
             } finally {
-                // Always re-fetch official data to verify/correct the score
-                updateUserDashboard(); 
+                // Always re-fetch official data to verify/correct the score and duck count
+                await updateUserDashboard(); 
+                // MODIFIED: Refresh scan history list if the user is on that page
+                if (document.getElementById('log-page').classList.contains('active')) {
+                    updateScanHistory();
+                }
             }
         }
 
@@ -642,7 +681,7 @@
             if (!currentUser) return;
 
             // Update all data in the background every minute
-            updateUserDashboard();
+            updateUserDashboard(); // This now updates points, rank, and duck count
             updateLeaderboard();
             updateDuckMap();
             
@@ -681,7 +720,7 @@
 
                 const historyResult = await historyResponse.json();
                 if (historyResult && Array.isArray(historyResult)) {
-                    ducksScannedCount = historyResult.length;
+                    document.getElementById('player-ducks').textContent = historyResult.length;
                     const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
                     localVirtualScanTimestamps = historyResult
                         .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
@@ -703,7 +742,6 @@
             dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
 
             await updateUserDashboard();
-            document.getElementById('player-ducks').textContent = ducksScannedCount;
             switchPage(initialPageId);
             
             if (initialDuckId) {
@@ -713,6 +751,10 @@
         }
         
         async function signIn(studentId) {
+            // MODIFIED: Show loading message
+            loginView.classList.add('hidden');
+            loadingView.classList.remove('hidden');
+
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
                 const result = await response.json();
@@ -720,10 +762,14 @@
                     showApp(result.user, 'hunt-page'); 
                 } else {
                     alert("Welcome To Duck Hunt! Please Register Before Signing In!");
+                    loadingView.classList.add('hidden');
+                    loginView.classList.remove('hidden');
                 }
             } catch (error) {
                 alert("Error signing in.");
                 console.error(error);
+                loadingView.classList.add('hidden');
+                loginView.classList.remove('hidden');
             }
         }
         
@@ -789,21 +835,29 @@
             setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000); // Show longer
         }
 
+        // MODIFIED: This function is now the source of truth for user points, rank, and duck count.
         async function updateUserDashboard() {
             if (!currentUser) return;
             try {
-                const [userResponse, leaderboardResponse] = await Promise.all([
+                const [userResponse, leaderboardResponse, historyResponse] = await Promise.all([
                     fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`),
-                    fetch(`${SCRIPT_URL}?action=getLeaderboard`)
+                    fetch(`${SCRIPT_URL}?action=getLeaderboard`),
+                    fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
                 ]);
                 const userResult = await userResponse.json();
                 const leaderboardData = await leaderboardResponse.json();
+                const historyResult = await historyResponse.json();
 
                 if (userResult.status === "success") {
-                    currentUser.points = userResult.user.points; // Only update points from server
+                    currentUser.points = userResult.user.points; // Update points from server
                     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
                     document.getElementById('player-points').textContent = currentUser.points;
                 }
+
+                if (historyResult && Array.isArray(historyResult)) {
+                    document.getElementById('player-ducks').textContent = historyResult.length; // Update duck count from server
+                }
+
                 if (leaderboardData && Array.isArray(leaderboardData)) {
                     const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
                     let rankText = 'Not Yet Ranked';
