@@ -341,6 +341,12 @@
             border-color: var(--green);
             box-shadow: 0 0 10px var(--glow-color);
         }
+        /* ADDED: Green glow on focus for input fields, removing default outline */
+        .reg-input:focus, #login-studentid:focus {
+            outline: none; /* Remove default blue outline */
+            border-color: var(--green);
+            box-shadow: 0 0 10px var(--glow-color);
+        }
         
         /* Instruction Card Layout for 'X' alignment */
         #instructions-card { 
@@ -365,8 +371,19 @@
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
-        footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
-        .footer-logo { height: 40px; }
+        footer { 
+            position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; 
+            color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; 
+            flex-direction: column; justify-content: center; align-items: center; 
+        }
+        .footer-logo { 
+            height: 50px; 
+            margin-bottom: 10px; /* MODIFIED: Increased margin-bottom */
+        } 
+        footer p { 
+            margin: 2px 0; 
+        }
+        
         #scanner-overlay-stats { 
             position: absolute; top: 0; left: 0; right: 0; z-index: 10; 
             background: rgba(0, 0, 0, 0.5); 
@@ -414,7 +431,7 @@
     
     <div id="login-screen" class="screen visible">
         <div class="glass-card" id="instructions-card">
-            <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
+            <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
             <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
 
@@ -441,7 +458,8 @@
         
         <footer>
             <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
-            <p>Hosted By the Canyon Activities Board at Grand Canyon University</p>
+            <p>Hosted by the Canyon Activities Board at Grand Canyon University</p>
+            <p>Follow Us At @CABGCU On Instagram</p> 
         </footer>
     </div>
 
@@ -514,6 +532,7 @@
 
     <script>
         // --- CONFIGURATION ---
+        // 🚨 FIX APPLIED HERE: Reverted SCRIPT_URL to a known working state.
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
         const POPUP_DURATION_MS = 3000; 
 
