@@ -10,12 +10,22 @@
             --green: #60A34D;
             --pink: #ff69b4;
             --card-bg: rgba(25, 25, 25, 0.4);
-            --border-color: rgba(255, 255, 255, 0.15);
+            --border-color: rgba(96, 163, 77, 0.2); /* Frost black border accenting green */
             --glow-color: rgba(96, 163, 77, 0.7); /* Green glow */
         }
         body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
         .hidden { display: none !important; }
-        .glass-card { background: var(--card-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
+        
+        /* UNIFIED FROSTED GLASS STYLE */
+        .glass-card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            border: 1px solid var(--border-color); /* Applied to the glass card base */
+            border-radius: 20px; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); 
+            padding: 1.5rem; 
+        }
         
         /* SCROLL & LAYOUT FIXES */
         #app-wrapper { 
@@ -43,72 +53,123 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; }
         
+        /* HEADER IMAGE FOR ALL PAGES */
+        .app-page .header-image-top {
+            width: 70%;
+            max-width: 300px;
+            margin: -0.5rem auto 1rem auto;
+            display: block;
+            flex-shrink: 0;
+        }
+
         #hunt-page { justify-content: center; align-items: center; }
         #hunt-content-wrapper { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 350px; display: flex; flex-direction: column; gap: 1rem; }
         #hunt-content-wrapper .header-image { width: 80%; margin: -2rem auto 0.2rem auto; display: block; }
-        #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; }
+        
+        /* FROST BLACK BORDER ACCENT: QR Container */
+        #qr-reader-container { 
+            padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; 
+            border: 2px solid var(--border-color); /* Applied consistent border */
+            box-shadow: 0 0 10px rgba(0,0,0,0.5); /* Retain dark shadow */
+        }
         #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 
         #log-page, #leaderboard-page, #info-page { justify-content: flex-start; }
-        #log-container, #leaderboard-container, #info-container { 
+        
+        /* Containers that hold scrollable content - REMOVED glass-card */
+        #log-container, #leaderboard-container, #info-container, #map-container { 
             flex: 1; 
             overflow-y: auto; 
             min-height: 0; 
-            background: none !important; 
-            padding: 0; 
+            padding: 1.5rem;
+            position: relative;
+            background: none; 
+            border-radius: 0; 
+            box-shadow: none; 
+            border: none; 
         }
 
         .point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%), -50%); font-size: 1.5rem; font-weight: bold; color: white; background: rgba(0, 0, 0, 0.5); padding: 0.5rem 1.5rem; border-radius: 20px; min-width: 250px; box-sizing: border-box; text-shadow: none; animation: float-up-short 1.5s ease-out forwards; pointer-events: none; }
         @keyframes float-up-short { to { top: 70%; opacity: 0; } }
         
-        /* 🚀 NEW: CARD LIST STYLES FOR ACTIVE LOCATIONS */
+        /* 🚀 ACTIVE LOCATIONS CARD LIST STYLES */
         #map-page {
             gap: 0.5rem; 
         }
-        #map-container { 
-            flex: 1;
-            overflow-y: auto;
-            /* Applying glass look to the scroll container */
-            padding: 1.5rem; 
-            background: var(--card-bg) !important; 
-            border-radius: 20px; 
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-            
-            /* Inner card layout */
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem; /* Spacing between distinct location cards */
-        }
         
         .location-card {
-            /* 🚀 FIX: Increased vertical padding and slightly larger border-radius for 'squarer' look */
-            background: var(--card-bg);
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px); 
-            border: 1px solid var(--border-color); 
-            border-radius: 20px; /* Use the default large radius */
-            padding: 2rem 1.5rem; /* Increased vertical padding (2rem) */
+            /* These cards retain their style to provide visual separation */
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color); /* Consistent border */
+            border-radius: 15px; 
+            padding: 1.2rem 1.5rem; 
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
             
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start; 
+        }
+        
+        .location-details {
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            text-align: center;
+            width: 100%; 
         }
 
-        .location-card h4 {
+        .location-details h4 {
             margin: 0;
             font-size: 1.1rem;
             font-weight: bold;
         }
 
-        .location-card span {
+        .location-details span {
             font-size: 1.4rem;
             color: var(--green);
             font-weight: bold;
+            margin-top: 0.25rem;
         }
         /* --- END NEW MAP STYLES --- */
         
+        /* 🏆 LEADERBOARD & LOG LIST STYLE */
+        #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
+        .list-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 1rem; 
+            border-bottom: 1px solid var(--border-color); /* Consistent border */
+            
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 0; 
+        }
+        .list-item:first-child { border-top-left-radius: 5px; border-top-right-radius: 5px; }
+        .list-item:last-child { border-bottom: none; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; }
+
+
+        .list-item div { text-align: left; display: flex; align-items: center; } 
+        .list-item .rank-text { 
+            font-weight: bold; 
+            font-size: 1rem;
+            margin-left: 0.5rem; 
+        }
+        .list-item .secondary-text { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+        .list-item span { font-weight: bold; }
+        
+        /* Specific list item classes for the Log to prevent style collision */
+        .log-list-item { 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { 
             flex: 1; 
@@ -139,7 +200,15 @@
         #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         
         /* Instruction Card Layout for 'X' alignment */
-        #instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
+        #instructions-card { 
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; 
+            /* Added consistent glass style to instruction card */
+            background: var(--card-bg); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
         #header-card { position: relative; width: 85%; max-width: 350px; }
         #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
         .input-group { display: flex; flex-direction: column; gap: 1rem; }
@@ -160,16 +229,26 @@
 
         footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
         .footer-logo { height: 40px; }
-        #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
+        #scanner-overlay-stats { 
+            position: absolute; top: 0; left: 0; right: 0; z-index: 10; 
+            /* Added consistent glass style to overlay */
+            background: rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; 
+        }
         .stat { text-align: center; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
         
-        #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
-        .list-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
-        .list-item div { text-align: left; }
-        .list-item .primary-text { font-weight: bold; }
-        .list-item .secondary-text { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+        #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 0;}
+        .log-list-item { 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(4px); 
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
         #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
         .tab-button.active { color: var(--green); font-weight: bold; }
@@ -217,10 +296,10 @@
     <div id="app-wrapper" class="screen">
         <main id="app-container">
             <section id="hunt-page" class="app-page">
-                <div id="hunt-content-wrapper">
-                    <img class="header-image" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <div id="hunt-content-wrapper" style="position: static; transform: none; width: 100%; max-width: none; margin-top: 0; flex: 1; align-items: center; gap: 1.5rem;">
                     <h2 id="welcome-message"></h2>
-                    <div id="qr-reader-container" class="glass-card">
+                    <div id="qr-reader-container" class="glass-card" style="width: 85%; max-width: 350px; flex-shrink: 0;">
                         <div id="scanner-overlay-stats">
                             <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
                             <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
@@ -231,6 +310,7 @@
             </section>
             
             <section id="map-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <h2>Active Locations</h2>
                 <div id="map-container">
                     <h4>Loading locations...</h4>
@@ -238,18 +318,21 @@
             </section>
 
             <section id="leaderboard-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <h2>Leaderboard</h2>
-                <div id="leaderboard-container" class="glass-card"><ul id="leaderboard-list"></ul></div>
+                <div id="leaderboard-container"><ul id="leaderboard-list"></ul></div>
             </section>
             
             <section id="log-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <h2>Scan History</h2>
-                <div id="log-container" class="glass-card"><ul id="log-list"></ul></div>
+                <div id="log-container"><ul id="log-list"></ul></div>
             </section>
 
             <section id="info-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
                 <h2>Information</h2>
-                <div id="info-container" class="glass-card" style="text-align:left;">
+                <div id="info-container" style="text-align:left;">
                    <p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
                    <p>The player with the most points at the end of the event wins a prize!</p>
                 </div>
@@ -258,7 +341,7 @@
         </main>
         <nav id="tab-bar">
              <button class="tab-button" data-page="hunt-page">Scanner</button>
-             <button class="tab-button" data-page="map-page">Map</button>
+             <button class="tab-button" data-page="map-page">Locations</button>
              <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
              <button class="tab-button" data-page="log-page">Log</button>
              <button class="tab-button" data-page="info-page">Info</button>
@@ -496,11 +579,27 @@
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
                 const leaderboardData = await response.json();
+                
+                if (!leaderboardData || leaderboardData.length === 0) {
+                    listElement.innerHTML = '<li>No one has scanned any ducks yet! Be the first!</li>';
+                    return;
+                }
+
                 let html = '';
                 leaderboardData.slice(0, 20).forEach((player, index) => {
+                    const rank = index + 1;
+                    const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
                     const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
                     const displayName = `${player.firstName} ${lastNameInitial}`;
-                    html += `<li class="list-item"><div><div class="primary-text">${index + 1}. ${displayName}</div></div><span>${player.points}</span></li>`;
+                    
+                    html += `
+                        <li class="list-item">
+                            <div>
+                                ${emoji}
+                                <div class="rank-text">${displayName}</div>
+                            </div>
+                            <span>${player.points} pts</span>
+                        </li>`;
                 });
                 listElement.innerHTML = html;
             } catch (error) {
@@ -528,7 +627,7 @@
                     
                     const points = scan.points || 0; 
                     
-                    html += `<li class="list-item">
+                    html += `<li class="list-item log-list-item">
                                 <div>
                                     <div class="primary-text">${scan.duckId}</div>
                                     <div class="secondary-text">${scan.duckType || 'Duck'} - ${timeString}</div>
@@ -557,38 +656,52 @@
                 if (Object.keys(duckCounts).length === 0) {
                     container.innerHTML = `
                         <h4>No active duck locations found.</h4>
-                        <p style="font-weight: bold; margin-top: 1.5rem; text-align: center;">Completion: ${totalPercentage}%</p>
+                        <p style="font-weight: bold; margin-top: 1.5rem; text-align: center;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>
                     `;
                     return;
                 }
 
                 let html = '';
                 
-                const sortedLocations = Object.entries(duckCounts).sort(([, countA], [, countB]) => countB - countA);
+                // Convert object to array for sorting and processing
+                const locationArray = Object.entries(duckCounts).map(([name, count]) => ({
+                    name: name,
+                    count: count,
+                    isVirtual: name.toLowerCase().includes('virtual codes')
+                }));
 
-                // Use the location-card class for the glass aesthetic on each list item
-                sortedLocations.forEach(([locationName, count]) => {
-                    const statusText = count === 0 ? `<span style="color: grey;">CLEARED</span>` : `<span>${count}</span>`;
+                // 🚀 FINAL SORT: Physical first, then Virtual, then by count descending
+                locationArray.sort((a, b) => {
+                    // 1. Sort by type (Physical first, isVirtual = false)
+                    if (a.isVirtual !== b.isVirtual) {
+                        return a.isVirtual ? 1 : -1;
+                    }
+                    // 2. Sort by count (Highest remaining first)
+                    return b.count - a.count;
+                });
+
+
+                // Build the cards
+                locationArray.forEach(location => {
+                    const statusText = location.count === 0 ? 
+                        `<span style="color: grey; font-size: 1.4rem;">CLEARED</span>` : 
+                        `<span>${location.count}</span>`;
                     
-                    // Each location is a distinct, rounded glass card
                     html += `
-                        <div class="location-card glass-card" style="border-radius: 20px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                            <h4>${locationName}</h4>
-                            ${statusText}
+                        <div class="location-card">
+                            <div class="location-details">
+                                <h4>${location.name}</h4>
+                                ${statusText}
+                            </div>
                         </div>
                     `;
                 });
                 
-                // Wrap content to replace the inner HTML (excluding the completion bar for now)
-                
-                // Add the completion bar/text below the card list
-                const completionBarHtml = `
-                    <p style="font-weight: bold; margin-top: 1.5rem; text-align: center;">Overall Hunt Completion: ${totalPercentage}%</p>
+                // Add the completion bar/text to the top of the container
+                container.innerHTML = `
+                    <p style="font-weight: bold; margin-bottom: 1.5rem; text-align: center;">Percentage Of All Ducks Collected: ${totalPercentage}%</p>
+                    ${html}
                 `;
-                
-                // Rebuild the container with all cards and the completion bar
-                container.innerHTML = html + completionBarHtml;
-
 
             } catch (error) {
                 container.innerHTML = '<h4>Error loading location data.</h4>';
@@ -683,7 +796,7 @@
             document.getElementById('close-instructions').addEventListener('click', () => {
                 document.getElementById('instructions-card').style.display = 'none';
             });
-
+            
             document.getElementById('tab-bar').addEventListener('click', (e) => {
                 if (e.target.matches('.tab-button')) {
                     switchPage(e.target.dataset.page);
