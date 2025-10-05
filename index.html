@@ -104,12 +104,12 @@
         }
         #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 
-        /* FIX: Corrected centering transform for point-pop and updated animation duration */
+        /* FIX: Corrected centering transform for point-pop and animation duration */
         .point-pop { 
             position: absolute; 
             top: 85%; 
             left: 50%; 
-            transform: translate(-50%, -50%); /* Corrected: Centers horizontally and vertically */
+            transform: translate(-50%, -50%);
             font-size: 1.5rem; 
             font-weight: bold; 
             color: white; 
@@ -119,13 +119,12 @@
             min-width: 250px; 
             box-sizing: border-box; 
             text-shadow: none; 
-            animation: float-up-short 7s ease-out forwards; /* Changed animation duration to 7s */
+            animation: float-up-short 7s ease-out forwards;
             pointer-events: none; 
         }
-        /* Adjusted keyframe duration to match 7s display time */
         @keyframes float-up-short { 
             0% { top: 85%; opacity: 1; }
-            50% { top: 70%; opacity: 1; } /* Hold visibility for a long time */
+            50% { top: 70%; opacity: 1; }
             100% { top: 70%; opacity: 0; } 
         }
 
@@ -857,7 +856,15 @@
         function startScanner() {
             if (document.getElementById('hunt-page')?.classList.contains('active')) {
                 html5QrCode = new Html5Qrcode("qr-reader");
-                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
+                // Added constraints object to ensure square box is requested
+                const config = { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 }, // Already square
+                    aspectRatio: 1.0, // Explicitly request 1:1 camera stream aspect ratio
+                    disableFlip: false 
+                };
+
+                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
                 .catch(err => console.log("QR Code scanner failed to start."));
             }
         }
