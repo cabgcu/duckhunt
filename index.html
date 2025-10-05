@@ -74,11 +74,11 @@
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
         
-        /* HEADER IMAGE FOR ALL PAGES - MOVED DOWN */
+        /* HEADER IMAGE FOR ALL PAGES - SHIFTED UP */
         .app-page .header-image-top {
             width: 60%;
             max-width: 250px;
-            margin: 2rem auto 2rem auto; 
+            margin: 0.5rem auto 1rem auto; /* REDUCED TOP MARGIN TO SHIFT PAGE UP */
             display: block;
             flex-shrink: 0;
         }
@@ -248,7 +248,7 @@
             backdrop-filter: blur(8px); 
             -webkit-backdrop-filter: blur(8px);
             border-radius: 8px;
-            border: 1px solid var(--border-color); 
+            border: 1px solid var(--border-color); /* Applied user's 'frost black' border */
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
         }
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid var(--border-color); }
