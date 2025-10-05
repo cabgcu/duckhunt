@@ -17,58 +17,25 @@
         }
         body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
         .hidden { display: none !important; }
-        
-        /* --- Spinner Animation --- */
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 3px solid #fff;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
+        .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-        /* --- End Spinner --- */
-
-        .glass-card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(8px); 
-            -webkit-backdrop-filter: blur(8px); 
-            border: 1px solid var(--border-color);
-            border-radius: 20px; 
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); 
-            padding: 1.5rem; 
-        }
-        
-        .transparent-heading-box {
-            background: none; border: none; border-radius: 10px; padding: 0.75rem 0;
-            margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; 
-        }
-
+        .glass-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
+        .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
         #app-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; }
         #app-container { flex: 1; overflow-y: hidden; height: calc(100vh - var(--tab-bar-height)); padding-bottom: var(--safe-padding); }
         .app-page { width: 100%; height: 100%; box-sizing: border-box; padding: 0 var(--safe-padding); display: none; flex-direction: column; gap: 0; align-items: center; }
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
-        
         .app-page .header-image-top { width: 60%; max-width: 250px; margin: 1.5rem auto 1rem auto; display: block; flex-shrink: 0; }
         #hunt-page { justify-content: flex-start; padding-top: 0; }
         #hunt-content-wrapper { position: relative; width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; margin-top: 0; flex-shrink: 0; }
-        
         #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 350px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
         #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
-
         #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
-        @keyframes flash-red {
-            0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); }
-            50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); }
-        }
-
+        @keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
         .point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 800; color: #FFFFFF; background: rgba(0, 0, 0, 0.7); border: 2px solid #FFFFFF; box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); padding: 0.5rem 1.5rem; border-radius: 5px; min-width: 250px; text-shadow: 0 0 5px rgba(255,255,255,0.5); animation: float-up-short 3s ease-out forwards; pointer-events: none; }
         @keyframes float-up-short { 0% { top: 85%; opacity: 1; } 50% { top: 70%; opacity: 1; } 100% { top: 70%; opacity: 0; } }
-
         #scan-history-link { font-size: 0.9rem; color: var(--green); text-decoration: underline; cursor: pointer; margin-top: 0; font-weight: bold; }
         #player-rank-display { margin-top: 0.5rem; font-size: 1.1rem; font-weight: 600; }
         #log-page, #leaderboard-page, #info-page, #map-page { justify-content: flex-start; }
@@ -80,7 +47,6 @@
         .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
         .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
         .location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
-        
         #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
         .list-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); }
         #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; } 
@@ -89,43 +55,35 @@
         #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
         #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
         .list-item span { font-weight: bold; font-size: 1.1rem; }
-        
         .button-group { display: flex; gap: 0.5rem; }
         .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
         .primary-btn { background-color: var(--green); color: white; }
         .secondary-btn { background-color: transparent; color: var(--green); }
         .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
-
         #lava-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         #lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
         #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
         #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
-        
         .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
         .screen.visible { opacity: 1; pointer-events: auto; }
         #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
         .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-        
         #instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
         #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
         #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
         .input-group { display: flex; flex-direction: column; gap: 1rem; }
         .reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
-
         footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 10px 20px 10px; color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .footer-logo { height: 50px; margin-bottom: 10px; } 
         footer p { margin: 2px 0; }
-        
         #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
         .stat { text-align: center; }
         .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
         .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-        
         #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
         .tab-button.active { color: var(--green); font-weight: bold; }
-        
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
         .frost-animation { position: absolute; top: -20px; font-size: 1.5rem; color: white; pointer-events: none; z-index: 999; animation: fall-and-fade linear forwards; }
         @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
@@ -296,8 +254,6 @@
                 if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
             } catch (e) {}
             
-            // ** THE FIX IS HERE **
-            // Convert the scanned ID to lowercase for client-side validation
             const lookupId = finalDuckId.trim().toLowerCase();
 
             if (claimedDucksCache.has(lookupId)) {
@@ -321,7 +277,6 @@
                 }
                 localVirtualScanTimestamps.push(new Date().getTime());
             }
-            // Add the original (case-sensitive) ID to the queue for logging purposes
             scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
             claimedDucksCache.add(lookupId);
             const points = duckInfo.points || 0;
@@ -344,6 +299,10 @@
                 if (batchResult.updatedUser) {
                     currentUser.points = batchResult.updatedUser.points;
                     document.getElementById('player-points').textContent = currentUser.points;
+                    // FLICKER FIX: Update duck count from server response
+                    if (batchResult.updatedUser.duckCount !== undefined) {
+                        document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
+                    }
                 }
                 if (batchResult.results) {
                     batchResult.results.forEach(result => {
@@ -354,13 +313,11 @@
                 }
             } else {
                 displayRevertPopup(batchResult.message || "A server error occurred.");
-                scanQueue = [...scansToSend, ...scanQueue]; // Put scans back to retry
+                scanQueue = [...scansToSend, ...scanQueue];
             }
 
-            updateUserDashboard(false); 
-            if (document.getElementById('log-page').classList.contains('active')) {
-                updateScanHistory();
-            }
+            // FLICKER FIX: Removed the immediate updateUserDashboard call
+            // Rank and other data will update on the next periodic refresh.
         }
 
         function periodicDataRefresh() {
@@ -369,7 +326,9 @@
             updateLeaderboard();
             updateDuckMap();
             postToAction('getClaimedDucks').then(result => {
-                if (result.status === 'success') claimedDucksCache = new Set(result.claimed);
+                if (result.status === 'success' && Array.isArray(result.claimed)) {
+                     claimedDucksCache = new Set(result.claimed);
+                }
             });
         }
         
@@ -388,7 +347,7 @@
                     duckDataCache = duckResult.ducks;
                 } else { throw new Error("Failed to load duck data."); }
 
-                if (claimedDucksResult.status === 'success') {
+                if (claimedDucksResult.status === 'success' && Array.isArray(claimedDucksResult.claimed)) {
                     claimedDucksCache = new Set(claimedDucksResult.claimed);
                 }
 
@@ -402,9 +361,9 @@
                 console.error("Failed to initialize app data:", e);
                 alert("Could not load game data. Please try again.");
                 const signinBtn = document.getElementById('signin-btn');
-                if (signinBtn) signinBtn.disabled = false;
+                if (signinBtn) { signinBtn.disabled = false; signinBtn.innerHTML = "Sign In"; }
                 const submitBtn = document.getElementById('submit-btn');
-                if (submitBtn) submitBtn.disabled = false;
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = "Submit"; }
                 return;
             }
             loginScreen.classList.remove('visible');
@@ -607,7 +566,7 @@
                 });
                 container.innerHTML = `<p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Ducks Collected: ${totalPercentage}%</p>${html}`;
             } else {
-                container.innerHTML = '<h4>Error loading location data.</h4>';
+                container.innerHTML = `<h4>Error loading location data.</h4><small>${result.message || ''}</small>`;
             }
         }
         
