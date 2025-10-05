@@ -307,6 +307,7 @@
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
+        let dragOffset = { x: 0, y: 0 }; // Store offset for smooth drag
 
         // --- ANIMATION FUNCTIONS ---
         function triggerDuckAnimation() {
@@ -616,7 +617,7 @@
                     }
                 });
                 
-                // 🚀 Attach the draggable listener when the map loads
+                // Attach the draggable listener when the map loads
                 makeMapZonesDraggable(); 
 
             } catch (error) {
@@ -624,8 +625,9 @@
             }
         }
 
-        // 🚀 NEW DRAG/DROP DEBUGGING FUNCTIONS 
+        // 🚀 DRAG/DROP DEBUGGING FUNCTIONS 
         let activePin = null;
+        let dragOffset = { x: 0, y: 0 }; // Stores offset between mouse and pin corner
 
         function makeMapZonesDraggable() {
             const mapContainer = document.getElementById('map-container');
@@ -647,10 +649,18 @@
         }
 
         function dragStart(e) {
-            if (e.target.closest('.map-zone')) {
-                activePin = e.target.closest('.map-zone');
+            const pin = e.target.closest('.map-zone');
+            if (pin) {
+                activePin = pin;
                 activePin.style.cursor = 'grabbing';
-                // Prevent browser dragging of text/image
+                
+                const pinRect = activePin.getBoundingClientRect();
+                const containerRect = pin.offsetParent.getBoundingClientRect();
+
+                // Calculate the offset between the mouse position and the pin's top-left corner
+                dragOffset.x = e.clientX - (pinRect.left - containerRect.left);
+                dragOffset.y = e.clientY - (pinRect.top - containerRect.top);
+
                 e.preventDefault(); 
             }
         }
@@ -663,40 +673,38 @@
 
             if (!img) return;
 
-            // 1. Calculate positions and offsets
-            const rect = mapContainer.getBoundingClientRect();
-            
-            // Calculate mouse position relative to the start of the scrollable content
+            // 1. Calculate the new pin position relative to the container's top-left
+            const containerRect = mapContainer.getBoundingClientRect();
             const scrollX = mapContainer.scrollLeft;
             const scrollY = mapContainer.scrollTop;
             
-            // True mouse position relative to the top-left of the 300% image
-            const trueX = (e.clientX - rect.left) + scrollX;
-            const trueY = (e.clientY - rect.top) + scrollY;
+            // New position (in pixels) on the 300% image:
+            const newX = (e.clientX - containerRect.left + scrollX) - dragOffset.x;
+            const newY = (e.clientY - containerRect.top + scrollY) - dragOffset.y;
 
             // 2. Calculate percentages relative to the FULL 300% image dimensions
-            const percentX = (trueX / img.offsetWidth) * 100;
-            const percentY = (trueY / img.offsetHeight) * 100;
-            
-            // 3. Apply the new position to the active pin
+            const percentX = (newX + (activePin.offsetWidth / 2)) / img.offsetWidth * 100;
+            const percentY = (newY + (activePin.offsetHeight / 2)) / img.offsetHeight * 100;
+
+            // Apply new position (Pin center tracks mouse smoothly):
             activePin.style.left = `${percentX}%`;
             activePin.style.top = `${percentY}%`;
-            
-            // Optional: You might need to adjust the scroll if the user drags near the edge
-            // (Leaving this out for simplicity, but it's where smooth edge scrolling goes)
         }
 
         function dragEnd() {
             if (activePin) {
                 activePin.style.cursor = 'grab';
                 
-                // --- REPORT FINAL COORDINATES ---
+                // Get the final percentage values applied via style
                 const finalTop = activePin.style.top;
                 const finalLeft = activePin.style.left;
                 
+                // --- REPORT FINAL COORDINATES ---
                 console.log(`
 // --- FINAL COORDINATE FOR ${activePin.id} ---
-${activePin.id} {
+// PASTE THIS INTO YOUR CSS:
+
+#${activePin.id} {
     top: ${finalTop};
     left: ${finalLeft};
     transform: translate(-50%, -50%); /* CENTERS THE PIN */
