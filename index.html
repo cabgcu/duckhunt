@@ -14,6 +14,8 @@
 --glow-color: rgba(96, 163, 77, 0.7);
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
+--ribbon-height: 40px;
+--frosted-black: rgba(0, 0, 0, 0.8); 
 }
 body {
 margin: 0;
@@ -38,11 +40,60 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
+padding-top: var(--ribbon-height); 
+transition: padding-top 0.3s ease;
 }
+#app-wrapper.ribbon-active {
+    padding-top: var(--ribbon-height); 
+}
+
+/* RIBBON STYLES */
+#ribbon-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--ribbon-height);
+    background-color: var(--frosted-black); 
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    overflow: hidden; 
+    z-index: 1000; 
+    box-sizing: border-box;
+    transition: transform 0.3s ease-out;
+    transform: translateY(-100%); 
+}
+#ribbon-message.visible {
+    transform: translateY(0); 
+}
+#ribbon-content {
+    white-space: nowrap;
+    padding-left: 100%; 
+    display: inline-block;
+    will-change: transform;
+}
+
+/* New Marquee Animation (Duration/Distance set by JS) */
+.marquee-start {
+    animation-name: marquee-scroll;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+@keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(var(--marquee-distance)); }
+}
+
 #app-container {
 flex: 1;
 overflow-y: auto;
-height: calc(100vh - var(--tab-bar-height));
+height: calc(100vh - var(--tab-bar-height) - var(--ribbon-height)); 
 padding-bottom: var(--safe-padding);
 }
 .app-page {
@@ -89,13 +140,11 @@ flex-shrink: 0;
 display: flex;
 flex-direction: column;
 align-items: center;
-/* Increased gap for more space between history and rank (0.75rem) */
 gap: 0.75rem;
 margin-top: 0.5rem;
 }
 
 #scan-history-link {
-/* Made bigger (1.1rem) */
 font-size: 1.1rem;
 color: var(--green);
 text-decoration: underline;
@@ -109,7 +158,7 @@ font-weight: bold;
 
 #log-container, #leaderboard-container, #info-container, #map-container {
 flex: 1;
-overflow-y: visible; /* Keeping for other pages */
+overflow-y: visible;
 min-height: 0;
 padding: var(--safe-padding) 0;
 position: relative;
@@ -130,8 +179,121 @@ overflow-y: auto;
 }
 
 #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
-#info-container { text-align: center !important; }
-#info-container p { max-width: 450px; width: 90%; margin: 0.5rem auto; }
+#info-container {
+    text-align: center !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%; 
+    max-width: 450px;
+    margin: 0 auto; 
+}
+
+/* Style for the info cards */
+.info-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem; 
+    
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background 0.2s ease;
+}
+.info-card-text-wrapper {
+    flex-grow: 1;
+    text-align: center; 
+    margin-right: -0.5rem; 
+}
+.info-card:hover {
+    background: rgba(96, 163, 77, 0.1);
+}
+.info-card-spinner {
+    justify-content: center;
+    height: 40px;
+}
+
+/* MODAL STYLES (for displaying the content) */
+#info-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 200;
+    display: none; 
+    align-items: center;
+    justify-content: center;
+}
+#info-modal {
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: left;
+}
+#modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+}
+#modal-title {
+    margin-top: 0;
+    border-bottom: 2px solid var(--green);
+    padding-bottom: 0.5rem;
+}
+/* New style for individual posts within the modal */
+.modal-post {
+    padding: 10px 0 5px 0; 
+    margin: 0;
+    line-height: 1.5;
+    white-space: pre-wrap; 
+}
+.modal-timestamp {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 5px; 
+    margin-bottom: 5px; 
+}
+.modal-post-content {
+    font-size: 1rem;
+    color: white;
+    font-weight: normal;
+    margin-top: 0; 
+}
+.modal-post-separator {
+    border: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15); 
+    margin: 10px 0;
+}
+
+
 .location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
 .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
 .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
@@ -205,7 +367,7 @@ top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-z-index: 0; /* Behind other content but above lava */
+z-index: 0; 
 pointer-events: none;
 overflow: hidden;
 }
@@ -229,6 +391,9 @@ pointer-events: none;
 </style>
 </head>
 <body>
+<div id="ribbon-message">
+    <div id="ribbon-content"></div> 
+</div>
 <div id="lava-container"></div>
 <div id="duck-feet-background-container"></div>
 <div id="login-screen" class="screen visible">
@@ -249,7 +414,7 @@ pointer-events: none;
 <h3 style="text-align: center;">Welcome To The Hunt!</h3>
 <div class="input-group">
 <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
-<input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email">
+<input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email @my.gcu.edu">
 </div>
 <div class="button-group">
 <button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button>
@@ -302,8 +467,7 @@ pointer-events: none;
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
 <div id="info-container">
-<p>Welcome to the Duck Hunt! Find ducks hidden around campus and scan their QR codes to earn points.</p>
-<p>The player with the most points at the end of the event wins a prize!</p>
+    <div class="spinner info-card-spinner"></div>
 </div>
 </section>
 </main>
@@ -315,8 +479,16 @@ pointer-events: none;
 </nav>
 </div>
 
+<div id="info-modal-backdrop" style="display: none;">
+    <div id="info-modal">
+        <button id="modal-close-btn">&times;</button>
+        <h3 id="modal-title"></h3>
+        <div id="modal-content"></div>
+    </div>
+</div>
 <script>
 // --- CONFIGURATION ---
+// *** YOUR DEPLOYMENT URL IS INSERTED HERE ***
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
@@ -326,10 +498,13 @@ const DATA_REFRESH_INTERVAL_MS = 60000;
 let html5QrCode = null;
 let currentUser = null;
 let initialDuckId = null;
+let infoDataCache = []; 
+let infoDataFetchTime = null; // Timestamp of last info data fetch
 const loginScreen = document.getElementById('login-screen');
 const appWrapper = document.getElementById('app-wrapper');
 const loginView = document.getElementById('login-view');
 const registrationView = document.getElementById('registration-view');
+const ribbonMessage = document.getElementById('ribbon-message'); // NEW RIBBON REF
 
 // --- CACHING & STATE ---
 let duckDataCache = {};
@@ -357,14 +532,52 @@ return { status: "error", message: "Network error or script failure." };
 }
 }
 
-// --- VIBRATION UTILITY ---
-function triggerVibration(pattern) {
-if (navigator.vibrate) {
-navigator.vibrate(pattern);
-}
+// --- RIBBON DISPLAY FUNCTION ---
+function updateRibbon(ribbonText) {
+    const ribbonContent = document.getElementById('ribbon-content');
+    const scrollSpeed = 50; // pixels per second (Slower, more readable speed)
+
+    if (ribbonText && ribbonText.trim() !== '') {
+        // Set the content with spacing for loop visualization
+        ribbonContent.textContent = `📢 ${ribbonText} \u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`; 
+        ribbonMessage.classList.add('visible');
+
+        // Reset animation before calculation
+        ribbonContent.style.animation = 'none';
+        ribbonContent.style.transform = 'translateX(0)';
+        ribbonContent.style.paddingLeft = '100%'; // Start off screen
+        
+        // Use a slight timeout to force DOM redraw before measuring width
+        setTimeout(() => {
+            const contentWidth = ribbonContent.offsetWidth;
+            const viewWidth = ribbonMessage.clientWidth;
+            
+            if (contentWidth > viewWidth) {
+                // Distance to scroll (content width + viewport width to complete one cycle)
+                const totalDistance = contentWidth + viewWidth; 
+                const duration = totalDistance / scrollSpeed;
+                
+                // Set CSS variables and restart animation
+                ribbonContent.style.setProperty('--marquee-distance', `-${contentWidth}px`);
+                ribbonContent.style.animation = `marquee-scroll ${duration}s linear infinite`;
+                ribribbonContent.style.paddingLeft = `${viewWidth}px`; 
+            } else {
+                // If text fits, center it (remove animation)
+                ribbonContent.style.paddingLeft = `${(viewWidth - contentWidth) / 2}px`;
+                ribbonContent.style.transform = 'translateX(0)';
+            }
+        }, 10);
+        
+
+    } else {
+        // Hide ribbon
+        ribbonContent.textContent = '';
+        ribbonMessage.classList.remove('visible');
+        ribbonContent.style.animation = 'none';
+    }
 }
 
-// --- ANIMATION FUNCTIONS ---
+// --- ANIMATION FUNCTIONS (VIBRATION UTILITY REMOVED) ---
 
 /**
 * Creates and launches persistent duck feet animation in the background.
@@ -483,8 +696,6 @@ if (claimedDucksCache.has(lookupId)) {
 const qrContainer = document.getElementById('qr-reader-container');
 qrContainer.classList.add('error-flash');
 setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-// Short, single burst for an error scan
-triggerVibration(100);
 return;
 }
 const duckInfo = duckDataCache[lookupId];
@@ -492,12 +703,6 @@ if (!duckInfo) {
 displayErrorPopup("Invalid Duck ID");
 return;
 }
-
-// *** MOVED VIBRATION TO HERE FOR BEST COMPLIANCE WITH USER GESTURE ***
-// SUCCESS VIBRATION (Short triple burst for a good scan)
-triggerVibration([50, 50, 50]); 
-// *******************************************************************
-
 if (duckInfo.type === 'Virtual Duck') {
 const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
 localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
@@ -561,6 +766,8 @@ if (result.status === 'success' && Array.isArray(result.claimed)) {
 claimedDucksCache = new Set(result.claimed);
 }
 });
+// Refresh the ribbon message on periodic refresh
+fetchAndRenderInfoData(true); 
 }
 
 // --- APP INITIALIZATION & LOGIN ---
@@ -571,14 +778,14 @@ try {
 const [duckResult, historyResult, claimedDucksResult] = await Promise.all([
 postToAction('getDuckData'),
 postToAction('getScanHistory', { studentId: currentUser.studentId }),
-postToAction('getClaimedDucks')
+postToAction('getClaimedDucks'),
 ]);
 
-if (duckResult.status === 'success') {
+if (duckResult.status === "success") {
 duckDataCache = duckResult.ducks;
 } else { throw new Error("Failed to load duck data."); }
 
-if (claimedDucksResult.status === 'success' && Array.isArray(claimedDucksResult.claimed)) {
+if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
 claimedDucksCache = new Set(claimedDucksResult.claimed);
 }
 
@@ -588,6 +795,7 @@ document.getElementById('player-ducks').textContent = historyResult.length;
 const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
 localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
 }
+
 } catch (e) {
 console.error("Failed to initialize app data:", e);
 alert("Could not load game data. Please try again.");
@@ -604,6 +812,10 @@ batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
 if (dataRefreshTimer) clearInterval(dataRefreshTimer);
 dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
 await updateUserDashboard();
+
+// Fetch info data (including ribbon) once before switching page
+await fetchAndRenderInfoData(true);
+
 switchPage(initialPageId);
 if (initialDuckId) {
 onScanSuccess(initialDuckId);
@@ -643,6 +855,11 @@ if (!payload.firstName || !payload.studentId) {
 submitBtn.innerHTML = originalText;
 submitBtn.disabled = false;
 return alert("First Name and Student ID are required.");
+}
+if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+return alert("Registration requires an @my.gcu.edu email address.");
 }
 try {
 const result = await postToAction('registerUser', payload);
@@ -805,6 +1022,164 @@ container.innerHTML = `<h4>Error loading location data.</h4><small>${result.mess
 }
 }
 
+function showInfoModal(title, contentArray) {
+    document.getElementById('modal-title').textContent = title;
+    const contentDiv = document.getElementById('modal-content');
+    contentDiv.innerHTML = '';
+    
+    // Format the fetch time for display
+    const date = infoDataFetchTime ? new Date(infoDataFetchTime) : new Date();
+    const formattedTime = date.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    const timeStampText = `Posted: ${formattedTime}`;
+
+    // Iterate through each post/content item
+    contentArray.forEach((item, index) => {
+        const postDiv = document.createElement('div');
+        
+        // 1. Add the actual post content
+        const postContentDiv = document.createElement('div');
+        postContentDiv.className = 'modal-post-content';
+        postContentDiv.innerHTML = item.replace(/\n/g, '<br>'); 
+        postDiv.appendChild(postContentDiv);
+
+        // 2. Add the timestamp (underneath the content)
+        const timeStampSpan = document.createElement('span');
+        timeStampSpan.className = 'modal-timestamp';
+        timeStampSpan.textContent = timeStampText;
+        postDiv.appendChild(timeStampSpan);
+
+        contentDiv.appendChild(postDiv);
+
+        // Add separator after every post except the last one
+        if (index < contentArray.length - 1) {
+            const separator = document.createElement('hr');
+            separator.className = 'modal-post-separator';
+            contentDiv.appendChild(separator);
+        }
+    });
+
+    document.getElementById('info-modal-backdrop').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; 
+}
+
+function updateInfoPage() {
+    const container = document.getElementById('info-container');
+    
+    // --- FALLBACK LOGIC ---
+    if (infoDataCache.length === 0) {
+        // Use hardcoded headers as a last resort fallback if the fetch fails
+        const fallbackTitles = ["Welcome", "Rules", "Announcements", "Contact Us", "Terms of Use"];
+        container.innerHTML = '<h4>Loading data failed. Showing default items.</h4>';
+        
+        fallbackTitles.forEach(title => {
+            const card = document.createElement('div');
+            card.className = 'info-card';
+            
+            const textWrapper = document.createElement('div');
+            textWrapper.className = 'info-card-text-wrapper';
+            textWrapper.textContent = title;
+
+            const arrow = document.createElement('span');
+            arrow.innerHTML = '&#10095;'; 
+            arrow.style.flexShrink = '0'; 
+
+            card.appendChild(textWrapper);
+            card.appendChild(arrow);
+
+
+            card.addEventListener('click', () => {
+                showInfoModal(title, ["(Content not loaded. Check script URL/deployment.)"]);
+            });
+
+            container.appendChild(card);
+        });
+        
+        // Try fetching data again if cache is empty
+        fetchAndRenderInfoData();
+        return;
+    }
+    // --- END FALLBACK LOGIC ---
+
+    container.innerHTML = ''; // Clear spinner/old content
+
+    infoDataCache.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'info-card';
+        
+        // Wrapper for the text content to ensure it is centered
+        const textWrapper = document.createElement('div');
+        textWrapper.className = 'info-card-text-wrapper';
+        textWrapper.textContent = item.title;
+
+        const arrow = document.createElement('span');
+        arrow.innerHTML = '&#10095;'; 
+        arrow.style.flexShrink = '0'; 
+
+        card.appendChild(textWrapper);
+        card.appendChild(arrow);
+
+
+        card.addEventListener('click', () => {
+            showInfoModal(item.title, item.content);
+        });
+
+        container.appendChild(card);
+    });
+}
+
+// 4. Info Page Data Fetch/Render (Includes Ribbon)
+async function fetchAndRenderInfoData(silent = false) {
+    const container = document.getElementById('info-container');
+    const spinner = document.getElementById('info-spinner');
+    
+    if (!silent) {
+        // Show spinner only if we are actively viewing the info page
+        container.innerHTML = '';
+        container.appendChild(spinner);
+        spinner.classList.remove('hidden');
+    }
+
+    try {
+        // Force new fetch every time to update ribbon and card content
+        const result = await postToAction('getInfoData');
+        
+        if (result.status === 'success') {
+            infoDataCache = result.infoItems || [];
+            infoDataFetchTime = new Date().toISOString(); // Capture the exact moment of successful fetch
+            
+            // RIBBON UPDATE (Uses the new ribbon text from the result)
+            updateRibbon(result.ribbonText);
+
+            if (!silent) {
+                updateInfoPage(); // Render cards only if actively viewing the page
+            }
+        } else {
+            console.error("Failed to load info data:", result.message);
+            updateRibbon('');
+            if (!silent) {
+                // If main fetch fails, rely on the failsafe in updateInfoPage
+                updateInfoPage(); 
+            }
+        }
+
+    } catch (error) {
+        console.error("Network error during info fetch:", error);
+        updateRibbon('');
+        if (!silent) {
+             // If network fails, trigger the failsafe to render headers
+             updateInfoPage(); 
+        }
+    } finally {
+        if (!silent) {
+            spinner.classList.add('hidden');
+        }
+    }
+}
+
+
 // --- UTILITY & NAVIGATION ---
 function startScanner() {
 if (document.getElementById('hunt-page')?.classList.contains('active')) {
@@ -833,6 +1208,11 @@ updateLeaderboard();
 updateScanHistory();
 } else if (pageId === 'map-page') {
 updateDuckMap();
+} else if (pageId === 'info-page') {
+    fetchAndRenderInfoData(); // Fetches/refreshes every time the tab is clicked
+} else {
+    // Ensure ribbon is still updated on non-info page clicks
+    fetchAndRenderInfoData(true);
 }
 }
 function checkForInitialDuck() {
@@ -896,6 +1276,20 @@ document.getElementById('scan-history-link').addEventListener('click', (e) => {
 e.preventDefault();
 switchPage(e.target.dataset.page);
 });
+
+// Close modal event listeners
+document.getElementById('modal-close-btn').addEventListener('click', () => {
+    document.getElementById('info-modal-backdrop').style.display = 'none';
+    document.body.style.overflow = 'auto'; // Restore background scrolling
+});
+document.getElementById('info-modal-backdrop').addEventListener('click', (e) => {
+    // Only close if the click is on the backdrop, not the modal content itself
+    if (e.target.id === 'info-modal-backdrop') {
+        document.getElementById('info-modal-backdrop').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+});
+
 });
 </script>
 </body>
