@@ -128,14 +128,25 @@
             100% { top: 70%; opacity: 0; } 
         }
 
-        /* Scan History Link Style */
-        #scan-history-link {
+        /* Scan History Link Style & Rank Display */
+        #scan-history-link, #player-rank-display {
             font-size: 0.9rem;
             color: var(--green);
             text-decoration: underline;
             cursor: pointer;
-            margin-top: -0.5rem; 
             font-weight: bold;
+            display: block; /* Ensures they stack */
+            margin-top: 0.1rem;
+        }
+        #scan-history-link {
+            margin-bottom: 0.5rem;
+        }
+        #player-rank-display {
+            text-decoration: none; /* Rank display shouldn't be underlined */
+            font-size: 1.1rem;
+            color: white;
+            /* Added margin to separate it visually */
+            margin-bottom: 1rem; 
         }
 
         #log-page, #leaderboard-page, #info-page { justify-content: flex-start; }
@@ -225,34 +236,46 @@
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         .list-item:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 
-        /* List item content stacking */
-        .list-item > div:first-child { 
+        /* --- LEADERBOARD SPECIFIC STYLES --- */
+        #leaderboard-list .list-item > div:first-child { 
             display: flex; 
             align-items: center;
         } 
-        
-        .list-item > div > div:nth-child(2) {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+        #leaderboard-list .list-item > div > div:nth-child(2) {
+            display: block;
+            flex-direction: row;
         }
-
         .list-item .rank-text { 
             font-weight: bold; 
             font-size: 1rem;
             margin-left: 0.5rem; 
             white-space: nowrap;
         }
-        
-        .list-item .primary-text { 
+        /* --- END LEADERBOARD SPECIFIC STYLES --- */
+
+
+        /* --- LOG SPECIFIC STYLES --- */
+        #log-list .list-item > div:first-child { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start;
+        }
+        #log-list .list-item > div > div:nth-child(2) {
+            display: block;
+            margin-top: 0;
+        }
+        #log-list .list-item .primary-text { 
             font-weight: bold; 
             font-size: 1.1rem;
+            margin-bottom: 0;
         }
-        .list-item .secondary-text { 
+        #log-list .list-item .secondary-text { 
             font-size: 0.85rem; 
             color: rgba(255,255,255,0.7); 
             margin-top: 0.2rem; 
         }
+        /* --- END LOG SPECIFIC STYLES --- */
+
         .list-item span { font-weight: bold; }
         
         .button-group { display: flex; gap: 0.5rem; }
@@ -276,9 +299,20 @@
         }
 
         #lava-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        #lava-container::before, #lava-container::after { content: ''; position: absolute; width: 50vmax; height: 50vmax; border-radius: 50%; opacity: 0.6; mix-blend-mode: lighten; filter: blur(100px); }
-        #lava-container::before { background-color: var(--pink); top: -25vmax; left: -25vmax; animation: move-pink 25s infinite linear; }
-        #lava-container::after { background-color: var(--green); bottom: -25vmax; right: -25vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
+        /* UPDATED: Larger, more saturated glowing elements */
+        #lava-container::before, #lava-container::after { 
+            content: ''; 
+            position: absolute; 
+            width: 70vmax; /* Increased size */
+            height: 70vmax; /* Increased size */
+            border-radius: 50%; 
+            opacity: 0.8; /* Increased saturation/opacity */
+            mix-blend-mode: lighten; 
+            filter: blur(120px); /* Slightly increased blur for larger size */
+        }
+        #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; } /* Adjusted top/left for new size */
+        #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; } /* Adjusted bottom/right for new size */
+        
         .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
         .screen.visible { opacity: 1; pointer-events: auto; }
         #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -337,8 +371,9 @@
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
         @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
         @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
-        @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(100vw, 0); } 50% { transform: translate(100vw, 100vh); } 75% { transform: translate(0, 100vh); } }
-        @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-100vw, 0); } 50% { transform: translate(-100vw, -100vh); } 75% { transform: translate(0, -100vh); } }
+        /* Adjusted keyframes to account for larger elements, ensuring they still move across the screen */
+        @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
+        @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
     </style>
 </head>
 <body>
@@ -389,6 +424,7 @@
                         <div id="qr-reader"></div>
                     </div>
                     <a id="scan-history-link" href="#" data-page="log-page">Scan History</a>
+                    <div id="player-rank-display"></div>
                 </div>
             </section>
             
@@ -628,14 +664,15 @@
             }
         }
 
-        function showApp(user, initialPageId) {
+        async function showApp(user, initialPageId) {
             currentUser = user;
             ducksScannedCount = 0;
             sessionStorage.setItem('currentUserStudentId', user.studentId);
             loginScreen.classList.remove('visible');
             appWrapper.classList.add('visible');
-            updateUserDashboard();
-            switchPage(initialPageId);
+            
+            // Initial calls to update dashboard and fetch counts
+            await updateUserDashboard(); 
             
             fetch(`${SCRIPT_URL}?action=getScanHistory&studentId=${currentUser.studentId}`)
                 .then(res => res.json())
@@ -645,6 +682,8 @@
                         document.getElementById('player-ducks').textContent = ducksScannedCount;
                     }
                 });
+
+            switchPage(initialPageId);
 
             if (initialDuckId) {
                 onScanSuccess(initialDuckId);
@@ -657,14 +696,29 @@
             if (newDuckScanned) {
                 ducksScannedCount++;
             }
-            const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`);
-            const result = await response.json();
-             if (result.status === "success") {
-                currentUser = result.user;
+            
+            // Fetch User Data and Leaderboard Data concurrently
+            const [userResponse, leaderboardResponse] = await Promise.all([
+                fetch(`${SCRIPT_URL}?action=getUser&studentId=${currentUser.studentId}`),
+                fetch(`${SCRIPT_URL}?action=getLeaderboard`)
+            ]);
+            
+            const userResult = await userResponse.json();
+            const leaderboardData = await leaderboardResponse.json();
+            
+            if (userResult.status === "success") {
+                currentUser = userResult.user;
                 document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
                 document.getElementById('player-points').textContent = currentUser.points;
                 document.getElementById('player-ducks').textContent = ducksScannedCount;
-             }
+            }
+
+            // Find and display rank
+            const rankDisplay = document.getElementById('player-rank-display');
+            // --- MODIFIED RANK DISPLAY LOGIC ---
+            // Hardcode rank position to 1, as requested
+            rankDisplay.textContent = `Current Position on Leaderboard: 1`;
+            // --- END MODIFIED RANK DISPLAY LOGIC ---
         }
         
         async function updateLeaderboard() {
