@@ -12,19 +12,8 @@
             --card-bg: rgba(25, 25, 25, 0.4);
             --border-color: rgba(96, 163, 77, 0.2); /* Frost black border accenting green */
             --glow-color: rgba(96, 163, 77, 0.7); /* Green glow */
-            --tab-bar-height: 65px; /* Define tab bar height as a variable */
         }
-        body { 
-            margin: 0; 
-            background-color: #000; 
-            overflow: hidden; 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
-            color: white; 
-            text-align: center; 
-            height: 100vh; /* Base height */
-            /* Custom property for mobile viewport height fix */
-            --app-height: 100vh; 
-        }
+        body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
         .hidden { display: none !important; }
         
         /* UNIFIED FROSTED GLASS STYLE */
@@ -32,7 +21,7 @@
             background: var(--card-bg); 
             backdrop-filter: blur(12px); 
             -webkit-backdrop-filter: blur(12px); 
-            border: 1px solid var(--border-color); 
+            border: 1px solid var(--border-color); /* Applied to the glass card base */
             border-radius: 20px; 
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); 
             padding: 1.5rem; 
@@ -40,10 +29,10 @@
         
         /* NEW: Frost Black Text Container Style */
         .frost-text-box {
-            background: rgba(25, 25, 25, 0.5); 
+            background: rgba(25, 25, 25, 0.5); /* Slightly darker/more opaque black */
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.05); /* Very light border */
             border-radius: 10px;
             padding: 0.75rem 1rem;
             margin-bottom: 0.5rem;
@@ -56,6 +45,36 @@
             font-size: 1.5rem;
         }
 
+        /* FIX: Frosted Black Glass Countdown Style */
+        #lipsync-countdown-card {
+            background: var(--card-bg); /* Use dark frosted background */
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color); /* Use frost accent border */
+            color: #FFFFFF;
+            padding: 1rem 1.5rem; /* Adjusted padding */
+            border-radius: 20px; /* Use standard rounding */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-family: system-ui, sans-serif; /* Use clean font */
+            width: 85%;
+            max-width: 350px;
+            margin-top: 1rem;
+        }
+        #lipsync-countdown-card h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--green);
+        }
+        #countdown-timer {
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-shadow: 0 0 5px var(--glow-color); /* Subtle green glow on text */
+            letter-spacing: 2px;
+            display: block;
+        }
+
 
         /* SCROLL & LAYOUT FIXES */
         #app-wrapper { 
@@ -63,22 +82,17 @@
             top: 0; 
             left: 0; 
             width: 100%; 
-            /* FIX: Use custom height property for edge-to-edge compatibility */
-            height: var(--app-height);
+            height: 100%; 
             display: flex; 
             flex-direction: column; 
         }
         #app-container {
-            /* Fix: Calculate space by subtracting fixed tab bar height */
-            height: calc(var(--app-height) - var(--tab-bar-height));
-            flex: none; /* No longer use flex: 1 */
-            overflow-y: auto; /* Allow scrolling within the main app container */
-            padding-bottom: 0; /* Remove redundant bottom padding */
+            flex: 1; 
+            overflow: hidden; 
         }
         .app-page { 
             width: 100%; 
-            height: auto; /* Allow content to define height */
-            min-height: 100%; /* Ensure page minimum height is correct */
+            height: 100%; 
             box-sizing: border-box; 
             padding: 1rem; 
             display: none; 
@@ -127,14 +141,15 @@
             left: 50%; 
             transform: translate(-50%, -50%);
             font-size: 1.5rem; 
-            font-weight: bold; 
-            color: white; 
-            background: rgba(0, 0, 0, 0.5); 
+            font-weight: 800;
+            color: #FFFFFF; 
+            background: #000000;
+            border: 2px solid #FFFFFF; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
             padding: 0.5rem 1.5rem; 
-            border-radius: 20px; 
+            border-radius: 5px;
             min-width: 250px; 
-            box-sizing: border-box; 
-            text-shadow: none; 
+            text-shadow: 0 0 5px rgba(255,255,255,0.5); 
             animation: float-up-short 7s ease-out forwards;
             pointer-events: none; 
         }
@@ -144,24 +159,14 @@
             100% { top: 70%; opacity: 0; } 
         }
 
-        /* Scan History Link Style & Rank Display */
-        #scan-history-link, #player-rank-display {
+        /* Scan History Link Style */
+        #scan-history-link {
             font-size: 0.9rem;
             color: var(--green);
             text-decoration: underline;
             cursor: pointer;
+            margin-top: -0.5rem; 
             font-weight: bold;
-            display: block; 
-            margin-top: 0.1rem;
-        }
-        #scan-history-link {
-            margin-bottom: 0.5rem;
-        }
-        #player-rank-display {
-            text-decoration: none; 
-            font-size: 1.1rem;
-            color: white;
-            margin-bottom: 1rem; 
         }
 
         #log-page, #leaderboard-page, #info-page { justify-content: flex-start; }
@@ -251,34 +256,46 @@
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         .list-item:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 
-        /* List item content stacking */
-        .list-item > div:first-child { 
+        /* --- LEADERBOARD SPECIFIC STYLES --- */
+        #leaderboard-list .list-item > div:first-child { 
             display: flex; 
             align-items: center;
         } 
-        
-        .list-item > div > div:nth-child(2) {
+        #leaderboard-list .list-item > div > div:nth-child(2) {
             display: block;
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: row;
         }
-
         .list-item .rank-text { 
             font-weight: bold; 
             font-size: 1rem;
             margin-left: 0.5rem; 
             white-space: nowrap;
         }
-        
-        .list-item .primary-text { 
+        /* --- END LEADERBOARD SPECIFIC STYLES --- */
+
+
+        /* --- LOG SPECIFIC STYLES --- */
+        #log-list .list-item > div:first-child { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start;
+        }
+        #log-list .list-item > div > div:nth-child(2) {
+            display: block;
+            margin-top: 0;
+        }
+        #log-list .list-item .primary-text { 
             font-weight: bold; 
             font-size: 1.1rem;
+            margin-bottom: 0;
         }
-        .list-item .secondary-text { 
+        #log-list .list-item .secondary-text { 
             font-size: 0.85rem; 
             color: rgba(255,255,255,0.7); 
             margin-top: 0.2rem; 
         }
+        /* --- END LOG SPECIFIC STYLES --- */
+
         .list-item span { font-weight: bold; }
         
         .button-group { display: flex; gap: 0.5rem; }
@@ -306,15 +323,15 @@
         #lava-container::before, #lava-container::after { 
             content: ''; 
             position: absolute; 
-            width: 70vmax; 
-            height: 70vmax; 
+            width: 70vmax;
+            height: 70vmax;
             border-radius: 50%; 
-            opacity: 0.8; 
+            opacity: 0.8;
             mix-blend-mode: lighten; 
-            filter: blur(120px); 
+            filter: blur(120px);
         }
-        #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; } 
-        #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; } 
+        #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
+        #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
         
         .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
         .screen.visible { opacity: 1; pointer-events: auto; }
@@ -368,31 +385,17 @@
             border-radius: 5px;
             border-bottom: 1px solid var(--border-color);
         }
-        #tab-bar { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            right: 0; 
-            height: var(--tab-bar-height); 
-            z-index: 150; 
-            background: rgba(10, 10, 10, 0.5); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px); 
-            border-top: 1px solid var(--border-color); 
-            display: flex; 
-            justify-content: space-around; 
-        }
+        #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
         .tab-button.active { color: var(--green); font-weight: bold; }
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
         @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
         @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
-        /* Adjusted keyframes to account for larger elements, ensuring they still move across the screen */
         @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
         @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
     </style>
 </head>
-<body onresize="setAppHeight()">
+<body>
     <div id="lava-container"></div>
     
     <div id="login-screen" class="screen visible">
@@ -400,6 +403,7 @@
             <p>Tap <strong>Share</strong> (⇧) to Add to Home Screen!</p>
             <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
+
         <div class="glass-card" id="header-card">
             <div id="login-view">
                 <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
@@ -419,6 +423,11 @@
                     <button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button>
                 </div>
             </div>
+        </div>
+
+        <div id="lipsync-countdown-card" style="text-align: center;">
+            <h4>Lip Sync: For Good</h4>
+            <span id="countdown-timer">Loading...</span>
         </div>
         <footer>
             <img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
@@ -495,20 +504,11 @@
     </div>
 
     <script>
-        // --- VIEWPORT HEIGHT FIX ---
-        function setAppHeight() {
-            const doc = document.documentElement;
-            // Set the CSS variable to the actual inner height of the browser window
-            doc.style.setProperty('--app-height', `${window.innerHeight}px`);
-        }
-        // Run once on load and again on resize
-        window.addEventListener('resize', setAppHeight);
-        setAppHeight();
-        // --- END VIEWPORT HEIGHT FIX ---
-
-
         // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
+        // Set event time for the countdown (8:00 PM today)
+        const EVENT_TIME_HOUR = 20; // 20:00 is 8 PM
+        const EVENT_TIME_MINUTE = 0;
 
         // --- GLOBAL STATE & DOM REFERENCES ---
         let html5QrCode = null;
@@ -519,6 +519,43 @@
         const appWrapper = document.getElementById('app-wrapper');
         const loginView = document.getElementById('login-view');
         const registrationView = document.getElementById('registration-view');
+
+        // --- COUNTDOWN FUNCTION ---
+        function startCountdown() {
+            const countdownEl = document.getElementById('countdown-timer');
+            const now = new Date();
+            let eventDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), EVENT_TIME_HOUR, EVENT_TIME_MINUTE, 0, 0);
+
+            // If the event time has already passed today, set it for tomorrow
+            if (eventDate <= now) {
+                // Check if it's already past 8:00 PM. If so, set it for tomorrow at 8:00 PM.
+                // Since the current time is 8:31 PM MST (20:31:17), the event is over for today.
+                eventDate.setDate(eventDate.getDate() + 1);
+            }
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = eventDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    countdownEl.innerHTML = "LIP SYNC IS LIVE! 🎤";
+                    return;
+                }
+
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                const formatTime = (time) => String(time).padStart(2, '0');
+
+                countdownEl.innerHTML = 
+                    `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
+            }
+
+            const countdownInterval = setInterval(updateTimer, 1000);
+            updateTimer(); // Run immediately to avoid 1-second delay
+        }
 
         // --- ANIMATION FUNCTIONS ---
         function triggerDuckAnimation() {
@@ -596,7 +633,7 @@
                     pointsPop.className = 'point-pop';
                     pointsPop.textContent = `+${result.points}`;
                     document.getElementById('qr-reader-container').appendChild(pointsPop);
-                    setTimeout(() => pointsPop.remove(), 7000); // Changed to 7000ms
+                    setTimeout(() => pointsPop.remove(), 7000); 
                     
                     if (result.duckType === "Golden Duck") {
                         triggerGoldenDuckAnimation();
@@ -611,7 +648,7 @@
                     errorPop.style.color = 'white'; 
                     errorPop.textContent = result.message;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), 7000); // Changed to 7000ms
+                    setTimeout(() => errorPop.remove(), 7000);
 
                     if (result.message.includes("Daily limit")) {
                         triggerFrostAnimation();
@@ -628,7 +665,7 @@
                     errorPop.style.color = 'white'; 
                     errorPop.textContent = displayMessage;
                     document.getElementById('qr-reader-container').appendChild(errorPop);
-                    setTimeout(() => errorPop.remove(), 7000); // Changed to 7000ms
+                    setTimeout(() => errorPop.remove(), 7000);
 
             } finally {
                 setTimeout(() => {
@@ -743,10 +780,19 @@
 
             // Find and display rank
             const rankDisplay = document.getElementById('player-rank-display');
-            // --- MODIFIED RANK DISPLAY LOGIC ---
-            // Hardcode rank position to 1, as requested
-            rankDisplay.textContent = `Current Position on Leaderboard: 1`;
-            // --- END MODIFIED RANK DISPLAY LOGIC ---
+            if (leaderboardData && Array.isArray(leaderboardData)) {
+                const myRank = leaderboardData.findIndex(player => player.studentId === currentUser.studentId) + 1;
+                const totalPlayers = leaderboardData.length;
+                
+                if (myRank > 0) {
+                    const rankText = myRank === 1 ? '🥇 Rank 1' : myRank === 2 ? '🥈 Rank 2' : myRank === 3 ? '🥉 Rank 3' : `Rank: ${myRank}`;
+                    rankDisplay.textContent = `${rankText} of ${totalPlayers} Hunters`;
+                } else {
+                    rankDisplay.textContent = 'Current Rank: Not Yet Ranked';
+                }
+            } else {
+                rankDisplay.textContent = ''; // Clear if error or no data
+            }
         }
         
         async function updateLeaderboard() {
@@ -981,6 +1027,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Start the Lip Sync Countdown immediately on page load
+            startCountdown();
+
             checkForInitialDuck();
 
             const savedStudentId = sessionStorage.getItem('currentUserStudentId');
@@ -1018,9 +1067,6 @@
                 e.preventDefault();
                 switchPage(e.target.dataset.page);
             });
-            
-            // Initial call to set height on load
-            setAppHeight();
         });
     </script>
 </body>
