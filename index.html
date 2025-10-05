@@ -109,7 +109,8 @@ font-weight: bold;
 
 #log-container, #leaderboard-container, #info-container, #map-container {
 flex: 1;
-overflow-y: visible;
+/* Changed overflow-y from 'visible' to 'auto' for log-container to enable scrolling */
+overflow-y: visible; /* Keeping for other pages, changing in log-container below */
 min-height: 0;
 padding: var(--safe-padding) 0;
 position: relative;
@@ -123,6 +124,12 @@ flex-direction: column;
 width: 100%;
 max-width: 450px;
 }
+
+/* FIX FOR LOG CONTAINER SCROLLING */
+#log-container {
+overflow-y: auto;
+}
+
 #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
 #info-container { text-align: center !important; }
 #info-container p { max-width: 450px; width: 90%; margin: 0.5rem auto; }
@@ -351,6 +358,13 @@ return { status: "error", message: "Network error or script failure." };
 }
 }
 
+// --- VIBRATION UTILITY ---
+function triggerVibration(pattern) {
+if (navigator.vibrate) {
+navigator.vibrate(pattern);
+}
+}
+
 // --- ANIMATION FUNCTIONS ---
 
 /**
@@ -470,6 +484,8 @@ if (claimedDucksCache.has(lookupId)) {
 const qrContainer = document.getElementById('qr-reader-container');
 qrContainer.classList.add('error-flash');
 setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+// Short, single burst for an error scan
+triggerVibration(100);
 return;
 }
 const duckInfo = duckDataCache[lookupId];
@@ -495,6 +511,9 @@ const currentDucks = parseInt(document.getElementById('player-ducks').textConten
 document.getElementById('player-ducks').textContent = currentDucks + 1;
 document.getElementById('player-points').textContent = currentUser.points;
 displaySuccessPopup(`+${points}`);
+
+// SUCCESS VIBRATION
+triggerVibration([50, 50, 50]); // Short triple burst for a good scan
 
 if (duckInfo.type === 'Golden Duck') {
 triggerGoldenDuckAnimation();
