@@ -12,8 +12,19 @@
             --card-bg: rgba(25, 25, 25, 0.4);
             --border-color: rgba(96, 163, 77, 0.2); /* Frost black border accenting green */
             --glow-color: rgba(96, 163, 77, 0.7); /* Green glow */
+            --tab-bar-height: 65px; /* Define tab bar height as a variable */
         }
-        body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
+        body { 
+            margin: 0; 
+            background-color: #000; 
+            overflow: hidden; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
+            color: white; 
+            text-align: center; 
+            height: 100vh; /* Base height */
+            /* Custom property for mobile viewport height fix */
+            --app-height: 100vh; 
+        }
         .hidden { display: none !important; }
         
         /* UNIFIED FROSTED GLASS STYLE */
@@ -21,7 +32,7 @@
             background: var(--card-bg); 
             backdrop-filter: blur(12px); 
             -webkit-backdrop-filter: blur(12px); 
-            border: 1px solid var(--border-color); /* Applied to the glass card base */
+            border: 1px solid var(--border-color); 
             border-radius: 20px; 
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); 
             padding: 1.5rem; 
@@ -29,10 +40,10 @@
         
         /* NEW: Frost Black Text Container Style */
         .frost-text-box {
-            background: rgba(25, 25, 25, 0.5); /* Slightly darker/more opaque black */
+            background: rgba(25, 25, 25, 0.5); 
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05); /* Very light border */
+            border: 1px solid rgba(255, 255, 255, 0.05); 
             border-radius: 10px;
             padding: 0.75rem 1rem;
             margin-bottom: 0.5rem;
@@ -52,17 +63,22 @@
             top: 0; 
             left: 0; 
             width: 100%; 
-            height: 100%; 
+            /* FIX: Use custom height property for edge-to-edge compatibility */
+            height: var(--app-height);
             display: flex; 
             flex-direction: column; 
         }
         #app-container {
-            flex: 1; 
-            overflow: hidden; 
+            /* Fix: Calculate space by subtracting fixed tab bar height */
+            height: calc(var(--app-height) - var(--tab-bar-height));
+            flex: none; /* No longer use flex: 1 */
+            overflow-y: auto; /* Allow scrolling within the main app container */
+            padding-bottom: 0; /* Remove redundant bottom padding */
         }
         .app-page { 
             width: 100%; 
-            height: 100%; 
+            height: auto; /* Allow content to define height */
+            min-height: 100%; /* Ensure page minimum height is correct */
             box-sizing: border-box; 
             padding: 1rem; 
             display: none; 
@@ -135,17 +151,16 @@
             text-decoration: underline;
             cursor: pointer;
             font-weight: bold;
-            display: block; /* Ensures they stack */
+            display: block; 
             margin-top: 0.1rem;
         }
         #scan-history-link {
             margin-bottom: 0.5rem;
         }
         #player-rank-display {
-            text-decoration: none; /* Rank display shouldn't be underlined */
+            text-decoration: none; 
             font-size: 1.1rem;
             color: white;
-            /* Added margin to separate it visually */
             margin-bottom: 1rem; 
         }
 
@@ -236,46 +251,34 @@
         .list-item:first-child, .list-item:last-child { border-radius: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         .list-item:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 
-        /* --- LEADERBOARD SPECIFIC STYLES --- */
-        #leaderboard-list .list-item > div:first-child { 
+        /* List item content stacking */
+        .list-item > div:first-child { 
             display: flex; 
             align-items: center;
         } 
-        #leaderboard-list .list-item > div > div:nth-child(2) {
+        
+        .list-item > div > div:nth-child(2) {
             display: block;
-            flex-direction: row;
+            flex-direction: column;
+            align-items: flex-start;
         }
+
         .list-item .rank-text { 
             font-weight: bold; 
             font-size: 1rem;
             margin-left: 0.5rem; 
             white-space: nowrap;
         }
-        /* --- END LEADERBOARD SPECIFIC STYLES --- */
-
-
-        /* --- LOG SPECIFIC STYLES --- */
-        #log-list .list-item > div:first-child { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: flex-start;
-        }
-        #log-list .list-item > div > div:nth-child(2) {
-            display: block;
-            margin-top: 0;
-        }
-        #log-list .list-item .primary-text { 
+        
+        .list-item .primary-text { 
             font-weight: bold; 
             font-size: 1.1rem;
-            margin-bottom: 0;
         }
-        #log-list .list-item .secondary-text { 
+        .list-item .secondary-text { 
             font-size: 0.85rem; 
             color: rgba(255,255,255,0.7); 
             margin-top: 0.2rem; 
         }
-        /* --- END LOG SPECIFIC STYLES --- */
-
         .list-item span { font-weight: bold; }
         
         .button-group { display: flex; gap: 0.5rem; }
@@ -303,15 +306,15 @@
         #lava-container::before, #lava-container::after { 
             content: ''; 
             position: absolute; 
-            width: 70vmax; /* Increased size */
-            height: 70vmax; /* Increased size */
+            width: 70vmax; 
+            height: 70vmax; 
             border-radius: 50%; 
-            opacity: 0.8; /* Increased saturation/opacity */
+            opacity: 0.8; 
             mix-blend-mode: lighten; 
-            filter: blur(120px); /* Slightly increased blur for larger size */
+            filter: blur(120px); 
         }
-        #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; } /* Adjusted top/left for new size */
-        #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; } /* Adjusted bottom/right for new size */
+        #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; } 
+        #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; } 
         
         .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
         .screen.visible { opacity: 1; pointer-events: auto; }
@@ -365,7 +368,20 @@
             border-radius: 5px;
             border-bottom: 1px solid var(--border-color);
         }
-        #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+        #tab-bar { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            height: var(--tab-bar-height); 
+            z-index: 150; 
+            background: rgba(10, 10, 10, 0.5); 
+            backdrop-filter: blur(15px); 
+            -webkit-backdrop-filter: blur(15px); 
+            border-top: 1px solid var(--border-color); 
+            display: flex; 
+            justify-content: space-around; 
+        }
         .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
         .tab-button.active { color: var(--green); font-weight: bold; }
         .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
@@ -376,7 +392,7 @@
         @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
     </style>
 </head>
-<body>
+<body onresize="setAppHeight()">
     <div id="lava-container"></div>
     
     <div id="login-screen" class="screen visible">
@@ -479,6 +495,18 @@
     </div>
 
     <script>
+        // --- VIEWPORT HEIGHT FIX ---
+        function setAppHeight() {
+            const doc = document.documentElement;
+            // Set the CSS variable to the actual inner height of the browser window
+            doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+        }
+        // Run once on load and again on resize
+        window.addEventListener('resize', setAppHeight);
+        setAppHeight();
+        // --- END VIEWPORT HEIGHT FIX ---
+
+
         // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
 
@@ -990,6 +1018,9 @@
                 e.preventDefault();
                 switchPage(e.target.dataset.page);
             });
+            
+            // Initial call to set height on load
+            setAppHeight();
         });
     </script>
 </body>
