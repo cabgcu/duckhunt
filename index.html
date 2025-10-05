@@ -577,9 +577,13 @@
         }
 
         async function onScanSuccess(decodedText) {
-            if (!currentUser || (html5QrCode && html5QrCode.getState() !== Html5QrcodeScannerState.SCANNING)) return;
+            // Note: This check allows the initialDuckId flow to execute even if the scanner isn't running
+            if (!currentUser) return; 
 
-            html5QrCode.pause();
+            // Only pause if the scan is coming from the live scanner
+            if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
+                 html5QrCode.pause();
+            }
 
             let finalDuckId = decodedText;
             try {
@@ -651,11 +655,12 @@
                     setTimeout(() => errorPop.remove(), POPUP_DURATION_MS); 
 
             } finally {
-                setTimeout(() => {
-                    if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.PAUSED) {
+                // Only resume if we paused it in the first place (i.e. it came from the scanner)
+                if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.PAUSED) {
+                    setTimeout(() => {
                         html5QrCode.resume();
-                    }
-                }, 2000);
+                    }, 2000);
+                }
             }
         }
         
@@ -664,10 +669,10 @@
                 const response = await fetch(`${SCRIPT_URL}?action=getUser&studentId=${studentId}`);
                 const result = await response.json();
                 if (result.status === "success") {
-                    // Sign in success goes to the Scanner page (hunt-page)
-                    showApp(result.user, 'hunt-page'); 
+                    // Sign in success. If we have a duckId, send to hunt-page to claim it, otherwise go to hunt-page anyway.
+                    showApp(result.user, 'hunt-page'); // Always send to hunt-page after sign-in
                 } else {
-                    // If user is not found but we have a duckId from the URL, encourage registration
+                    // If user is not found, alert them
                     if (initialDuckId) {
                          alert("Duck found! Please register with your Student ID to claim it.");
                     } else {
@@ -702,12 +707,16 @@
                     const userResult = await userResponse.json();
                     
                     if (userResult.status === "success") {
+                            // After registration, always send to info page, but ensure duck is claimed if present
                             showApp(userResult.user, 'info-page'); 
                             
-                            // FIX: If a duckId was saved from the URL scan, claim it immediately after successful registration
+                            // If a duckId was saved from the URL scan, claim it immediately after successful registration
                             if (initialDuckId) {
-                                // Delaying slightly to allow app transition to finish
-                                setTimeout(() => onScanSuccess(initialDuckId), 500);
+                                // Add a slight delay to ensure user state is fully set and ready to process scan
+                                setTimeout(() => {
+                                    onScanSuccess(initialDuckId);
+                                    initialDuckId = null; // Clear the ID after attempting to claim it
+                                }, 500);
                             }
                     } else {
                         alert("Registration succeeded, but automatic sign-in failed.");
@@ -743,11 +752,14 @@
 
             switchPage(initialPageId);
 
-            // This logic handles auto-claim after sign-in, which happens on page load (if user was saved)
-            // or after a successful sign-in button press and sends them to the scan page.
+            // CRITICAL FIX: If user signs in (not registering) and an initial ID exists, claim it here.
+            // This handles returning users who scanned a QR code and then signed in.
             if (initialDuckId && initialPageId === 'hunt-page') { 
-                onScanSuccess(initialDuckId);
-                initialDuckId = null; 
+                // Add a slight delay to ensure the scanner page DOM is fully ready
+                setTimeout(() => {
+                     onScanSuccess(initialDuckId);
+                     initialDuckId = null; // Clear the ID after attempting to claim it
+                }, 500); 
             }
         }
         
