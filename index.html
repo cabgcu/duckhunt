@@ -15,19 +15,53 @@
             --tab-bar-height: 65px;
             --safe-padding: 1rem;
         }
-        body { margin: 0; background-color: #000; overflow: hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; text-align: center; }
+        body { 
+            margin: 0; 
+            background-color: #000; 
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            /* 1. FIX: Ensures body takes up the full viewport height */
+            min-height: 100vh; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
+            color: white; 
+            text-align: center; 
+        }
         .hidden { display: none !important; }
         .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
         .glass-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
         .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
-        #app-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; }
-        #app-container { flex: 1; overflow-y: hidden; height: calc(100vh - var(--tab-bar-height)); padding-bottom: var(--safe-padding); }
-        .app-page { width: 100%; height: 100%; box-sizing: border-box; padding: 0 var(--safe-padding); display: none; flex-direction: column; gap: 0; align-items: center; }
+        #app-wrapper { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        #app-container { 
+            flex: 1; 
+            /* 2. FIX: Allow the app container to scroll its content */
+            overflow-y: auto; 
+            height: calc(100vh - var(--tab-bar-height)); 
+            padding-bottom: var(--safe-padding); 
+        }
+        .app-page { 
+            width: 100%; 
+            /* 3. FIX: Ensure app-page uses min-height to push content down if needed */
+            min-height: 100%; 
+            box-sizing: border-box; 
+            padding: 0 var(--safe-padding); 
+            display: none; 
+            flex-direction: column; 
+            gap: 0; 
+            align-items: center; 
+        }
         .app-page.active { display: flex; }
         .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
-        .app-page .header-image-top { width: 60%; max-width: 250px; margin: 1.5rem auto 1rem auto; display: block; flex-shrink: 0; }
+        .app-page .header-image-top { margin: 1.5rem auto 1rem auto; display: block; flex-shrink: 0; }
+        
         #hunt-page { justify-content: flex-start; padding-top: 0; }
         #hunt-content-wrapper { position: relative; width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; margin-top: 0; flex-shrink: 0; }
         #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 350px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
@@ -39,7 +73,24 @@
         #scan-history-link { font-size: 0.9rem; color: var(--green); text-decoration: underline; cursor: pointer; margin-top: 0; font-weight: bold; }
         #player-rank-display { margin-top: 0.5rem; font-size: 1.1rem; font-weight: 600; }
         #log-page, #leaderboard-page, #info-page, #map-page { justify-content: flex-start; }
-        #log-container, #leaderboard-container, #info-container, #map-container { flex: 1; overflow-y: auto; min-height: 0; padding: var(--safe-padding) 0; position: relative; background: none; border-radius: 0; box-shadow: none; border: none; gap: 0.5rem; display: flex; flex-direction: column; width: 100%; max-width: 450px; }
+        
+        /* 4. FIX: Remove internal scroll on containers; let #app-container handle it */
+        #log-container, #leaderboard-container, #info-container, #map-container { 
+            flex: 1; 
+            overflow-y: visible; /* Changed from auto to visible */
+            min-height: 0; 
+            padding: var(--safe-padding) 0; 
+            position: relative; 
+            background: none; 
+            border-radius: 0; 
+            box-shadow: none; 
+            border: none; 
+            gap: 0.5rem; 
+            display: flex; 
+            flex-direction: column; 
+            width: 100%; 
+            max-width: 450px; 
+        }
         #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
         #info-container { text-align: center !important; }
         #info-container p { max-width: 450px; width: 90%; margin: 0.5rem auto; }
@@ -71,7 +122,15 @@
         .primary-btn { background-color: var(--green); color: white; }
         .secondary-btn { background-color: transparent; color: var(--green); }
         .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
-        #lava-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        #lava-container { 
+            /* 5. FIX: Ensure background is fixed relative to viewport */
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: -1; 
+        }
         #lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
         #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
         #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
@@ -520,10 +579,6 @@
                 historyResult = responses[1];
 
                 document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
-                if (Array.isArray(historyResult)) {
-                    scanHistoryCache = historyResult;
-                    document.getElementById('player-ducks').textContent = historyResult.length;
-                }
                 if (Array.isArray(leaderboardData)) {
                     const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
                     let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
@@ -531,6 +586,10 @@
                     else if (myRank === 2) rankText = '🥈 Rank 2';
                     else if (myRank === 3) rankText = '🥉 Rank 3';
                     document.getElementById('player-rank-display').textContent = rankText;
+                }
+                if (Array.isArray(historyResult)) {
+                    scanHistoryCache = historyResult;
+                    document.getElementById('player-ducks').textContent = historyResult.length;
                 }
             } catch (e) {
                 console.error("Failed to update dashboard", e);
