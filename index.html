@@ -61,8 +61,8 @@ transition: padding-top 0.3s ease;
     -webkit-backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
-    /* FIX: Reduced font size */
-    font-size: 0.9rem; 
+    /* FIX: Reduced font size to ensure containment */
+    font-size: 0.8rem; 
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -406,7 +406,7 @@ pointer-events: none;
 @keyframes fade-in-out {
 0% { opacity: 0; transform: scale(0.8); }
 20% { opacity: 0.6; transform: scale(1); }
-80% { opacity: 0.6; transform: transform(1); }
+80% { opacity: 0.6; transform: scale(1); }
 100% { opacity: 0; transform: scale(1.2); }
 }
 </style>
@@ -687,7 +687,6 @@ function triggerGoldenDuckAnimation() {
     flash.style.animation = 'gold-flash 0.8s ease-out forwards';
     
     // EMOJIS: Guaranteed Gold/Reward Emojis
-    // Replaced 🪙 with 🥇 (Gold Medal) for better visual consistency
     const emojis = ['🦆', '🥇', '💰', '✨']; 
     const count = 10; 
     
@@ -696,7 +695,7 @@ function triggerGoldenDuckAnimation() {
             const item = document.createElement('div');
             item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
             item.className = 'frost-animation';
-            item.style.fontSize = `${1.5 + Math.random()}rem`;
+            item.style.fontSize = `${1.5 + Math.random() * 2.5}rem`;
             item.style.color = '#FFD700';
             item.style.left = `${Math.random() * 100}vw`;
             item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`;
