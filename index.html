@@ -9,13 +9,13 @@
 :root {
 --green: #60A34D;
 --pink: #ff69b4;
---card-bg: rgba(0, 0, 0, 0.45);
+--card-bg: rgba(0, 0, 0, 0.45); /* Base semi-transparent black card */
 --border-color: rgba(96, 163, 77, 0.2);
 --glow-color: rgba(96, 163, 77, 0.7);
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
---frosted-black: rgba(0, 0, 0, 0.85); /* Darker black for the frost effect */
+--frosted-black: rgba(0, 0, 0, 0.85); /* Darker black, primarily for the fixed ribbon/modal */
 --gold: #FFD700;
 }
 body {
@@ -269,11 +269,11 @@ border: 1px solid var(--border-color);
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
-/* FROST BLACK LEADERBOARD DESIGN */
+/* LEADERBOARD LIST ITEM STYLES CORRECTED TO MATCH GENERAL UI (card-bg) */
 #leaderboard-list .list-item {
-    background: var(--frosted-black); 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    box-shadow: 0 0 10px rgba(96, 163, 77, 0.15);
+    background: var(--card-bg); 
+    border: 1px solid var(--border-color); 
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
 .list-item .rank-text { 
