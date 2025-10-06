@@ -528,7 +528,7 @@ pointer-events: none;
 <script>
 // --- CONFIGURATION ---
 // *** SCRIPT URL UPDATED TO NEW DEPLOYMENT ***
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5M6hPzLIgW2Phi8La8fsBGRPQ2peQl87hh7m8TEahfG6ng3xMl1sYCNyjCpvfxVKx/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwi9lZdXYXSBsp6GRA7RvGwvdjTsAsQmTiRJ7ZYj5ckozmINsKpAncSCz3ujiD6pGqT/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
@@ -919,66 +919,6 @@ function fetchAndRenderInfoData(silent = false) {
     });
 }
 
-// --- CORE LOGIN LOGIC (RESTORED) ---
-async function signIn(studentId) {
-    const signinBtn = document.getElementById('signin-btn');
-    const originalText = signinBtn.innerHTML;
-    signinBtn.innerHTML = '<div class="spinner"></div>';
-    signinBtn.disabled = true;
-
-    const result = await postToAction('getUser', { studentId });
-
-    if (result.status === "success") {
-        showApp(result.user, 'hunt-page');
-    } else {
-        alert("User not found! Please register before signing in.");
-        signinBtn.innerHTML = originalText;
-        signinBtn.disabled = false;
-    }
-}
-
-async function registerUser() {
-    const submitBtn = document.getElementById('submit-btn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<div class="spinner"></div>';
-    submitBtn.disabled = true;
-    const payload = {
-        firstName: document.getElementById('reg-firstname').value.trim(),
-        lastName: document.getElementById('reg-lastname').value.trim(),
-        studentId: document.getElementById('reg-studentid').value.trim(),
-        email: document.getElementById('reg-email').value.trim()
-    };
-    if (!payload.firstName || !payload.studentId) {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        return alert("First Name and Student ID are required.");
-    }
-    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        return alert("Registration requires an @my.gcu.edu email address.");
-    }
-    try {
-        const result = await postToAction('registerUser', payload);
-        if (result.status === "success") {
-            const userResult = await postToAction('getUser', { studentId: payload.studentId });
-            if (userResult.status === "success") {
-                showApp(userResult.user, 'hunt-page');
-            } else {
-                throw new Error("Auto sign-in failed.");
-            }
-        } else {
-            alert(result.message);
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    } catch (error) {
-        alert("Error registering.");
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
-}
-
 
 // --- UTILITY & NAVIGATION ---
 function startScanner() {
@@ -1040,6 +980,68 @@ el.style.top = '-150px';
 setTimeout(() => el.remove(), 500);
 }, 3000);
 }
+
+// --- CORE LOGIN LOGIC (RESTORED) ---
+async function signIn(studentId) {
+    const signinBtn = document.getElementById('signin-btn');
+    const originalText = signinBtn.innerHTML;
+    signinBtn.innerHTML = '<div class="spinner"></div>';
+    signinBtn.disabled = true;
+
+    // The line that sends the request to the Google Apps Script
+    const result = await postToAction('getUser', { studentId });
+
+    if (result.status === "success") {
+        showApp(result.user, 'hunt-page');
+    } else {
+        alert("User not found! Please register before signing in.");
+        signinBtn.innerHTML = originalText;
+        signinBtn.disabled = false;
+    }
+}
+
+async function registerUser() {
+    const submitBtn = document.getElementById('submit-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<div class="spinner"></div>';
+    submitBtn.disabled = true;
+    const payload = {
+        firstName: document.getElementById('reg-firstname').value.trim(),
+        lastName: document.getElementById('reg-lastname').value.trim(),
+        studentId: document.getElementById('reg-studentid').value.trim(),
+        email: document.getElementById('reg-email').value.trim()
+    };
+    if (!payload.firstName || !payload.studentId) {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return alert("First Name and Student ID are required.");
+    }
+    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return alert("Registration requires an @my.gcu.edu email address.");
+    }
+    try {
+        const result = await postToAction('registerUser', payload);
+        if (result.status === "success") {
+            const userResult = await postToAction('getUser', { studentId: payload.studentId });
+            if (userResult.status === "success") {
+                showApp(userResult.user, 'hunt-page');
+            } else {
+                throw new Error("Auto sign-in failed.");
+            }
+        } else {
+            alert(result.message);
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    } catch (error) {
+        alert("Error registering.");
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
 
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
