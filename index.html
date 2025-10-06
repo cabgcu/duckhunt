@@ -102,7 +102,8 @@ transition: padding-top 0.3s ease;
 flex: 1;
 overflow-y: auto;
 height: calc(100vh - var(--tab-bar-height) - var(--ribbon-height)); 
-padding-bottom: var(--safe-padding);
+/* FIX APPLIED HERE */
+padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height)); 
 }
 .app-page {
 width: 100%;
@@ -615,7 +616,7 @@ createFadingFeet();
 function triggerDuckAnimation() {
 // Increased duck count for more flair (3-7 ducks now)
 const duckCount = Math.floor(Math.random() * 5) + 3;
-for (let i = 0; i < count; i++) {
+for (let i = 0; i < duckCount; i++) {
 setTimeout(() => {
 const duck = document.createElement('div');
 duck.textContent = '🦆';
