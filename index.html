@@ -205,19 +205,22 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-    padding: 0; /* Remove padding to allow map to use full width */
-    overflow-x: scroll; /* Enable scrolling for the zoomed map */
+    /* Allow scrolling within this page section */
+    overflow-y: auto;
+    overflow-x: auto; 
+    padding: 0;
 }
 #map-wrapper {
-    /* Set a minimum width equivalent to 300% zoom of a standard mobile view */
-    width: 300vw; 
-    min-width: 1000px;
+    /* REMOVED 300vw to allow responsive scrolling on vertical mobile */
+    width: 100%; 
+    min-width: 100%; /* Ensure it respects image size */
     position: relative;
-    margin: 1rem 0; /* Remove auto margin */
-    /* Note: map-wrapper is no longer constrained by max-width: 600px */
+    margin: 1rem auto;
 }
 #campus-map-img {
-    width: 100%;
+    /* Set image to its maximum width for detail */
+    width: 300vw; 
+    min-width: 600px; /* Ensure a base size for detail */
     height: auto;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
@@ -362,7 +365,7 @@ z-index: -1;
 #lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
 #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
 #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
-.screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
+.screen { opacity: 0; transition: opacity opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
 #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
@@ -496,8 +499,8 @@ pointer-events: none;
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Map & Duck Status</h2>
 
-<!-- 1. INTERACTIVE MAP SECTION (300% Zoom enabled by width: 300vw) -->
-<div id="map-wrapper" style="width: 300vw; min-width: 1000px; position: relative; margin: 1rem 0;">
+<!-- 1. INTERACTIVE MAP SECTION (Scrollable container) -->
+<div id="map-wrapper" style="width: 100%; min-width: 1000px; position: relative; margin: 1rem 0;">
     
     <img id="campus-map-img" 
          src="https://i.imgur.com/1aQCsPk.jpeg" 
@@ -554,8 +557,8 @@ const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
 
-// *** YOUR 10 SPOT COORDINATES AND NAMES ***
-// The X/Y coordinates are the center points you clicked (e.g., 1298, 769 is the center of the first spot)
+// *** YOUR 10 SPOT COORDINATES AND NAMES (Debug Mode Enabled) ***
+// NOTE: Coordinates are the center points from the coordinate generator tool.
 const SPOT_LOCATIONS = [
     { name: "YOUR_LOCATION_NAME_1", x: 1298, y: 769 },
     { name: "YOUR_LOCATION_NAME_2", x: 1368, y: 1816 },
@@ -608,7 +611,7 @@ function drawMapOverlays() {
     const scaleX = mapCanvas.width / mapImageNaturalWidth;
     const scaleY = mapCanvas.height / mapImageNaturalHeight;
 
-    SPOT_LOCATIONS.forEach(spot => {
+    SPOT_LOCATIONS.forEach((spot, index) => {
         const locationName = spot.name;
         const locationData = locationCountsCache[locationName];
         
@@ -618,6 +621,10 @@ function drawMapOverlays() {
         if (locationData && locationData.count !== undefined) {
             count = locationData.count;
             isCleared = count === 0;
+        } else {
+            // If data hasn't loaded yet, show the placeholder status
+            count = 999;
+            isCleared = false;
         }
 
         // --- 1. Calculate screen coordinates ---
@@ -627,39 +634,46 @@ function drawMapOverlays() {
         // --- 2. Draw Marker (Dot) ---
         mapContext.fillStyle = isCleared ? '#ff4d4d' : 'var(--green)';
         mapContext.beginPath();
-        mapContext.arc(screenX, screenY, 6, 0, Math.PI * 2);
+        mapContext.arc(screenX, screenY, 8, 0, Math.PI * 2); /* Increased dot size */
         mapContext.fill();
 
         // --- 3. Draw Text Bubble/Count ---
-        const text = isCleared ? 'CLEARED' : `${count} LEFT`;
+        const statusText = isCleared ? 'CLEARED' : `${count} LEFT`;
+        const debugLabel = `SPOT ${index + 1}: ${locationName.replace('YOUR_LOCATION_NAME_', 'L')}`; // Display SPOT # and abbreviated name
         
-        // Define text bubble style
-        mapContext.font = 'bold 16px sans-serif';
+        // Define text bubble styles
+        mapContext.font = 'bold 16px sans-serif'; 
         mapContext.textAlign = 'center';
         mapContext.textBaseline = 'middle';
         
-        const textMetrics = mapContext.measureText(text);
-        const bubblePadding = 8;
-        const bubbleWidth = textMetrics.width + 2 * bubblePadding;
-        const bubbleHeight = 24;
+        const statusMetrics = mapContext.measureText(statusText);
+        mapContext.font = '12px sans-serif';
+        const labelMetrics = mapContext.measureText(debugLabel);
+        
+        const bubblePadding = 10;
+        const lineHeight = 18;
+        const totalHeight = (lineHeight * 2) + bubblePadding; 
+        const maxWidth = Math.max(statusMetrics.width, labelMetrics.width);
+        const bubbleWidth = maxWidth + 2 * bubblePadding;
 
         // Draw background bubble (dark frosted rectangle)
         mapContext.fillStyle = 'rgba(0, 0, 0, 0.9)'; 
         mapContext.fillRect(
             screenX - bubbleWidth / 2, 
-            screenY - bubbleHeight - 10, // Position above the dot
+            screenY - totalHeight - 12, // Position well above the dot
             bubbleWidth, 
-            bubbleHeight
+            totalHeight
         );
 
-        // Draw text
-        mapContext.fillStyle = 'white'; // White text as requested
-        mapContext.fillText(text, screenX, screenY - 10 - bubbleHeight / 2 + 2);
+        // Draw Line 1: Status Text
+        mapContext.fillStyle = 'white';
+        mapContext.font = 'bold 16px sans-serif';
+        mapContext.fillText(statusText, screenX, screenY - totalHeight - 12 + lineHeight);
         
-        // Optionally, draw location name (smaller)
-        mapContext.font = '10px sans-serif';
-        mapContext.fillStyle = 'white'; // White text as requested
-        mapContext.fillText(locationName, screenX, screenY - 5);
+        // Draw Line 2: Debug Label (Smaller text)
+        mapContext.fillStyle = '#ccc';
+        mapContext.font = '12px sans-serif';
+        mapContext.fillText(debugLabel, screenX, screenY - totalHeight - 12 + lineHeight * 2);
     });
 }
 
@@ -683,7 +697,6 @@ function initializeMapCanvas() {
     resizeObserver.observe(mapImageElement);
     
     // Fallback/Initial size calculation
-    // This is vital for the canvas scaling calculation to start correctly
     mapImageNaturalWidth = mapImageElement.naturalWidth || 5400;
     mapImageNaturalHeight = mapImageElement.naturalHeight || 3600; 
 
