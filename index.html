@@ -706,6 +706,7 @@ scanQueue = [];
 const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
 if (batchResult.status === "success") {
 if (batchResult.updatedUser) {
+// FIX: Use the specific updated points/ducks from the backend response
 currentUser.points = batchResult.updatedUser.points;
 document.getElementById('player-points').textContent = currentUser.points;
 if (batchResult.updatedUser.duckCount !== undefined) {
@@ -726,7 +727,8 @@ scanQueue = [...scansToSend, ...scanQueue];
 }
 function periodicDataRefresh() {
 if (!currentUser) return;
-updateUserDashboard();
+// FIX: Pass false to skip fetching user points, preventing the 'bounce' effect
+updateUserDashboard(false); 
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
 claimedDucksCache = new Set(result.claimed);
