@@ -207,8 +207,8 @@ font-weight: bold;
 padding-top: 0;
 }
 #map-wrapper {
+width: 125vw; /* OPTIMIZED FOR MOBILE: Reduced from 150vw */
 position: relative;
-width: 150vw; /* Increased width for scrollable zoom effect */
 max-width: none; /* Ensure it can exceed 600px */
 margin: 1rem auto;
 line-height: 0; /* Prevents extra space below image */
@@ -245,8 +245,8 @@ backdrop-filter: blur(8px);
 -webkit-backdrop-filter: blur(8px);
 border: 1px solid var(--green);
 border-radius: 8px;
-padding: 0.5rem 0.75rem;
-min-width: 140px;
+padding: 0.4rem 0.6rem; /* OPTIMIZED FOR MOBILE: Reduced padding */
+min-width: 120px; /* OPTIMIZED FOR MOBILE: Reduced minimum width */
 text-align: center;
 box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 white-space: normal;
@@ -255,14 +255,14 @@ line-height: 1.3;
 
 .map-label h4 {
 margin: 0;
-font-size: 1rem;
+font-size: 0.9rem; /* OPTIMIZED FOR MOBILE: Smaller font */
 font-weight: bold;
 color: white; /* Ensure text is visible */
 }
 .map-label p {
 margin: 0;
 padding-top: 0.25rem; /* Small space between title and count */
-font-size: 0.9rem;
+font-size: 0.8rem; /* OPTIMIZED FOR MOBILE: Smaller font */
 color: rgba(255, 255, 255, 0.9);
 }
 
@@ -271,8 +271,6 @@ border-color: #ff4d4d;
 background-color: rgba(50, 50, 50, 0.85);
 opacity: 0.8;
 }
-
-/* --- DELETED OLD MAP MARKER/POPUP STYLES --- */
 
 /* End Map Specific Styles */
 #log-container, #leaderboard-container, #info-container {
@@ -608,26 +606,30 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYG
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
-const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Riverbed', 'Thunderground'];
+// UPDATED: Only locations that provide Virtual Codes are listed here (using their data key/backend name)
+const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
 /*
 |=================================================================================|
 | **MAP COORDINATE SETUP (EDIT THESE VALUES)** |
+| - Physical Commuter Lounge and Thunderground markers removed.                   |
 |=================================================================================|
 */
 const MAP_SPOTS = [
-{ name: 'The Grove', coords: '1295,758,1311,774' },
-{ name: 'Commuter Lounge', coords: '1355,1802,1371,1818' },
-{ name: 'Placeholder-Pool (Physical Duck)', coords: '4000,1500,4016,1516' },
-{ name: 'Placeholder-Library (Physical Duck)', coords: '2500,2800,2516,2816' },
-{ name: 'Thunderground', coords: '1514,1583,1530,1599' },
-{ name: 'North Rim', coords: '2270,1911,2286,1927' },
-{ name: 'Main Campus', coords: '1763,2398,1779,2414' },
-{ name: 'Lopes Way', coords: '2738,1116,2754,1132' },
-{ name: 'North Campus', coords: '3882,2468,3898,2484' },
-{ name: 'Diamondback', coords: '4757,1136,4773,1152' },
-{ name: 'The Rivers', coords: '5125,817,5141,833' },
-{ name: 'Riverbed', coords: '4409,1852,4425,1868' }
+// Physical Locations (Remaining)
+{ name: 'The Grove', dataKey: 'The Grove', coords: '1295,758,1311,774' },
+// Removed: Commuter Lounge (Physical)
+// Removed: Thunderground (Physical)
+{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, 
+{ name: 'Main Campus', dataKey: 'Main Campus', coords: '1763,2398,1779,2414' },
+{ name: 'North Campus', dataKey: 'North Campus', coords: '2738,1116,2754,1132' },
+{ name: 'Diamondback', dataKey: 'Diamondback', coords: '3882,2468,3898,2484' },
+{ name: 'The Rivers', dataKey: 'The Rivers', coords: '4757,1136,4773,1152' },
+
+// Virtual Code Locations (pulling data from base location name)
+{ name: 'Riverbed Virtual', dataKey: 'Riverbed', coords: '5125,817,5141,833' }, 
+{ name: 'Commuter Lounge Virtual', dataKey: 'Commuter Lounge', coords: '1355,1900,1371,1916' }, 
+{ name: 'Thunderground Virtual', dataKey: 'Thunderground', coords: '1514,1680,1530,1696' },
 ];
 
 // --- GLOBAL STATE & DOM REFERENCES ---
@@ -656,11 +658,9 @@ let locationCountsCache = {}; // Cache for duck counts by location
 
 // --- MAP INTERACTION LOGIC (STATIC LABELS) ---
 const mapWrapper = document.getElementById('map-wrapper');
-// DELETED: showMapPopup function.
 
 function positionMarkers() {
 const overlay = document.getElementById('map-markers-overlay');
-// Check for naturalWidth here is crucial to ensure coordinates are valid.
 if (!overlay || !mapImageElement || mapImageElement.naturalWidth === 0) return;
 
 overlay.innerHTML = ''; // Clear old markers
@@ -678,22 +678,25 @@ marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
 marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
 
 // --- Data Injection Logic ---
-const isVirtual = VIRTUAL_LOCATIONS.includes(spot.name);
-const displayName = isVirtual ? `${spot.name} (Virtual)` : spot.name;
+const dataKey = spot.dataKey; // Use the explicit key for data lookup
+const displayName = spot.name; // Use the full name for display
 
 let remainingText;
-let spotData = locationData[spot.name];
+// Check data based on the dataKey
+let spotData = locationData[dataKey]; 
 
-if (!spotData || Object.keys(locationData).length === 0) {
-// SAMPLE DATA FALLBACK
-remainingText = '🦆 <strong>(SAMPLE) 5</strong> Codes Left';
-marker.style.borderColor = 'var(--gold)'; 
+if (!spotData) {
+// CONDITION 1: Location not found in live data (N/A)
+remainingText = '<strong>N/A</strong> Codes Left';
+marker.style.borderColor = 'gray'; 
 } else {
 const remaining = spotData.count;
 if (remaining > 0) {
+// CONDITION 2: Codes Remaining
 remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
 marker.style.borderColor = 'var(--green)';
 } else {
+// CONDITION 3: Cleared
 remainingText = `❌ <strong>CLEARED</strong>`;
 marker.classList.add('cleared');
 }
