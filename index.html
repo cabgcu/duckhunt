@@ -101,8 +101,9 @@ transition: padding-top 0.3s ease;
 #app-container {
 flex: 1;
 overflow-y: auto;
+/* FIX: Setting height to explicitly account for fixed top (ribbon) and fixed bottom (tab bar) */
 height: calc(100vh - var(--tab-bar-height) - var(--ribbon-height)); 
-/* FIX APPLIED HERE */
+/* FIX: Adding tab bar height to bottom padding to lift content above the fixed bar */
 padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height)); 
 }
 .app-page {
