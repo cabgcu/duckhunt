@@ -172,7 +172,8 @@ font-weight: bold;
 
 #log-container, #leaderboard-container, #map-container, #info-container {
 flex: 1;
-overflow-y: visible;
+/* FIX APPLIED HERE: Enables vertical scrolling for all data containers */
+overflow-y: auto; 
 min-height: 0;
 padding: var(--safe-padding) 0;
 position: relative;
@@ -187,10 +188,8 @@ width: 100%;
 max-width: 450px;
 }
 
-/* FIX FOR LOG CONTAINER SCROLLING */
-#log-container {
-overflow-y: auto;
-}
+/* FIX FOR LOG CONTAINER SCROLLING (Now handled by the general block above) */
+/* #log-container { overflow-y: auto; } */
 
 #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
 
