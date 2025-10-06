@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<!-- FIX: Removed user-scalable=no to enable pinch-to-zoom on mobile -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Duck Hunt 2025</title>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
@@ -207,7 +208,7 @@ font-weight: bold;
 padding-top: 0;
 }
 #map-wrapper {
-width: 125vw; /* OPTIMIZED FOR MOBILE: Reduced from 150vw */
+width: 250vw; /* INCREASED for large, scrollable panoramic view on mobile */
 position: relative;
 max-width: none; /* Ensure it can exceed 600px */
 margin: 1rem auto;
