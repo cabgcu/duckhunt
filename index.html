@@ -215,9 +215,9 @@ font-weight: bold;
 }
 /* New container to frame the map in a rounded glass card */
 #map-card-frame {
-    width: 100%;
-    height: 98%; /* Use almost all vertical space */
-    max-width: 100%;
+    width: 95%; /* Make card slightly smaller than screen width */
+    height: 98%; 
+    max-width: 98%;
     margin: 0.5rem;
     padding: 0;
     
@@ -235,15 +235,14 @@ font-weight: bold;
     position: relative;
 }
 #map-wrapper {
-    /* Removed max-width restriction; map width now drives container width */
     width: fit-content; 
     position: relative;
     margin: 0; 
 }
 #campus-map-img {
-    /* Set image width to maintain zoom level */
-    width: 300vw; 
-    min-width: 600px; /* Ensure a base size for detail */
+    /* Set image width to be larger than container for zoomed effect, allowing scroll */
+    width: 110%; /* Adjusted for a contained zoom */
+    min-width: 400px; 
     height: auto;
     border-radius: 0; 
     box-shadow: none; 
@@ -1261,7 +1260,7 @@ updateScanHistory();
 } else if (pageId === 'map-page') {
 // FIX 4: When opening the Map page, ensure the map is centered
 updateDuckMap();
-const mapPage = document.getElementById('map-page');
+const mapPage = document.getElementById('map-card-frame'); // Changed to map-card-frame for internal scroll
 if (mapPage.scrollWidth > mapPage.clientWidth) {
     // Scroll horizontally to the center of the zoomed image
     mapPage.scrollLeft = (mapPage.scrollWidth - mapPage.clientWidth) / 2;
