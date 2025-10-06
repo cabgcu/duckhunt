@@ -21,7 +21,7 @@
 body {
 margin: 0;
 background-color: #000;
-overflow-x: hidden;
+overflow-x: auto; /* ALLOW HORIZONTAL SCROLLING for map zoom */
 min-height: 100vh; /* Fallback */
 min-height: 100svh; /* FIX: Smallest Viewport Height for mobile */
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -208,8 +208,8 @@ padding-top: 0;
 }
 #map-wrapper {
 position: relative;
-width: 100%;
-max-width: 600px;
+width: 150vw; /* Increased width for scrollable zoom effect */
+max-width: none; /* Ensure it can exceed 600px */
 margin: 1rem auto;
 line-height: 0; /* Prevents extra space below image */
 }
@@ -230,61 +230,50 @@ width: 100%;
 height: 100%;
 pointer-events: none; /* Allows clicks to pass through to markers */
 }
-.map-marker {
+
+/* --- NEW MAP LABEL STYLES --- */
+.map-label {
 position: absolute;
-width: 18px;
-height: 18px;
-background-color: var(--frosted-black);
-border: 2px solid var(--green);
-border-radius: 5px; /* Slightly less rounded */
-transform: translate(-50%, -50%);
-cursor: pointer;
-transition: transform 0.2s ease, box-shadow 0.2s ease;
-box-shadow: 0 0 8px rgba(96, 163, 77, 0.7);
-pointer-events: auto; /* Markers are clickable */
-}
-.map-marker:hover {
-transform: translate(-50%, -50%) scale(1.3);
-box-shadow: 0 0 12px rgba(96, 163, 77, 1);
-}
-.map-marker.cleared {
-border-color: #ff4d4d;
-background-color: rgba(50, 50, 50, 0.8);
-box-shadow: 0 0 8px rgba(255, 77, 77, 0.7);
-}
-.map-marker.cleared:hover {
-box-shadow: 0 0 12px rgba(255, 77, 77, 1);
-}
-#map-info-popup {
-position: absolute;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-z-index: 50;
+z-index: 10;
+transform: translate(-50%, -50%); /* Center based on position */
+cursor: default; 
+pointer-events: auto; /* Ensure the box is interactable/visible */
+
+/* Frosted Card Look */
 background: var(--frosted-black);
-backdrop-filter: blur(12px);
+backdrop-filter: blur(8px);
+-webkit-backdrop-filter: blur(8px);
 border: 1px solid var(--green);
-border-radius: 12px;
-padding: 1rem 1.5rem;
-box-shadow: 0 0 20px rgba(96, 163, 77, 0.5);
+border-radius: 8px;
+padding: 0.5rem 0.75rem;
+min-width: 140px;
 text-align: center;
-pointer-events: none;
-opacity: 0;
-transition: opacity 0.3s ease;
-min-width: 250px;
-white-space: nowrap;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+white-space: normal;
+line-height: 1.3;
 }
-/* FIX: Remove default margin from text elements inside popup */
-#map-info-popup h4, #map-info-popup p {
+
+.map-label h4 {
 margin: 0;
-padding: 0;
+font-size: 1rem;
+font-weight: bold;
+color: white; /* Ensure text is visible */
 }
-#map-info-popup p {
-padding-top: 0.25rem; /* Add small vertical spacing only between elements */
+.map-label p {
+margin: 0;
+padding-top: 0.25rem; /* Small space between title and count */
+font-size: 0.9rem;
+color: rgba(255, 255, 255, 0.9);
 }
-.map-info-popup.visible {
-opacity: 1;
+
+.map-label.cleared {
+border-color: #ff4d4d;
+background-color: rgba(50, 50, 50, 0.85);
+opacity: 0.8;
 }
+
+/* --- DELETED OLD MAP MARKER/POPUP STYLES --- */
+
 /* End Map Specific Styles */
 #log-container, #leaderboard-container, #info-container {
 flex: 1;
@@ -578,10 +567,7 @@ pointer-events: none;
 src="https://i.imgur.com/1aQCsPk.jpeg"
 alt="Interactive Campus Map">
 <div id="map-markers-overlay"></div>
-<div id="map-info-popup" class="map-info-popup">
-<h4 id="popup-location-name"></h4>
-<p id="popup-duck-count"></p>
-</div>
+<!-- REMOVED OLD #map-info-popup DIV -->
 </div>
 
 </section>
@@ -623,9 +609,17 @@ const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Riverbed', 'Thunderground'];
+
+/*
+|=================================================================================|
+| **MAP COORDINATE SETUP (EDIT THESE VALUES)** |
+|=================================================================================|
+*/
 const MAP_SPOTS = [
 { name: 'The Grove', coords: '1295,758,1311,774' },
 { name: 'Commuter Lounge', coords: '1355,1802,1371,1818' },
+{ name: 'Placeholder-Pool (Physical Duck)', coords: '4000,1500,4016,1516' },
+{ name: 'Placeholder-Library (Physical Duck)', coords: '2500,2800,2516,2816' },
 { name: 'Thunderground', coords: '1514,1583,1530,1599' },
 { name: 'North Rim', coords: '2270,1911,2286,1927' },
 { name: 'Main Campus', coords: '1763,2398,1779,2414' },
@@ -660,68 +654,21 @@ let batchSendTimer = null;
 let dataRefreshTimer = null;
 let locationCountsCache = {}; // Cache for duck counts by location
 
-// --- MAP INTERACTION LOGIC (FIXED) ---
+// --- MAP INTERACTION LOGIC (STATIC LABELS) ---
 const mapWrapper = document.getElementById('map-wrapper');
-const mapPopup = document.getElementById('map-info-popup');
-const popupLocationName = document.getElementById('popup-location-name');
-const popupDuckCount = document.getElementById('popup-duck-count');
-
-function showMapPopup(event, locationName) {
-clearTimeout(window.mapPopupTimeout);
-
-const isVirtual = VIRTUAL_LOCATIONS.includes(locationName);
-const displayName = isVirtual ? `${locationName} (Virtual)` : locationName;
-const locationData = locationCountsCache[locationName];
-
-if (!locationData) {
-popupLocationName.textContent = displayName;
-popupDuckCount.textContent = 'Loading data...';
-mapPopup.style.borderColor = 'gray';
-} else {
-const remaining = locationData.count;
-popupLocationName.textContent = displayName;
-
-if (remaining > 0) {
-popupDuckCount.innerHTML = `🦆 <strong>${remaining}</strong> Codes Left`;
-mapPopup.style.borderColor = 'var(--green)';
-} else {
-popupDuckCount.innerHTML = `❌ <strong>CLEARED</strong>`;
-mapPopup.style.borderColor = '#ff4d4d';
-}
-}
-
-// --- CORRECTED POSITIONING LOGIC ---
-const marker = event.currentTarget;
-const markerRect = marker.getBoundingClientRect();
-const wrapperRect = mapWrapper.getBoundingClientRect();
-
-// Calculate the marker's center position relative to the map-wrapper
-const markerX = markerRect.left + (markerRect.width / 2) - wrapperRect.left;
-const markerY = markerRect.top + (markerRect.height / 2) - wrapperRect.top;
-
-// Set the popup position
-mapPopup.style.left = `${markerX}px`;
-mapPopup.style.top = `${markerY}px`;
-mapPopup.style.transform = 'translate(-50%, -120%)'; // Move up and center relative to the marker
-
-mapPopup.classList.add('visible');
-
-window.mapPopupTimeout = setTimeout(() => {
-mapPopup.classList.remove('visible');
-}, 4000);
-}
+// DELETED: showMapPopup function.
 
 function positionMarkers() {
 const overlay = document.getElementById('map-markers-overlay');
+// Check for naturalWidth here is crucial to ensure coordinates are valid.
 if (!overlay || !mapImageElement || mapImageElement.naturalWidth === 0) return;
 
 overlay.innerHTML = ''; // Clear old markers
-const locationData = locationCountsCache; // Use cached data for immediate repositioning
+const locationData = locationCountsCache; // Use cached data
 
 MAP_SPOTS.forEach(spot => {
 const marker = document.createElement('div');
-marker.className = 'map-marker';
-marker.dataset.locationName = spot.name;
+marker.className = 'map-label'; // Now a label/card
 
 const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
 const centerX = (x1 + x2) / 2;
@@ -730,30 +677,86 @@ const centerY = (y1 + y2) / 2;
 marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
 marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
 
-const spotData = locationData[spot.name];
-if (spotData && spotData.count === 0) {
+// --- Data Injection Logic ---
+const isVirtual = VIRTUAL_LOCATIONS.includes(spot.name);
+const displayName = isVirtual ? `${spot.name} (Virtual)` : spot.name;
+
+let remainingText;
+let spotData = locationData[spot.name];
+
+if (!spotData || Object.keys(locationData).length === 0) {
+// SAMPLE DATA FALLBACK
+remainingText = '🦆 <strong>(SAMPLE) 5</strong> Codes Left';
+marker.style.borderColor = 'var(--gold)'; 
+} else {
+const remaining = spotData.count;
+if (remaining > 0) {
+remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
+marker.style.borderColor = 'var(--green)';
+} else {
+remainingText = `❌ <strong>CLEARED</strong>`;
 marker.classList.add('cleared');
 }
+}
 
-marker.addEventListener('click', (e) => {
-showMapPopup(e, spot.name);
-});
+// Populate the label content
+marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
+
+// NO CLICK LISTENER ATTACHED
 
 overlay.appendChild(marker);
 });
 }
 
-async function updateDuckMap() {
-const result = await postToAction('getDuckCounts');
+// Function solely responsible for fetching and caching duck count data
+async function updateDuckMapData() {
+    const result = await postToAction('getDuckCounts');
 
-if (result.status === 'success' && result.locations) {
-locationCountsCache = {};
-Object.keys(result.locations).forEach(name => {
-locationCountsCache[name] = { count: result.locations[name] };
-});
+    if (result.status === 'success' && result.locations) {
+        locationCountsCache = {};
+        Object.keys(result.locations).forEach(name => {
+            locationCountsCache[name] = { count: result.locations[name] };
+        });
+    }
 }
-// Always call positionMarkers to draw or update based on the latest data.
-positionMarkers();
+
+// Refactored initialize map to use Promises for robust loading
+function initializeMap() {
+    // 1. Disconnect and reset any existing observer
+    if (mapResizeObserver) {
+        mapResizeObserver.disconnect();
+        mapResizeObserver = null;
+    }
+
+    // 2. Promise for image load completion
+    const imageLoadPromise = new Promise(resolve => {
+        if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
+            resolve();
+        } else {
+            // Ensure any old onload handler is cleared before assignment
+            mapImageElement.onload = null;
+            mapImageElement.onerror = null; 
+            
+            mapImageElement.onload = resolve;
+            mapImageElement.onerror = resolve; 
+        }
+    });
+
+    // 3. Wait for data fetch and image load simultaneously
+    Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
+        // 4. Only draw markers if the image successfully loaded dimensions
+        if (mapImageElement.naturalWidth > 0) {
+            positionMarkers();
+            
+            // 5. Attach ResizeObserver to keep markers correctly positioned on resize
+            if (!mapResizeObserver) {
+                mapResizeObserver = new ResizeObserver(positionMarkers);
+                mapResizeObserver.observe(mapImageElement);
+            }
+        } else {
+            console.error("Map image failed to load or has zero dimensions.");
+        }
+    });
 }
 // --- END MAP INTERACTION LOGIC ---
 
@@ -1293,12 +1296,7 @@ updateLeaderboard();
 } else if (pageId === 'log-page') {
 updateScanHistory();
 } else if (pageId === 'map-page') {
-updateDuckMap(); // Initial fetch and draw
-if (mapImageElement) {
-// Create an observer that repositions markers whenever the image size changes
-mapResizeObserver = new ResizeObserver(positionMarkers);
-mapResizeObserver.observe(mapImageElement);
-}
+initializeMap(); // Calls the robust, promise-based initialization
 } else if (pageId === 'info-page') {
 fetchAndRenderInfoData();
 }
