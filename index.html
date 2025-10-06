@@ -96,7 +96,7 @@ to { transform: translateX(var(--marquee-distance)); }
 #app-container {
 flex: 1;
 overflow-y: auto;
-overflow-x: hidden; /* Main container keeps overall scrolling contained */
+overflow-x: auto; /* FIX 1: Allow horizontal scrolling here */
 height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height));
 padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height));
 }
@@ -211,9 +211,8 @@ font-weight: bold;
     padding: 0;
 }
 #map-wrapper {
-    /* REMOVED 300vw to allow responsive scrolling on vertical mobile */
-    width: 100%; 
-    min-width: 100%; /* Ensure it respects image size */
+    /* Removed max-width restriction; map width now drives container width */
+    width: fit-content; 
     position: relative;
     margin: 1rem 0;
 }
@@ -558,16 +557,13 @@ const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
 
 // *** FINALIZED SPOT COORDINATES AND NAMES ***
-// Mapped based on user input: 
-// 1-The Grove, 2-Commuter Lounge, 3-Thunderground, 4-North Rim, 5-Main Campus, 
-// 6-Lopes Way, 7-North Campus, 8-Diamondback, 9-The Rivers, 10-Riverbed
 const SPOT_LOCATIONS = [
     { name: "The Grove", x: 1298, y: 769, isVirtual: false },
     { name: "Commuter Lounge", x: 1368, y: 1816, isVirtual: true },
     { name: "Thunderground", x: 1518, y: 1567, isVirtual: true },
     { name: "North Rim", x: 2297, y: 1706, isVirtual: false },
-    { name: "Main Campus", x: 1767, y: 2414, isVirtual: false }, // SWITCHED with Lopes Way
-    { name: "Lopes Way", x: 2746, y: 2185, isVirtual: false },   // SWITCHED with Main Campus
+    { name: "Main Campus", x: 1767, y: 2414, isVirtual: false }, 
+    { name: "Lopes Way", x: 2746, y: 2185, isVirtual: false },   
     { name: "North Campus", x: 2936, y: 1278, isVirtual: false },
     { name: "Diamondback", x: 3894, y: 2464, isVirtual: false },
     { name: "The Rivers", x: 4773, y: 1148, isVirtual: false },
@@ -915,7 +911,16 @@ async function sendBatchScans() {
 if (scanQueue.length === 0) return;
 const scansToSend = [...scanQueue];
 scanQueue = [];
+
+// Ensure user data is available before sending the batch (Fix for scanner issue)
+if (!currentUser || !currentUser.studentId) {
+    displayErrorPopup("Sign in required to submit scans.");
+    scanQueue = [...scansToSend]; // Restore queue
+    return;
+}
+
 const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+
 if (batchResult.status === "success") {
 if (batchResult.updatedUser) {
 currentUser.points = batchResult.updatedUser.points;
@@ -994,7 +999,7 @@ return;
 loginScreen.classList.remove('visible');
 appWrapper.classList.add('visible');
 if (batchSendTimer) clearInterval(batchSendTimer);
-batchSendTimer = setInterval(periodicDataRefresh, BATCH_SEND_INTERVAL_MS);
+batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
 if (dataRefreshTimer) clearInterval(dataRefreshTimer);
 dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
 await updateUserDashboard();
