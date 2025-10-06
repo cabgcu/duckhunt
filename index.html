@@ -61,8 +61,8 @@ transition: padding-top 0.3s ease;
     -webkit-backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
-    /* FIX: Final reduced font size to ensure containment */
-    font-size: 0.65rem; 
+    /* FINAL FONT SIZE: 0.85rem is a good, readable compromise */
+    font-size: 0.85rem; 
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -198,6 +198,13 @@ flex-shrink: 0;
 }
 /* END GOLDEN DUCK ANIMATION STYLES */
 
+/* FOOTER LOGO FIX */
+.footer-logo { 
+    height: 50px; 
+    margin: 0 auto 5px auto; /* Tighter spacing */
+    display: block; 
+    object-fit: contain; /* Ensures image maintains aspect ratio */
+}
 
 /* NEW CONTAINER TO ALIGN SCAN HISTORY AND RANK */
 #scanner-footer-details {
@@ -375,6 +382,13 @@ footer {
     flex-direction: column; 
     justify-content: center; 
     align-items: center; 
+}
+/* FOOTER LOGO FIX */
+.footer-logo { 
+    height: 50px; 
+    margin: 0 auto 5px auto; /* Tighter spacing */
+    display: block; 
+    object-fit: contain; /* Ensures image maintains aspect ratio */
 }
 footer p { margin: 2px 0; }
 #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
