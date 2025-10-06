@@ -120,7 +120,14 @@ display: block;
 flex-shrink: 0;
 }
 #hunt-page { justify-content: flex-start; padding-top: 0; }
-#info-page, #map-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
+#info-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
+
+/* MAP PAGE SPECIFIC STYLES FOR EDGE-TO-EDGE */
+#map-page {
+padding-top: 5px; /* Minimal top margin */
+padding-left: 0; /* EDGE TO EDGE HORIZONTAL */
+padding-right: 0; /* EDGE TO EDGE HORIZONTAL */
+}
 #hunt-content-wrapper {
 position: relative;
 width: 100%;
@@ -205,13 +212,15 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-padding-top: 0;
+padding-top: 5px;
+padding-left: 0;
+padding-right: 0;
 }
 #map-wrapper {
 width: 250vw; /* HUGE WIDTH for large, scrollable panoramic view on mobile */
 position: relative;
 max-width: none; /* Ensure it can exceed 600px */
-margin: 0.5rem auto; /* SHRUNK: Reduced top/bottom margin to push map up */
+margin: 0 auto; /* SET TO 0 VERTICAL MARGIN for maximum height */
 line-height: 0; /* Prevents extra space below image */
 }
 #campus-map-img {
@@ -559,8 +568,7 @@ pointer-events: none;
 </section>
 
 <section id="map-page" class="app-page">
-<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<!-- REMOVED: <h2 class="transparent-heading-box">Map of Duck Locations</h2> -->
+<!-- REMOVED: <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header"> -->
 
 <div id="map-wrapper">
 <img id="campus-map-img"
