@@ -96,7 +96,7 @@ to { transform: translateX(var(--marquee-distance)); }
 #app-container {
 flex: 1;
 overflow-y: auto;
-overflow-x: auto; /* FIX 1: Allow horizontal scrolling here */
+overflow-x: auto; /* Allow horizontal scrolling here */
 height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height));
 padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height));
 }
@@ -205,24 +205,31 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-    /* Allow scrolling within this page section */
-    overflow-y: auto;
-    overflow-x: auto; 
-    padding: 0; /* Remove side padding for edge-to-edge map */
+    /* Set fixed height minus ribbon/nav bar and remove all padding */
+    height: calc(100svh - var(--ribbon-height) - var(--tab-bar-height)); 
+    overflow: hidden; /* Prevent page-level scrollbars */
+    padding: 0; 
+    
+    /* Ensure flex children take space, but we manually handle the image container */
+    display: block; 
 }
 #map-wrapper {
-    /* Removed max-width restriction; map width now drives container width */
+    /* Map wrapper takes up all available vertical space in the page */
     width: fit-content; 
+    height: 100%;
     position: relative;
-    margin: 0; /* Remove top/bottom margins */
+    margin: 0; 
+    /* This handles the internal scrolling of the map content */
+    overflow-x: scroll;
+    overflow-y: scroll;
 }
 #campus-map-img {
-    /* Set image to its maximum width for detail */
+    /* Set image width to maintain zoom level */
     width: 300vw; 
-    min-width: 600px; /* Ensure a base size for detail */
+    min-width: 600px; 
     height: auto;
-    border-radius: 0; /* Edge to edge corners */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    border-radius: 0;
+    box-shadow: none; 
     display: block;
     user-select: none; 
     -webkit-user-drag: none;
@@ -233,7 +240,7 @@ font-weight: bold;
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* Canvas should not interfere with scrolling */
+    pointer-events: none; 
 }
 /* End Map Specific Styles */
 #log-container, #leaderboard-container, #map-container, #info-container {
@@ -492,10 +499,7 @@ pointer-events: none;
 </section>
 
 <section id="map-page" class="app-page">
-<!-- REMOVED: <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header"> -->
-<!-- REMOVED: <h2 class="transparent-heading-box">Map & Duck Status</h2> -->
-
-<!-- 1. INTERACTIVE MAP SECTION (Scrollable container) -->
+<!-- The page itself needs no padding, headers, or margins for full screen map -->
 <div id="map-wrapper" style="width: 100%; min-width: 1000px; position: relative; margin: 0;">
     
     <img id="campus-map-img" 
@@ -507,13 +511,6 @@ pointer-events: none;
     <canvas id="map-canvas"></canvas>
     
 </div>
-<!-- REMOVED: <p> instructional text </p> -->
-
-
-<div id="map-container">
-    <!-- Empty container (formerly location list) -->
-</div>
-
 </section>
 <section id="leaderboard-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
@@ -551,7 +548,7 @@ pointer-events: none;
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYGcZRFUIOJvsC3rmQ8dLgBlJ5NmCyMQsO_U-7Qrl7ba5ADD9-/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
-const DATA_REFRESH_INTERVAL_MS = 60000;
+const DATA_RESTART_INTERVAL_MS = 60000; // Renamed to clarify purpose
 
 // *** FINALIZED SPOT COORDINATES AND NAMES ***
 const SPOT_LOCATIONS = [
@@ -635,7 +632,7 @@ function drawMapOverlays() {
         mapContext.fill();
 
         // --- 3. Draw Text Bubble/Count ---
-        const singularPlural = (count === 1) ? 'DUCK' : 'DUCKS'; // FIX: Singular/Plural Logic
+        const singularPlural = (count === 1) ? 'DUCK' : 'DUCKS'; 
         const statusText = isCleared ? 'CLEARED' : `${count} ${singularPlural}`; 
         
         let locationLabel = spot.name;
@@ -892,12 +889,13 @@ localVirtualScanTimestamps.push(new Date().getTime());
 scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
 claimedDucksCache.add(lookupId);
 const points = duckInfo.points || 0;
-currentUser.points += points;
-const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
-document.getElementById('player-ducks').textContent = currentDucks + 1;
-document.getElementById('player-points').textContent = currentUser.points;
+
+// *** REMOVED: TEMPORARY LOCAL POINT UPDATE ***
+// The points counter will now only update after successful server confirmation.
+
 const isGoldenDuck = duckInfo.type === 'Golden Duck';
 displaySuccessPopup(`+${points}`, isGoldenDuck);
+
 if (isGoldenDuck) {
 triggerGoldenDuckAnimation();
 } else {
@@ -920,11 +918,13 @@ const batchResult = await postToAction('batchScanDucks', { scans: scansToSend })
 
 if (batchResult.status === "success") {
 if (batchResult.updatedUser) {
+// *** FIX: FINAL CONFIRMED POINT UPDATE ***
 currentUser.points = batchResult.updatedUser.points;
 document.getElementById('player-points').textContent = currentUser.points;
 if (batchResult.updatedUser.duckCount !== undefined) {
 document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
 }
+// ***************************************
 }
 if (batchResult.results) {
 batchResult.results.forEach(result => {
@@ -998,7 +998,7 @@ appWrapper.classList.add('visible');
 if (batchSendTimer) clearInterval(batchSendTimer);
 batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
 if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+dataRefreshTimer = setInterval(periodicDataRefresh, DATA_RESTART_INTERVAL_MS);
 await updateUserDashboard();
 switchPage(initialPageId);
 if (initialDuckId) {
@@ -1237,7 +1237,14 @@ updateLeaderboard();
 } else if (pageId === 'log-page') {
 updateScanHistory();
 } else if (pageId === 'map-page') {
+// FIX 4: When opening the Map page, ensure the map is centered
 updateDuckMap();
+const mapPage = document.getElementById('map-page');
+if (mapPage.scrollWidth > mapPage.clientWidth) {
+    // Scroll horizontally to the center of the zoomed image
+    mapPage.scrollLeft = (mapPage.scrollWidth - mapPage.clientWidth) / 2;
+}
+
 } else if (pageId === 'info-page') {
 fetchAndRenderInfoData();
 } else {
