@@ -61,7 +61,7 @@ transition: padding-top 0.3s ease;
     -webkit-backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
-    /* FIX: Final reduced font size for containment and readability */
+    /* FINAL FONT SIZE: 0.85rem is a good, readable compromise */
     font-size: 0.85rem; 
     display: flex;
     align-items: center;
@@ -76,9 +76,8 @@ transition: padding-top 0.3s ease;
 }
 #ribbon-content {
     white-space: nowrap;
-    /* Use flex on the message container to guarantee vertical centering */
-    display: flex; 
-    align-items: center; 
+    display: flex; /* USE FLEXBOX */
+    align-items: center; /* VERTICALLY CENTERED CONTENT */
     will-change: transform;
     color: var(--gold); /* Default color for the emoji */
     height: 100%; 
@@ -529,7 +528,7 @@ pointer-events: none;
 <script>
 // --- CONFIGURATION ---
 // *** YOUR DEPLOYMENT URL IS INSERTED HERE ***
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhU_jpWVzhhnFHkHfiD-vtwctv6tF_gGYyoXTNRJ9W8RZxY0xH8dFCFk2yVfTxox6e/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5M6hPzLIgW2Phi8La8fsBGRPQ2peQl87hh7m8TEahfG6ng3xMl1sYCNyjCpvfxVKx/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
@@ -757,232 +756,6 @@ function displaySuccessPopup(message, isGolden = false) {
     document.getElementById('qr-reader-container').appendChild(successPop);
     setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
 }
-async function onScanSuccess(decodedText) {
-if (!currentUser) return;
-let finalDuckId = decodedText;
-try {
-const url = new URL(decodedText);
-if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-} catch (e) {}
-
-const lookupId = finalDuckId.trim().toLowerCase();
-
-if (claimedDucksCache.has(lookupId)) {
-const qrContainer = document.getElementById('qr-reader-container');
-qrContainer.classList.add('error-flash');
-setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-return;
-}
-const duckInfo = duckDataCache[lookupId];
-if (!duckInfo) {
-displayErrorPopup("Invalid Duck ID");
-return;
-}
-if (duckInfo.type === 'Virtual Duck') {
-const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-if (localVirtualScanTimestamps.length >= 10) {
-displayErrorPopup("Daily limit for Virtual Ducks reached.");
-triggerFrostAnimation();
-return;
-}
-localVirtualScanTimestamps.push(new Date().getTime());
-}
-scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-claimedDucksCache.add(lookupId);
-const points = duckInfo.points || 0;
-currentUser.points += points;
-const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
-document.getElementById('player-ducks').textContent = currentDucks + 1;
-document.getElementById('player-points').textContent = currentUser.points;
-
-const isGoldenDuck = duckInfo.type === 'Golden Duck';
-displaySuccessPopup(`+${points}`, isGoldenDuck);
-
-if (isGoldenDuck) {
-    // Trigger the enhanced sequenced animation
-    triggerGoldenDuckAnimation(); 
-} else {
-    // Trigger the standard duck animation
-    triggerDuckAnimation();
-}
-}
-
-async function sendBatchScans() {
-if (scanQueue.length === 0) return;
-const scansToSend = [...scanQueue];
-scanQueue = [];
-
-const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-
-if (batchResult.status === "success") {
-if (batchResult.updatedUser) {
-currentUser.points = batchResult.updatedUser.points;
-document.getElementById('player-points').textContent = currentUser.points;
-
-if (batchResult.updatedUser.duckCount !== undefined) {
-document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
-}
-}
-if (batchResult.results) {
-batchResult.results.forEach(result => {
-if (result.status !== "success") {
-displayRevertPopup(result.message || "A duck was claimed just before you!");
-}
-});
-}
-} else {
-displayRevertPopup(batchResult.message || "A server error occurred.");
-scanQueue = [...scansToSend, ...scanQueue];
-}
-}
-
-function periodicDataRefresh() {
-if (!currentUser) return;
-updateUserDashboard();
-postToAction('getClaimedDucks').then(result => {
-if (result.status === 'success' && Array.isArray(result.claimed)) {
-claimedDucksCache = new Set(result.claimed);
-}
-});
-// The ribbon update still happens here, but without the info page dependencies
-postToAction('getInfoData').then(result => {
-    if (result.status === 'success') {
-        updateRibbon(result.ribbonText);
-    } else {
-        updateRibbon('');
-    }
-});
-}
-
-// --- APP INITIALIZATION & LOGIN ---
-async function showApp(user, initialPageId) {
-currentUser = user;
-sessionStorage.setItem('currentUserStudentId', user.studentId);
-try {
-const [duckResult, historyResult, claimedDucksResult, ribbonResult] = await Promise.all([
-postToAction('getDuckData'),
-postToAction('getScanHistory', { studentId: currentUser.studentId }),
-postToAction('getClaimedDucks'),
-postToAction('getInfoData') // Fetch ribbon data on startup
-]);
-
-if (duckResult.status === "success") {
-duckDataCache = duckResult.ducks;
-} else { throw new Error("Failed to load duck data."); }
-
-if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
-claimedDucksCache = new Set(claimedDucksResult.claimed);
-}
-
-if (Array.isArray(historyResult)) {
-scanHistoryCache = historyResult;
-document.getElementById('player-ducks').textContent = historyResult.length;
-const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
-}
-
-if (ribbonResult.status === 'success') {
-    updateRibbon(ribbonResult.ribbonText);
-}
-
-} catch (e) {
-console.error("Failed to initialize app data:", e);
-alert("Could not load game data. Please try again.");
-const signinBtn = document.getElementById('signin-btn');
-if (signinBtn) { signinBtn.disabled = false; signinBtn.innerHTML = "Sign In"; }
-const submitBtn = document.getElementById('submit-btn');
-if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = "Submit"; }
-return;
-}
-loginScreen.classList.remove('visible');
-appWrapper.classList.add('visible');
-if (batchSendTimer) clearInterval(batchSendTimer);
-batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-await updateUserDashboard();
-
-switchPage(initialPageId);
-if (initialDuckId) {
-onScanSuccess(initialDuckId);
-initialDuckId = null;
-}
-}
-
-async function signIn(studentId) {
-const signinBtn = document.getElementById('signin-btn');
-const originalText = signinBtn.innerHTML;
-signinBtn.innerHTML = '<div class="spinner"></div>';
-signinBtn.disabled = true;
-
-const result = await postToAction('getUser', { studentId });
-
-if (result.status === "success") {
-showApp(result.user, 'hunt-page');
-} else {
-alert("User not found! Please register before signing in.");
-signinBtn.innerHTML = originalText;
-signinBtn.disabled = false;
-}
-}
-
-async function registerUser() {
-const submitBtn = document.getElementById('submit-btn');
-const originalText = submitBtn.innerHTML;
-submitBtn.innerHTML = '<div class="spinner"></div>';
-submitBtn.disabled = true;
-const payload = {
-firstName: document.getElementById('reg-firstname').value.trim(),
-lastName: document.getElementById('reg-lastname').value.trim(),
-studentId: document.getElementById('reg-studentid').value.trim(),
-email: document.getElementById('reg-email').value.trim()
-};
-if (!payload.firstName || !payload.studentId) {
-submitBtn.innerHTML = originalText;
-submitBtn.disabled = false;
-return alert("First Name and Student ID are required.");
-}
-if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
-submitBtn.innerHTML = originalText;
-submitBtn.disabled = false;
-return alert("Registration requires an @my.gcu.edu email address.");
-}
-try {
-const result = await postToAction('registerUser', payload);
-if (result.status === "success") {
-const userResult = await postToAction('getUser', { studentId: payload.studentId });
-if (userResult.status === "success") {
-showApp(userResult.user, 'hunt-page');
-} else {
-throw new Error("Auto sign-in failed.");
-}
-} else {
-alert(result.message);
-submitBtn.innerHTML = originalText;
-submitBtn.disabled = false;
-}
-} catch (error) {
-alert("Error registering.");
-submitBtn.innerHTML = originalText;
-submitBtn.disabled = false;
-}
-}
-
-// --- UI & DATA DISPLAY FUNCTIONS ---
-function displaySuccessPopup(message, isGolden = false) {
-    const successPop = document.createElement('div');
-    successPop.className = 'point-pop';
-    
-    if (isGolden) {
-        successPop.classList.add('golden-point-pop');
-    }
-
-    successPop.textContent = message;
-    document.getElementById('qr-reader-container').appendChild(successPop);
-    setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
-}
-
 function displayErrorPopup(message) {
 const errorPop = document.createElement('div');
 errorPop.className = 'point-pop';
@@ -990,7 +763,6 @@ errorPop.textContent = message;
 document.getElementById('qr-reader-container').appendChild(errorPop);
 setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
 }
-
 function displayRevertPopup(message) {
 const revertPop = document.createElement('div');
 revertPop.className = 'point-pop';
