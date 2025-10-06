@@ -61,8 +61,8 @@ transition: padding-top 0.3s ease;
     -webkit-backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
-    /* FIX: Final reduced font size for containment */
-    font-size: 0.65rem; 
+    /* FIX: Set to 0.85rem for optimal size and fit */
+    font-size: 0.85rem; 
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -81,7 +81,6 @@ transition: padding-top 0.3s ease;
     will-change: transform;
     color: var(--gold); /* Default color for the emoji */
     height: 100%; 
-    /* REMOVED: line-height: var(--ribbon-height); */
 }
 #ribbon-content span {
     color: white; /* Ensure the text content remains white */
