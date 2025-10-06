@@ -526,6 +526,34 @@ pointer-events: none;
 </div>
 
 <script>
+// --- CORE SCANNING & SYNC LOGIC ---
+function displaySuccessPopup(message, isGolden = false) {
+    const successPop = document.createElement('div');
+    successPop.className = 'point-pop';
+    
+    if (isGolden) {
+        successPop.classList.add('golden-point-pop');
+    }
+
+    successPop.textContent = message;
+    document.getElementById('qr-reader-container').appendChild(successPop);
+    setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
+}
+function displayErrorPopup(message) {
+const errorPop = document.createElement('div');
+errorPop.className = 'point-pop';
+errorPop.textContent = message;
+document.getElementById('qr-reader-container').appendChild(errorPop);
+setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
+}
+function displayRevertPopup(message) {
+const revertPop = document.createElement('div');
+revertPop.className = 'point-pop';
+revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</small>`;
+document.getElementById('qr-reader-container').appendChild(revertPop);
+setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
+}
+
 // --- CONFIGURATION ---
 // *** SCRIPT URL UPDATED TO NEW DEPLOYMENT ***
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwi9lZdXYXSBsp6GRA7RvGwvdjTsAsQmTiRJ7ZYj5ckozmINsKpAncSCz3ujiD6pGqT/exec';
@@ -919,6 +947,67 @@ function fetchAndRenderInfoData(silent = false) {
     });
 }
 
+
+// --- UTILITY & NAVIGATION ---
+function startScanner() {
+if (document.getElementById('hunt-page')?.classList.contains('active')) {
+html5QrCode = new Html5Qrcode("qr-reader");
+const config = { fps: 10, qrbox: { width: 180, height: 180 }, aspectRatio: 1.0 };
+html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}).catch(err => console.log("QR scanner failed to start."));
+}
+}
+function stopScanner() {
+if (html5QrCode && html5QrCode.isScanning) {
+html5QrCode.stop().catch(err => {});
+}
+}
+function switchPage(pageId) {
+stopScanner();
+document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+document.getElementById(pageId)?.classList.add('active');
+document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
+if (pageId === 'hunt-page') {
+updateUserDashboard();
+setTimeout(startScanner, 250);
+} else if (pageId === 'leaderboard-page') {
+updateLeaderboard();
+} else if (pageId === 'log-page') {
+updateScanHistory();
+} else if (pageId === 'map-page') {
+updateDuckMap();
+} else if (pageId === 'info-page') {
+    fetchAndRenderInfoData(); // Call the placeholder function
+} else {
+    // Ensure ribbon is still updated on non-info page clicks
+    periodicDataRefresh(); 
+}
+}
+function checkForInitialDuck() {
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('duckId')) {
+initialDuckId = urlParams.get('duckId');
+showNotification("Duck found! Sign in or register to claim it.");
+}
+}
+function showNotification(message) {
+const el = document.createElement('div');
+el.className = 'glass-card';
+el.style.position = 'fixed';
+el.style.top = '-150px';
+el.style.left = '50%';
+el.style.transform = 'translateX(-50%)';
+el.style.zIndex = '999';
+el.style.width = '80%';
+el.maxWidth = '350px';
+el.innerHTML = `<p>${message}</p>`;
+document.body.appendChild(el);
+setTimeout(() => el.style.top = '20px', 10);
+setTimeout(() => {
+el.style.top = '-150px';
+setTimeout(() => el.remove(), 500);
+}, 3000);
+}
 
 // --- CORE LOGIN LOGIC (RESTORED) ---
 async function showApp(user, initialPageId) {
