@@ -96,7 +96,8 @@ to { transform: translateX(var(--marquee-distance)); }
 #app-container {
 flex: 1;
 overflow-y: auto;
-height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height)); /* FIX: Use svh in height calculation */
+overflow-x: hidden; /* Main container keeps overall scrolling contained */
+height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height));
 padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height));
 }
 .app-page {
@@ -202,6 +203,40 @@ margin-top: 0;
 font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
+/* Map Specific Styles */
+#map-page {
+    padding: 0; /* Remove padding to allow map to use full width */
+    overflow-x: scroll; /* Enable scrolling for the zoomed map */
+}
+#map-wrapper {
+    /* Set a minimum width equivalent to 300% zoom of a standard mobile view */
+    width: 300vw; 
+    min-width: 1000px;
+    position: relative;
+    margin: 1rem 0; /* Remove auto margin */
+    /* Note: map-wrapper is no longer constrained by max-width: 600px */
+}
+#campus-map-img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    display: block;
+    user-select: none; 
+    -webkit-user-drag: none;
+}
+#map-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Canvas should not interfere with scrolling */
+}
+/* This is obsolete but kept if future debug needs it
+#map-info-popup { ... }
+*/
+/* End Map Specific Styles */
 #log-container, #leaderboard-container, #map-container, #info-container {
 flex: 1;
 overflow-y: auto;
@@ -456,10 +491,30 @@ pointer-events: none;
 </div>
 </div>
 </section>
+
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<h2 class="transparent-heading-box">Active Locations</h2>
-<div id="map-container"></div>
+<h2 class="transparent-heading-box">Map & Duck Status</h2>
+
+<!-- 1. INTERACTIVE MAP SECTION (300% Zoom enabled by width: 300vw) -->
+<div id="map-wrapper" style="width: 300vw; min-width: 1000px; position: relative; margin: 1rem 0;">
+    
+    <img id="campus-map-img" 
+         src="https://i.imgur.com/1aQCsPk.jpeg" 
+         alt="Interactive Campus Map"
+         style="width: 100%; height: auto; border-radius: 10px; display: block;">
+    
+    <!-- CANVAS OVERLAY FOR DRAWING STATUS TEXT -->
+    <canvas id="map-canvas"></canvas>
+    
+</div>
+<p style="margin-top: 1rem; color: var(--green); font-weight: bold; width: 100%; max-width: 450px;">Duck counts updated every minute. Scroll horizontally to view the whole map.</p>
+
+
+<div id="map-container">
+    <!-- Empty container (formerly location list) -->
+</div>
+
 </section>
 <section id="leaderboard-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
@@ -481,7 +536,7 @@ pointer-events: none;
 <nav id="tab-bar">
 <button class="tab-button" data-page="hunt-page">Scanner</button>
 <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
-<button class="tab-button" data-page="map-page">Locations</button>
+<button class="tab-button" data-page="map-page">Map</button>
 <button class="tab-button" data-page="info-page">Info</button>
 </nav>
 </div>
@@ -494,11 +549,26 @@ pointer-events: none;
 </div>
 <script>
 // --- CONFIGURATION ---
-// *** SCRIPT URL UPDATED TO THE LATEST DEPLOYMENT ***
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYGcZRFUIOJvsC3rmQ8dLgBlJ5NmCyMQsO_U-7Qrl7ba5ADD9-/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
+
+// *** YOUR 10 SPOT COORDINATES AND NAMES ***
+// The X/Y coordinates are the center points you clicked (e.g., 1298, 769 is the center of the first spot)
+const SPOT_LOCATIONS = [
+    { name: "YOUR_LOCATION_NAME_1", x: 1298, y: 769 },
+    { name: "YOUR_LOCATION_NAME_2", x: 1368, y: 1816 },
+    { name: "YOUR_LOCATION_NAME_3", x: 1518, y: 1567 },
+    { name: "YOUR_LOCATION_NAME_4", x: 2297, y: 1706 },
+    { name: "YOUR_LOCATION_NAME_5", x: 1767, y: 2414 },
+    { name: "YOUR_LOCATION_NAME_6", x: 2746, y: 2185 },
+    { name: "YOUR_LOCATION_NAME_7", x: 2936, y: 1278 },
+    { name: "YOUR_LOCATION_NAME_8", x: 3894, y: 2464 },
+    { name: "YOUR_LOCATION_NAME_9", x: 4773, y: 1148 },
+    { name: "YOUR_LOCATION_NAME_10", x: 5142, y: 849 }
+];
+
 // --- GLOBAL STATE & DOM REFERENCES ---
 let html5QrCode = null;
 let currentUser = null;
@@ -519,6 +589,115 @@ let scanHistoryCache = [];
 let scanQueue = [];
 let batchSendTimer = null;
 let dataRefreshTimer = null;
+let locationCountsCache = {}; // Cache for duck counts by location
+
+// --- MAP OVERLAY LOGIC ---
+const mapImageElement = document.getElementById('campus-map-img');
+const mapCanvas = document.getElementById('map-canvas');
+let mapContext = null;
+let mapImageNaturalWidth = 0;
+let mapImageNaturalHeight = 0;
+
+function drawMapOverlays() {
+    if (!mapContext) return;
+
+    // Clear the canvas
+    mapContext.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+
+    // Get current scale factor based on image display size vs natural size
+    const scaleX = mapCanvas.width / mapImageNaturalWidth;
+    const scaleY = mapCanvas.height / mapImageNaturalHeight;
+
+    SPOT_LOCATIONS.forEach(spot => {
+        const locationName = spot.name;
+        const locationData = locationCountsCache[locationName];
+        
+        let count = 0;
+        let isCleared = true;
+        
+        if (locationData && locationData.count !== undefined) {
+            count = locationData.count;
+            isCleared = count === 0;
+        }
+
+        // --- 1. Calculate screen coordinates ---
+        const screenX = spot.x * scaleX;
+        const screenY = spot.y * scaleY;
+
+        // --- 2. Draw Marker (Dot) ---
+        mapContext.fillStyle = isCleared ? '#ff4d4d' : 'var(--green)';
+        mapContext.beginPath();
+        mapContext.arc(screenX, screenY, 6, 0, Math.PI * 2);
+        mapContext.fill();
+
+        // --- 3. Draw Text Bubble/Count ---
+        const text = isCleared ? 'CLEARED' : `${count} LEFT`;
+        
+        // Define text bubble style
+        mapContext.font = 'bold 16px sans-serif';
+        mapContext.textAlign = 'center';
+        mapContext.textBaseline = 'middle';
+        
+        const textMetrics = mapContext.measureText(text);
+        const bubblePadding = 8;
+        const bubbleWidth = textMetrics.width + 2 * bubblePadding;
+        const bubbleHeight = 24;
+
+        // Draw background bubble (dark frosted rectangle)
+        mapContext.fillStyle = 'rgba(0, 0, 0, 0.9)'; 
+        mapContext.fillRect(
+            screenX - bubbleWidth / 2, 
+            screenY - bubbleHeight - 10, // Position above the dot
+            bubbleWidth, 
+            bubbleHeight
+        );
+
+        // Draw text
+        mapContext.fillStyle = 'white'; // White text as requested
+        mapContext.fillText(text, screenX, screenY - 10 - bubbleHeight / 2 + 2);
+        
+        // Optionally, draw location name (smaller)
+        mapContext.font = '10px sans-serif';
+        mapContext.fillStyle = 'white'; // White text as requested
+        mapContext.fillText(locationName, screenX, screenY - 5);
+    });
+}
+
+function initializeMapCanvas() {
+    mapContext = mapCanvas.getContext('2d');
+    
+    // Set natural size on image load
+    mapImageElement.onload = () => {
+        mapImageNaturalWidth = mapImageElement.naturalWidth;
+        mapImageNaturalHeight = mapImageElement.naturalHeight;
+        
+        // Initial setup
+        resizeMapCanvas();
+    };
+
+    // Use IntersectionObserver to handle map resize on screen changes
+    const resizeObserver = new ResizeObserver(() => {
+        resizeMapCanvas();
+        drawMapOverlays(); // Redraw on resize
+    });
+    resizeObserver.observe(mapImageElement);
+    
+    // Fallback/Initial size calculation
+    // This is vital for the canvas scaling calculation to start correctly
+    mapImageNaturalWidth = mapImageElement.naturalWidth || 5400;
+    mapImageNaturalHeight = mapImageElement.naturalHeight || 3600; 
+
+    // Add event listener to draw overlays whenever necessary
+    window.addEventListener('resize', drawMapOverlays);
+}
+
+function resizeMapCanvas() {
+    // Set canvas dimensions to match the displayed image dimensions (for correct scaling)
+    mapCanvas.width = mapImageElement.clientWidth;
+    mapCanvas.height = mapImageElement.clientHeight;
+}
+
+
 // --- FETCH HELPER (FOR CORS FIX) ---
 async function postToAction(action, payload = {}) {
 try {
@@ -706,7 +885,6 @@ scanQueue = [];
 const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
 if (batchResult.status === "success") {
 if (batchResult.updatedUser) {
-// FIX: Use the specific updated points/ducks from the backend response
 currentUser.points = batchResult.updatedUser.points;
 document.getElementById('player-points').textContent = currentUser.points;
 if (batchResult.updatedUser.duckCount !== undefined) {
@@ -727,8 +905,7 @@ scanQueue = [...scansToSend, ...scanQueue];
 }
 function periodicDataRefresh() {
 if (!currentUser) return;
-// FIX: Pass false to skip fetching user points, preventing the 'bounce' effect
-updateUserDashboard(false); 
+updateUserDashboard(false); 
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
 claimedDucksCache = new Set(result.claimed);
@@ -741,6 +918,10 @@ updateRibbon(result.ribbonText);
 updateRibbon('');
 }
 });
+// Also refresh map overlays since we are checking for duck counts on this page
+if (document.getElementById('map-page').classList.contains('active')) {
+    updateDuckMap();
+}
 }
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId) {
@@ -780,7 +961,7 @@ return;
 loginScreen.classList.remove('visible');
 appWrapper.classList.add('visible');
 if (batchSendTimer) clearInterval(batchSendTimer);
-batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+batchSendTimer = setInterval(periodicDataRefresh, BATCH_SEND_INTERVAL_MS);
 if (dataRefreshTimer) clearInterval(dataRefreshTimer);
 dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
 await updateUserDashboard();
@@ -789,6 +970,8 @@ if (initialDuckId) {
 onScanSuccess(initialDuckId);
 initialDuckId = null;
 }
+// Initialize map canvas properties on app load
+initializeMapCanvas();
 }
 async function signIn(studentId) {
 const signinBtn = document.getElementById('signin-btn');
@@ -944,35 +1127,31 @@ html += `<li class="list-item"><div><div class="primary-text">${scan.duckType ||
 });
 listElement.innerHTML = html;
 }
+
+// MAIN MAP FUNCTION (Now handles visual overlay drawing)
 async function updateDuckMap() {
-const container = document.getElementById('map-container');
-if (container.innerHTML === '') {
-container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
+    // 1. Fetch location counts from the backend
+    const result = await postToAction('getDuckCounts');
+
+    if (result.status === 'success') {
+        const { locations } = result;
+        
+        // Populate the global cache
+        locationCountsCache = {};
+        Object.keys(locations).forEach(name => {
+            locationCountsCache[name] = { count: locations[name] };
+        });
+        
+        // 2. Redraw the canvas overlay with the new counts
+        drawMapOverlays();
+
+    } else {
+        // Log error if data fetch fails, but still attempt to draw the map structure
+        console.error("Failed to load map location counts:", result.message);
+        drawMapOverlays();
+    }
 }
-const result = await postToAction('getDuckCounts');
-if (result.status === 'success') {
-const { locations, totalPercentage } = result;
-if (!locations || Object.keys(locations).length === 0) {
-container.innerHTML = '<h4>No active locations found.</h4>';
-return;
-}
-const locationArray = Object.entries(locations).map(([name, count]) => ({ name, count, isVirtual: name.toLowerCase().includes('virtual') }));
-locationArray.sort((a, b) => {
-if (a.isVirtual !== b.isVirtual) return a.isVirtual ? 1 : -1;
-if (b.count !== a.count) return b.count - a.count;
-return a.name.localeCompare(b.name);
-});
-let html = '';
-locationArray.forEach(location => {
-const plural = location.count === 1 ? 'Code Remains' : 'Codes Remain';
-const statusText = location.count === 0 ? `<span style="color: grey;">CLEARED</span>` : `<span>${location.count} ${plural}</span>`;
-html += `<div class="location-card"><div class="location-details"><h4>${location.name}</h4>${statusText}</div></div>`;
-});
-container.innerHTML = `<p class="transparent-heading-box" style="margin: 0 auto 1.5rem auto; font-size: 1.1rem; padding: 0.5rem 1.5rem; width: fit-content;">Ducks Collected: ${totalPercentage}%</p>${html}`;
-} else {
-container.innerHTML = `<h4>Error loading location data.</h4><small>${result.message || ''}</small>`;
-}
-}
+
 // --- INFO PAGE PLACEHOLDER FUNCTIONS (RESTORED) ---
 function showInfoModal(title, contentArray) {
 document.getElementById('modal-title').textContent = title || "Information Detail";
@@ -1055,6 +1234,10 @@ el.style.top = '-150px';
 setTimeout(() => el.remove(), 500);
 }, 3000);
 }
+
+// Initialize map canvas properties on app load
+window.addEventListener('load', initializeMapCanvas);
+
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
 startRandomFadingDuckFeet();
