@@ -120,7 +120,7 @@ display: block;
 flex-shrink: 0;
 }
 #hunt-page { justify-content: flex-start; padding-top: 0; }
-#info-page, #map-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
+#info-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
 #hunt-content-wrapper {
 position: relative;
 width: 100%;
@@ -208,20 +208,20 @@ font-weight: bold;
     /* Allow scrolling within this page section */
     overflow-y: auto;
     overflow-x: auto; 
-    padding: 0;
+    padding: 0; /* FIX 2: Remove side padding for edge-to-edge map */
 }
 #map-wrapper {
     /* Removed max-width restriction; map width now drives container width */
     width: fit-content; 
     position: relative;
-    margin: 1rem 0;
+    margin: 0; /* FIX 3: Remove top/bottom margins */
 }
 #campus-map-img {
     /* Set image to its maximum width for detail */
     width: 300vw; 
     min-width: 600px; /* Ensure a base size for detail */
     height: auto;
-    border-radius: 10px;
+    border-radius: 0; /* Edge to edge corners */
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     display: block;
     user-select: none; 
@@ -235,9 +235,6 @@ font-weight: bold;
     height: 100%;
     pointer-events: none; /* Canvas should not interfere with scrolling */
 }
-/* This is obsolete but kept if future debug needs it
-#map-info-popup { ... }
-*/
 /* End Map Specific Styles */
 #log-container, #leaderboard-container, #map-container, #info-container {
 flex: 1;
@@ -495,22 +492,22 @@ pointer-events: none;
 </section>
 
 <section id="map-page" class="app-page">
-<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<h2 class="transparent-heading-box">Map & Duck Status</h2>
+<!-- REMOVED: <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header"> -->
+<!-- REMOVED: <h2 class="transparent-heading-box">Map & Duck Status</h2> -->
 
 <!-- 1. INTERACTIVE MAP SECTION (Scrollable container) -->
-<div id="map-wrapper" style="width: 100%; min-width: 1000px; position: relative; margin: 1rem 0;">
+<div id="map-wrapper" style="width: 100%; min-width: 1000px; position: relative; margin: 0;">
     
     <img id="campus-map-img" 
          src="https://i.imgur.com/1aQCsPk.jpeg" 
          alt="Interactive Campus Map"
-         style="width: 100%; height: auto; border-radius: 10px; display: block;">
+         style="width: 100%; height: auto; border-radius: 0; display: block;">
     
     <!-- CANVAS OVERLAY FOR DRAWING STATUS TEXT -->
     <canvas id="map-canvas"></canvas>
     
 </div>
-<p style="margin-top: 1rem; color: var(--green); font-weight: bold; width: 100%; max-width: 450px;">Duck counts updated every minute. Scroll horizontally to view the whole map.</p>
+<!-- REMOVED: <p> instructional text </p> -->
 
 
 <div id="map-container">
