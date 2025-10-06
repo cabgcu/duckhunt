@@ -241,8 +241,8 @@ font-weight: bold;
 }
 #campus-map-img {
     /* Set image width to be larger than container for zoomed effect, allowing scroll */
-    width: 110%; /* Adjusted for a contained zoom */
-    min-width: 400px; 
+    width: 300vw; 
+    min-width: 600px; 
     height: auto;
     border-radius: 0; 
     box-shadow: none; 
@@ -911,8 +911,12 @@ scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
 claimedDucksCache.add(lookupId);
 const points = duckInfo.points || 0;
 
-// *** REMOVED: TEMPORARY LOCAL POINT UPDATE ***
-// The points counter will now only update after successful server confirmation.
+// *** FIX 2: Reintroduce local point update for immediate visual feedback ***
+currentUser.points += points;
+const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
+document.getElementById('player-ducks').textContent = currentDucks + 1;
+document.getElementById('player-points').textContent = currentUser.points; 
+// **************************************************************************
 
 const isGoldenDuck = duckInfo.type === 'Golden Duck';
 displaySuccessPopup(`+${points}`, isGoldenDuck);
@@ -939,18 +943,18 @@ const batchResult = await postToAction('batchScanDucks', { scans: scansToSend })
 
 if (batchResult.status === "success") {
 if (batchResult.updatedUser) {
-// *** FIX: FINAL CONFIRMED POINT UPDATE ***
+// The server returns the final source of truth, which should match the local update now.
 currentUser.points = batchResult.updatedUser.points;
 document.getElementById('player-points').textContent = currentUser.points;
 if (batchResult.updatedUser.duckCount !== undefined) {
 document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
 }
-// ***************************************
 }
 if (batchResult.results) {
 batchResult.results.forEach(result => {
 if (result.status !== "success") {
 displayRevertPopup(result.message || "A duck was claimed just before you!");
+// If a server scan failed, the local counter MUST be fixed on the next periodic refresh.
 }
 });
 }
