@@ -235,14 +235,13 @@ font-weight: bold;
     position: relative;
 }
 #map-wrapper {
-    /* FIX 4: Change img width to 110% of map-card-frame width for contained zoom */
-    width: 300vw; /* This size drives the internal scroll width */
+    width: fit-content; 
     position: relative;
     margin: 0; 
 }
 #campus-map-img {
-    /* Set image width to maintain zoom level */
-    width: 100%; /* Image takes up full width of map-wrapper (300vw) */
+    /* Set image width to be larger than container for zoomed effect, allowing scroll */
+    width: 300vw; 
     min-width: 600px; 
     height: auto;
     border-radius: 0; 
@@ -502,7 +501,6 @@ pointer-events: none;
 <div id="hunt-content-wrapper">
 <h2 class="transparent-heading-box" id="welcome-message"></h2>
 <div id="qr-reader-container" class="glass-card">
-<div id="scanner-overlay-stats">
 <div class="stat"><h4>POINTS</h4><p id="player-points">0</p></div>
 <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
 </div>
