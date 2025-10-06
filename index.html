@@ -15,7 +15,8 @@
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
---frosted-black: rgba(0, 0, 0, 0.8); 
+--frosted-black: rgba(0, 0, 0, 0.85); /* Darker black for the frost effect */
+--gold: #FFD700;
 }
 body {
 margin: 0;
@@ -43,8 +44,9 @@ flex-direction: column;
 padding-top: var(--ribbon-height); 
 transition: padding-top 0.3s ease;
 }
+/* This class is critical for shifting content down when the ribbon is visible */
 #app-wrapper.ribbon-active {
-    padding-top: var(--ribbon-height); 
+    padding-top: var(--ribbon-height);
 }
 
 /* RIBBON STYLES */
@@ -57,29 +59,35 @@ transition: padding-top 0.3s ease;
     background-color: var(--frosted-black); 
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
-    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
     font-size: 1rem;
     display: flex;
     align-items: center;
-    overflow: hidden; 
-    z-index: 1000; 
+    overflow: hidden;
+    z-index: 1000;
     box-sizing: border-box;
     transition: transform 0.3s ease-out;
-    transform: translateY(-100%); 
+    transform: translateY(-100%); /* Start hidden */
 }
 #ribbon-message.visible {
-    transform: translateY(0); 
+    transform: translateY(0); /* Slide down when visible */
 }
 #ribbon-content {
     white-space: nowrap;
-    padding-left: 100%; 
     display: inline-block;
     will-change: transform;
+    color: var(--gold); /* Default color for the emoji */
+    height: 100%; 
+    line-height: var(--ribbon-height); 
+}
+#ribbon-content span {
+    color: white; /* Ensure the text content remains white */
+    font-weight: normal;
+    padding-left: 8px; /* Space between icon and text */
 }
 
-/* New Marquee Animation (Duration/Distance set by JS) */
+/* Marquee Animation: Scrolls Right to Left (content moves negative X) */
 .marquee-start {
     animation-name: marquee-scroll;
     animation-timing-function: linear;
@@ -87,7 +95,7 @@ transition: padding-top 0.3s ease;
 }
 @keyframes marquee-scroll {
     from { transform: translateX(0); }
-    to { transform: translateX(var(--marquee-distance)); }
+    to { transform: translateX(var(--marquee-distance)); } 
 }
 
 #app-container {
@@ -117,6 +125,9 @@ flex-shrink: 0;
 }
 
 #hunt-page { justify-content: flex-start; padding-top: 0; }
+/* INFO PAGE and other tabs start correctly below header image */
+#info-page, #map-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
+
 #hunt-content-wrapper {
 position: relative;
 width: 100%;
@@ -142,6 +153,7 @@ flex-direction: column;
 align-items: center;
 gap: 0.75rem;
 margin-top: 0.5rem;
+flex-shrink: 0; 
 }
 
 #scan-history-link {
@@ -154,9 +166,7 @@ font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 
-#log-page, #leaderboard-page, #info-page, #map-page { justify-content: flex-start; }
-
-#log-container, #leaderboard-container, #info-container, #map-container {
+#log-container, #leaderboard-container, #map-container, #info-container {
 flex: 1;
 overflow-y: visible;
 min-height: 0;
@@ -179,120 +189,65 @@ overflow-y: auto;
 }
 
 #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
+
+/* INFO CONTAINER STYLES (Minimal for now) */
 #info-container {
-    text-align: center !important;
+    text-align: center;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    width: 100%; 
-    max-width: 450px;
-    margin: 0 auto; 
-}
-
-/* Style for the info cards */
-.info-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1rem;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    
-    text-align: center;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem; 
-    
-    cursor: pointer;
-    font-size: 1.1rem;
-    font-weight: bold;
-    transition: background 0.2s ease;
-}
-.info-card-text-wrapper {
-    flex-grow: 1;
-    text-align: center; 
-    margin-right: -0.5rem; 
-}
-.info-card:hover {
-    background: rgba(96, 163, 77, 0.1);
-}
-.info-card-spinner {
-    justify-content: center;
-    height: 40px;
-}
-
-/* MODAL STYLES (for displaying the content) */
-#info-modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    z-index: 200;
-    display: none; 
-    align-items: center;
-    justify-content: center;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+/* MODAL STYLES (RESTORED) */
+#info-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
 }
 #info-modal {
-    position: relative;
-    width: 90%;
-    max-width: 400px;
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    max-height: 80vh;
-    overflow-y: auto;
-    text-align: left;
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    background: var(--frosted-black); 
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: left;
 }
 #modal-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 2rem;
-    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
 }
 #modal-title {
-    margin-top: 0;
-    border-bottom: 2px solid var(--green);
-    padding-bottom: 0.5rem;
+    margin-top: 0;
+    border-bottom: 2px solid var(--green);
+    padding-bottom: 0.5rem;
 }
-/* New style for individual posts within the modal */
-.modal-post {
-    padding: 10px 0 5px 0; 
-    margin: 0;
-    line-height: 1.5;
-    white-space: pre-wrap; 
+#modal-content {
+    text-align: left; 
+    padding: 0 0.5rem; 
 }
-.modal-timestamp {
-    display: block;
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 5px; 
-    margin-bottom: 5px; 
-}
-.modal-post-content {
-    font-size: 1rem;
-    color: white;
-    font-weight: normal;
-    margin-top: 0; 
-}
-.modal-post-separator {
-    border: 0;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.15); 
-    margin: 10px 0;
-}
-
 
 .location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
 .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
@@ -311,12 +266,29 @@ border-radius: 8px;
 border: 1px solid var(--border-color);
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
+
+/* FROST BLACK LEADERBOARD DESIGN */
+#leaderboard-list .list-item {
+    background: var(--frosted-black); 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 0 10px rgba(96, 163, 77, 0.15);
+}
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
-.list-item .rank-text { font-weight: bold; font-size: 1rem; margin-left: 0.5rem; white-space: nowrap; }
+.list-item .rank-text { 
+    font-weight: bold; 
+    font-size: 1.2rem; 
+    margin-left: 0.5rem; 
+    white-space: nowrap; 
+}
+#leaderboard-list .list-item span { 
+    font-weight: bold; 
+    font-size: 1.3rem;
+    color: var(--green);
+}
+
 #log-list .list-item > div:first-child { display: flex; flex-direction: column; align-items: flex-start; }
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
-.list-item span { font-weight: bold; font-size: 1.1rem; }
 .button-group { display: flex; gap: 0.5rem; }
 .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
 .primary-btn { background-color: var(--green); color: white; }
@@ -367,7 +339,7 @@ top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-z-index: 0; 
+z-index: 0;
 pointer-events: none;
 overflow: hidden;
 }
@@ -392,7 +364,7 @@ pointer-events: none;
 </head>
 <body>
 <div id="ribbon-message">
-    <div id="ribbon-content"></div> 
+    <div id="ribbon-content"></div>
 </div>
 <div id="lava-container"></div>
 <div id="duck-feet-background-container"></div>
@@ -467,8 +439,7 @@ pointer-events: none;
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
 <div id="info-container">
-    <div class="spinner info-card-spinner"></div>
-</div>
+    </div>
 </section>
 </main>
 <nav id="tab-bar">
@@ -486,6 +457,7 @@ pointer-events: none;
         <div id="modal-content"></div>
     </div>
 </div>
+
 <script>
 // --- CONFIGURATION ---
 // *** YOUR DEPLOYMENT URL IS INSERTED HERE ***
@@ -498,13 +470,15 @@ const DATA_REFRESH_INTERVAL_MS = 60000;
 let html5QrCode = null;
 let currentUser = null;
 let initialDuckId = null;
-let infoDataCache = []; 
-let infoDataFetchTime = null; // Timestamp of last info data fetch
+/* Info Page variables restored as placeholders */
+let infoDataCache = [];
+let infoDataFetchTime = null; 
 const loginScreen = document.getElementById('login-screen');
 const appWrapper = document.getElementById('app-wrapper');
 const loginView = document.getElementById('login-view');
 const registrationView = document.getElementById('registration-view');
-const ribbonMessage = document.getElementById('ribbon-message'); // NEW RIBBON REF
+const ribbonMessage = document.getElementById('ribbon-message');
+const infoSpinner = null; /* Placeholder for removed spinner element */
 
 // --- CACHING & STATE ---
 let duckDataCache = {};
@@ -532,56 +506,65 @@ return { status: "error", message: "Network error or script failure." };
 }
 }
 
-// --- RIBBON DISPLAY FUNCTION ---
+// --- RIBBON DISPLAY FUNCTION (FIXED) ---
 function updateRibbon(ribbonText) {
     const ribbonContent = document.getElementById('ribbon-content');
-    const scrollSpeed = 50; // pixels per second (Slower, more readable speed)
+    const scrollSpeed = 25; // Slower speed for teleprompter effect (25 px/sec)
+
+    // Clear old animation style
+    ribbonContent.style.animation = 'none';
+    ribbonContent.style.transform = 'translateX(0)';
+    ribbonContent.style.paddingLeft = '100%'; // Reset to start position
 
     if (ribbonText && ribbonText.trim() !== '') {
-        // Set the content with spacing for loop visualization
-        ribbonContent.textContent = `📢 ${ribbonText} \u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`; 
+        // Set the content with the gold announcement emoji and wrap the text
+        ribbonContent.innerHTML = `📢<span>${ribbonText}</span>`;
         ribbonMessage.classList.add('visible');
+        appWrapper.classList.add('ribbon-active'); // Adjust app content padding
 
-        // Reset animation before calculation
-        ribbonContent.style.animation = 'none';
-        ribbonContent.style.transform = 'translateX(0)';
-        ribbonContent.style.paddingLeft = '100%'; // Start off screen
-        
         // Use a slight timeout to force DOM redraw before measuring width
         setTimeout(() => {
-            const contentWidth = ribbonContent.offsetWidth;
+            // Use scrollWidth to get the full, unclipped width of the content
+            const contentWidth = ribbonContent.scrollWidth;
             const viewWidth = ribbonMessage.clientWidth;
             
             if (contentWidth > viewWidth) {
-                // Distance to scroll (content width + viewport width to complete one cycle)
-                const totalDistance = contentWidth + viewWidth; 
+                // Distance to scroll is content width to move content fully off-screen to the left
+                const totalDistance = contentWidth;
                 const duration = totalDistance / scrollSpeed;
                 
                 // Set CSS variables and restart animation
-                ribbonContent.style.setProperty('--marquee-distance', `-${contentWidth}px`);
+                ribbonContent.style.setProperty('--marquee-distance', `-${totalDistance}px`);
                 ribbonContent.style.animation = `marquee-scroll ${duration}s linear infinite`;
-                ribribbonContent.style.paddingLeft = `${viewWidth}px`; 
+                ribbonContent.style.paddingLeft = `${viewWidth}px`; // Starts content off-screen right
+                ribbonContent.style.textAlign = 'left';
+
             } else {
                 // If text fits, center it (remove animation)
-                ribbonContent.style.paddingLeft = `${(viewWidth - contentWidth) / 2}px`;
+                ribbonContent.style.paddingLeft = '0'; // Clear initial 100% padding
+                ribbonContent.style.textAlign = 'center';
+                // Calculate padding to center the content
+                const centeredPadding = (viewWidth - ribbonContent.offsetWidth) / 2;
+                ribbonContent.style.paddingLeft = `${Math.max(0, centeredPadding)}px`;
                 ribbonContent.style.transform = 'translateX(0)';
+                ribbonContent.style.animation = 'none';
             }
         }, 10);
         
-
     } else {
         // Hide ribbon
-        ribbonContent.textContent = '';
+        ribbonContent.innerHTML = '';
         ribbonMessage.classList.remove('visible');
+        appWrapper.classList.remove('ribbon-active'); // Restore app content padding
         ribbonContent.style.animation = 'none';
     }
 }
 
-// --- ANIMATION FUNCTIONS (VIBRATION UTILITY REMOVED) ---
+
+// --- ANIMATION FUNCTIONS ---
 
 /**
 * Creates and launches persistent duck feet animation in the background.
-* This animation fades in and out at random positions.
 */
 function startRandomFadingDuckFeet() {
 const container = document.getElementById('duck-feet-background-container');
@@ -632,7 +615,7 @@ createFadingFeet();
 function triggerDuckAnimation() {
 // Increased duck count for more flair (3-7 ducks now)
 const duckCount = Math.floor(Math.random() * 5) + 3;
-for (let i = 0; i < duckCount; i++) {
+for (let i = 0; i < count; i++) {
 setTimeout(() => {
 const duck = document.createElement('div');
 duck.textContent = '🦆';
@@ -766,8 +749,14 @@ if (result.status === 'success' && Array.isArray(result.claimed)) {
 claimedDucksCache = new Set(result.claimed);
 }
 });
-// Refresh the ribbon message on periodic refresh
-fetchAndRenderInfoData(true); 
+// The ribbon update still happens here, but without the info page dependencies
+postToAction('getInfoData').then(result => {
+    if (result.status === 'success') {
+        updateRibbon(result.ribbonText);
+    } else {
+        updateRibbon('');
+    }
+});
 }
 
 // --- APP INITIALIZATION & LOGIN ---
@@ -775,10 +764,11 @@ async function showApp(user, initialPageId) {
 currentUser = user;
 sessionStorage.setItem('currentUserStudentId', user.studentId);
 try {
-const [duckResult, historyResult, claimedDucksResult] = await Promise.all([
+const [duckResult, historyResult, claimedDucksResult, ribbonResult] = await Promise.all([
 postToAction('getDuckData'),
 postToAction('getScanHistory', { studentId: currentUser.studentId }),
 postToAction('getClaimedDucks'),
+postToAction('getInfoData') // Fetch ribbon data on startup
 ]);
 
 if (duckResult.status === "success") {
@@ -794,6 +784,10 @@ scanHistoryCache = historyResult;
 document.getElementById('player-ducks').textContent = historyResult.length;
 const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
 localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
+}
+
+if (ribbonResult.status === 'success') {
+    updateRibbon(ribbonResult.ribbonText);
 }
 
 } catch (e) {
@@ -812,9 +806,6 @@ batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
 if (dataRefreshTimer) clearInterval(dataRefreshTimer);
 dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
 await updateUserDashboard();
-
-// Fetch info data (including ribbon) once before switching page
-await fetchAndRenderInfoData(true);
 
 switchPage(initialPageId);
 if (initialDuckId) {
@@ -866,7 +857,7 @@ const result = await postToAction('registerUser', payload);
 if (result.status === "success") {
 const userResult = await postToAction('getUser', { studentId: payload.studentId });
 if (userResult.status === "success") {
-showApp(userResult.user, 'info-page');
+showApp(userResult.user, 'hunt-page');
 } else {
 throw new Error("Auto sign-in failed.");
 }
@@ -1022,161 +1013,37 @@ container.innerHTML = `<h4>Error loading location data.</h4><small>${result.mess
 }
 }
 
+
+// --- INFO PAGE PLACEHOLDER FUNCTIONS (RESTORED) ---
+
 function showInfoModal(title, contentArray) {
-    document.getElementById('modal-title').textContent = title;
-    const contentDiv = document.getElementById('modal-content');
-    contentDiv.innerHTML = '';
-    
-    // Format the fetch time for display
-    const date = infoDataFetchTime ? new Date(infoDataFetchTime) : new Date();
-    const formattedTime = date.toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-    });
-    const timeStampText = `Posted: ${formattedTime}`;
-
-    // Iterate through each post/content item
-    contentArray.forEach((item, index) => {
-        const postDiv = document.createElement('div');
-        
-        // 1. Add the actual post content
-        const postContentDiv = document.createElement('div');
-        postContentDiv.className = 'modal-post-content';
-        postContentDiv.innerHTML = item.replace(/\n/g, '<br>'); 
-        postDiv.appendChild(postContentDiv);
-
-        // 2. Add the timestamp (underneath the content)
-        const timeStampSpan = document.createElement('span');
-        timeStampSpan.className = 'modal-timestamp';
-        timeStampSpan.textContent = timeStampText;
-        postDiv.appendChild(timeStampSpan);
-
-        contentDiv.appendChild(postDiv);
-
-        // Add separator after every post except the last one
-        if (index < contentArray.length - 1) {
-            const separator = document.createElement('hr');
-            separator.className = 'modal-post-separator';
-            contentDiv.appendChild(separator);
-        }
-    });
+    document.getElementById('modal-title').textContent = title || "Information Detail";
+    document.getElementById('modal-content').innerHTML = "<p style='text-align:center;'>Content loading not yet implemented. Use this modal for announcements.</p>";
 
     document.getElementById('info-modal-backdrop').style.display = 'flex';
-    document.body.style.overflow = 'hidden'; 
+    document.body.style.overflow = 'hidden';
 }
 
 function updateInfoPage() {
     const container = document.getElementById('info-container');
-    
-    // --- FALLBACK LOGIC ---
-    if (infoDataCache.length === 0) {
-        // Use hardcoded headers as a last resort fallback if the fetch fails
-        const fallbackTitles = ["Welcome", "Rules", "Announcements", "Contact Us", "Terms of Use"];
-        container.innerHTML = '<h4>Loading data failed. Showing default items.</h4>';
-        
-        fallbackTitles.forEach(title => {
-            const card = document.createElement('div');
-            card.className = 'info-card';
-            
-            const textWrapper = document.createElement('div');
-            textWrapper.className = 'info-card-text-wrapper';
-            textWrapper.textContent = title;
-
-            const arrow = document.createElement('span');
-            arrow.innerHTML = '&#10095;'; 
-            arrow.style.flexShrink = '0'; 
-
-            card.appendChild(textWrapper);
-            card.appendChild(arrow);
-
-
-            card.addEventListener('click', () => {
-                showInfoModal(title, ["(Content not loaded. Check script URL/deployment.)"]);
-            });
-
-            container.appendChild(card);
-        });
-        
-        // Try fetching data again if cache is empty
-        fetchAndRenderInfoData();
-        return;
-    }
-    // --- END FALLBACK LOGIC ---
-
-    container.innerHTML = ''; // Clear spinner/old content
-
-    infoDataCache.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'info-card';
-        
-        // Wrapper for the text content to ensure it is centered
-        const textWrapper = document.createElement('div');
-        textWrapper.className = 'info-card-text-wrapper';
-        textWrapper.textContent = item.title;
-
-        const arrow = document.createElement('span');
-        arrow.innerHTML = '&#10095;'; 
-        arrow.style.flexShrink = '0'; 
-
-        card.appendChild(textWrapper);
-        card.appendChild(arrow);
-
-
-        card.addEventListener('click', () => {
-            showInfoModal(item.title, item.content);
-        });
-
-        container.appendChild(card);
-    });
+    // Placeholder content for the empty info container
+    container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>Information content will be built here.</h4>";
 }
 
-// 4. Info Page Data Fetch/Render (Includes Ribbon)
-async function fetchAndRenderInfoData(silent = false) {
-    const container = document.getElementById('info-container');
-    const spinner = document.getElementById('info-spinner');
-    
+function fetchAndRenderInfoData(silent = false) {
     if (!silent) {
-        // Show spinner only if we are actively viewing the info page
-        container.innerHTML = '';
-        container.appendChild(spinner);
-        spinner.classList.remove('hidden');
+        // Just render the placeholder content
+        updateInfoPage(); 
     }
-
-    try {
-        // Force new fetch every time to update ribbon and card content
-        const result = await postToAction('getInfoData');
-        
+    
+    // Continue fetching ribbon data silently
+    postToAction('getInfoData').then(result => {
         if (result.status === 'success') {
-            infoDataCache = result.infoItems || [];
-            infoDataFetchTime = new Date().toISOString(); // Capture the exact moment of successful fetch
-            
-            // RIBBON UPDATE (Uses the new ribbon text from the result)
             updateRibbon(result.ribbonText);
-
-            if (!silent) {
-                updateInfoPage(); // Render cards only if actively viewing the page
-            }
         } else {
-            console.error("Failed to load info data:", result.message);
             updateRibbon('');
-            if (!silent) {
-                // If main fetch fails, rely on the failsafe in updateInfoPage
-                updateInfoPage(); 
-            }
         }
-
-    } catch (error) {
-        console.error("Network error during info fetch:", error);
-        updateRibbon('');
-        if (!silent) {
-             // If network fails, trigger the failsafe to render headers
-             updateInfoPage(); 
-        }
-    } finally {
-        if (!silent) {
-            spinner.classList.add('hidden');
-        }
-    }
+    });
 }
 
 
@@ -1209,10 +1076,10 @@ updateScanHistory();
 } else if (pageId === 'map-page') {
 updateDuckMap();
 } else if (pageId === 'info-page') {
-    fetchAndRenderInfoData(); // Fetches/refreshes every time the tab is clicked
+    fetchAndRenderInfoData(); // Call the placeholder function
 } else {
-    // Ensure ribbon is still updated on non-info page clicks
-    fetchAndRenderInfoData(true);
+    // Ensure ribbon is still updated on non-info page clicks
+    periodicDataRefresh(); 
 }
 }
 function checkForInitialDuck() {
@@ -1277,19 +1144,21 @@ e.preventDefault();
 switchPage(e.target.dataset.page);
 });
 
-// Close modal event listeners
-document.getElementById('modal-close-btn').addEventListener('click', () => {
-    document.getElementById('info-modal-backdrop').style.display = 'none';
-    document.body.style.overflow = 'auto'; // Restore background scrolling
-});
-document.getElementById('info-modal-backdrop').addEventListener('click', (e) => {
-    // Only close if the click is on the backdrop, not the modal content itself
-    if (e.target.id === 'info-modal-backdrop') {
-        document.getElementById('info-modal-backdrop').style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-});
-
+/* MODAL CLOSE LISTENERS (Restored) */
+const modalBackdrop = document.getElementById('info-modal-backdrop');
+if (modalBackdrop) {
+    document.getElementById('modal-close-btn').addEventListener('click', () => {
+        modalBackdrop.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Restore background scrolling
+    });
+    modalBackdrop.addEventListener('click', (e) => {
+        // Only close if the click is on the backdrop, not the modal content itself
+        if (e.target.id === 'info-modal-backdrop') {
+            modalBackdrop.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+}
 });
 </script>
 </body>
