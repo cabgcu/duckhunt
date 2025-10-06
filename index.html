@@ -61,7 +61,8 @@ transition: padding-top 0.3s ease;
     -webkit-backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
-    font-size: 1rem;
+    /* FIX: Reduced font size */
+    font-size: 0.9rem; 
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -79,6 +80,7 @@ transition: padding-top 0.3s ease;
     will-change: transform;
     color: var(--gold); /* Default color for the emoji */
     height: 100%; 
+    /* FIX: Adjusted line-height to match ribbon height for perfect vertical centering */
     line-height: var(--ribbon-height); 
 }
 #ribbon-content span {
@@ -404,7 +406,7 @@ pointer-events: none;
 @keyframes fade-in-out {
 0% { opacity: 0; transform: scale(0.8); }
 20% { opacity: 0.6; transform: scale(1); }
-80% { opacity: 0.6; transform: scale(1); }
+80% { opacity: 0.6; transform: transform(1); }
 100% { opacity: 0; transform: scale(1.2); }
 }
 </style>
@@ -685,7 +687,8 @@ function triggerGoldenDuckAnimation() {
     flash.style.animation = 'gold-flash 0.8s ease-out forwards';
     
     // EMOJIS: Guaranteed Gold/Reward Emojis
-    const emojis = ['🦆', '🥇', '💰', '✨']; // Removed 🪙 and 🔸
+    // Replaced 🪙 with 🥇 (Gold Medal) for better visual consistency
+    const emojis = ['🦆', '🥇', '💰', '✨']; 
     const count = 10; 
     
     for (let i = 0; i < count; i++) {
