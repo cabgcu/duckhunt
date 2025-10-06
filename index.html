@@ -61,7 +61,7 @@ transition: padding-top 0.3s ease;
     -webkit-backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
-    /* FIX: Final reduced font size to ensure containment */
+    /* FIX: Final reduced font size for containment */
     font-size: 0.65rem; 
     display: flex;
     align-items: center;
@@ -76,12 +76,12 @@ transition: padding-top 0.3s ease;
 }
 #ribbon-content {
     white-space: nowrap;
-    display: inline-block;
+    display: flex; /* USE FLEXBOX */
+    align-items: center; /* VERTICALLY CENTERED CONTENT */
     will-change: transform;
     color: var(--gold); /* Default color for the emoji */
     height: 100%; 
-    /* FIX: Adjusted line-height to match ribbon height for perfect vertical centering */
-    line-height: var(--ribbon-height); 
+    /* REMOVED: line-height: var(--ribbon-height); */
 }
 #ribbon-content span {
     color: white; /* Ensure the text content remains white */
