@@ -15,14 +15,15 @@
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
---frosted-black: rgba(0, 0, 0, 0.85); /* Darker black for the frost effect */
+--frosted-black: rgba(0, 0, 0, 0.85);
 --gold: #FFD700;
 }
 body {
 margin: 0;
 background-color: #000;
 overflow-x: hidden;
-min-height: 100vh;
+min-height: 100vh; /* Fallback */
+min-height: 100svh; /* FIX: Smallest Viewport Height for mobile */
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 color: white;
 text-align: center;
@@ -41,70 +42,62 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-padding-top: var(--ribbon-height); 
+padding-top: var(--ribbon-height);
 transition: padding-top 0.3s ease;
 }
-/* This class is critical for shifting content down when the ribbon is visible */
 #app-wrapper.ribbon-active {
-    padding-top: var(--ribbon-height);
+padding-top: var(--ribbon-height);
 }
-
-/* RIBBON STYLES */
 #ribbon-message {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--ribbon-height);
-    background-color: var(--frosted-black); 
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    font-weight: bold;
-    /* FINAL FONT SIZE: 0.85rem is a good, readable compromise */
-    font-size: 0.85rem; 
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    z-index: 1000;
-    box-sizing: border-box;
-    transition: transform 0.3s ease-out;
-    transform: translateY(-100%); /* Start hidden */
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: var(--ribbon-height);
+background-color: var(--frosted-black);
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+font-weight: bold;
+font-size: 0.85rem;
+display: flex;
+align-items: center;
+overflow: hidden;
+z-index: 1000;
+box-sizing: border-box;
+transition: transform 0.3s ease-out;
+transform: translateY(-100%);
 }
 #ribbon-message.visible {
-    transform: translateY(0); /* Slide down when visible */
+transform: translateY(0);
 }
 #ribbon-content {
-    white-space: nowrap;
-    display: flex; /* USE FLEXBOX */
-    align-items: center; /* VERTICALLY CENTERED CONTENT */
-    will-change: transform;
-    color: var(--gold); /* Default color for the emoji */
-    height: 100%; 
+white-space: nowrap;
+display: flex;
+align-items: center;
+will-change: transform;
+color: var(--gold);
+height: 100%;
 }
 #ribbon-content span {
-    color: white; /* Ensure the text content remains white */
-    font-weight: normal;
-    padding-left: 8px; /* Space between icon and text */
+color: white;
+font-weight: normal;
+padding-left: 8px;
 }
-
-/* Marquee Animation: Scrolls Right to Left (content moves negative X) */
 .marquee-start {
-    animation-name: marquee-scroll;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
+animation-name: marquee-scroll;
+animation-timing-function: linear;
+animation-iteration-count: infinite;
 }
 @keyframes marquee-scroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(var(--marquee-distance)); } 
+from { transform: translateX(0); }
+to { transform: translateX(var(--marquee-distance)); }
 }
-
 #app-container {
 flex: 1;
 overflow-y: auto;
-height: calc(100vh - var(--tab-bar-height) - var(--ribbon-height)); 
-/* FIX: Adding tab bar height to bottom padding to lift content above the fixed bar */
-padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height)); 
+height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height)); /* FIX: Use svh in height calculation */
+padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height));
 }
 .app-page {
 width: 100%;
@@ -119,19 +112,14 @@ align-items: center;
 .app-page.active { display: flex; }
 .app-page h2 { margin: 0; flex-shrink: 0; text-align: center; }
 .app-page .header-image-top {
-/* FIX: Making image smaller to save space */
-width: 70%; 
+width: 70%;
 max-width: 250px;
-/* FIX: Reduced margin to pull the image up closer to the ribbon area */
-margin: 0.5rem auto 0.5rem auto; 
+margin: 0.5rem auto 0.5rem auto;
 display: block;
 flex-shrink: 0;
 }
-
 #hunt-page { justify-content: flex-start; padding-top: 0; }
-/* INFO PAGE and other tabs start correctly below header image */
 #info-page, #map-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
-
 #hunt-content-wrapper {
 position: relative;
 width: 100%;
@@ -140,75 +128,71 @@ display: flex;
 flex-direction: column;
 gap: 0.75rem;
 align-items: center;
-/* FIX: Removed negative margin */
-margin-top: 0; 
+margin-top: 0;
 flex-shrink: 0;
 }
 #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 300px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
 #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
 @keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
-.point-pop { 
-    position: absolute; 
-    top: 85%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    font-size: 1.5rem; 
-    font-weight: 800; 
-    color: #FFFFFF; 
-    background: rgba(0, 0, 0, 0.7); 
-    border: 2px solid #FFFFFF; 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); 
-    padding: 0.5rem 1.5rem; 
-    border-radius: 5px; 
-    min-width: 250px; 
-    text-shadow: 0 0 5px rgba(255,255,255,0.5); 
-    animation: float-up-short 3s ease-out forwards; 
-    pointer-events: none; 
+.point-pop {
+position: absolute;
+top: 85%;
+left: 50%;
+transform: translate(-50%, -50%);
+font-size: 1.5rem;
+font-weight: 800;
+color: #FFFFFF;
+background: rgba(0, 0, 0, 0.7);
+border: 2px solid #FFFFFF;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+padding: 0.5rem 1.5rem;
+border-radius: 5px;
+min-width: 250px;
+text-shadow: 0 0 5px rgba(255,255,255,0.5);
+animation: float-up-short 3s ease-out forwards;
+pointer-events: none;
 }
 @keyframes float-up-short { 0% { top: 85%; opacity: 1; } 50% { top: 70%; opacity: 1; } 100% { top: 70%; opacity: 0; } }
-
-/* GOLDEN DUCK ANIMATION STYLES */
 #golden-flash-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--gold);
-    z-index: 1001; /* Above all content, below point pop */
-    opacity: 0;
-    pointer-events: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: var(--gold);
+z-index: 1001;
+opacity: 0;
+pointer-events: none;
 }
 @keyframes gold-flash {
-    0% { opacity: 0; }
-    10% { opacity: 0.9; }
-    50% { opacity: 0.4; }
-    100% { opacity: 0; }
+0% { opacity: 0; }
+10% { opacity: 0.9; }
+50% { opacity: 0.4; }
+100% { opacity: 0; }
 }
-
-/* Enhanced style for the Golden Duck point popup */
 .golden-point-pop {
-    border-color: var(--gold) !important;
-    color: var(--gold) !important;
-    background: rgba(10, 10, 10, 0.9) !important;
-    box-shadow: 0 0 15px var(--gold), 0 0 5px rgba(255, 215, 0, 0.5) !important;
-    text-shadow: 0 0 8px #fff !important;
-    font-size: 1.8rem !important; /* Larger text */
+border-color: var(--gold) !important;
+color: var(--gold) !important;
+background: rgba(10, 10, 10, 0.9) !important;
+box-shadow: 0 0 15px var(--gold), 0 0 5px rgba(255, 215, 0, 0.5) !important;
+text-shadow: 0 0 8px #fff !important;
+font-size: 1.8rem !important;
 }
-/* END GOLDEN DUCK ANIMATION STYLES */
-
-
-/* NEW CONTAINER TO ALIGN SCAN HISTORY AND RANK */
+.footer-logo {
+height: 50px;
+margin: 0 auto 5px auto;
+display: block;
+object-fit: contain;
+}
 #scanner-footer-details {
 display: flex;
 flex-direction: column;
 align-items: center;
 gap: 0.75rem;
 margin-top: 0.5rem;
-flex-shrink: 0; 
+flex-shrink: 0;
 }
-
 #scan-history-link {
 font-size: 1.1rem;
 color: var(--green);
@@ -218,10 +202,9 @@ margin-top: 0;
 font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
-
 #log-container, #leaderboard-container, #map-container, #info-container {
 flex: 1;
-overflow-y: auto; 
+overflow-y: auto;
 min-height: 0;
 padding: var(--safe-padding) 0;
 position: relative;
@@ -235,68 +218,62 @@ flex-direction: column;
 width: 100%;
 max-width: 450px;
 }
-
 #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
-
-/* INFO CONTAINER STYLES (Minimal for now) */
 #info-container {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 450px;
-    margin: 0 auto;
+text-align: center;
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+width: 100%;
+max-width: 450px;
+margin: 0 auto;
 }
-
-/* MODAL STYLES (RESTORED) */
 #info-modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    z-index: 200;
-    display: none;
-    align-items: center;
-    justify-content: center;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+backdrop-filter: blur(5px);
+z-index: 200;
+display: none;
+align-items: center;
+justify-content: center;
 }
 #info-modal {
-    position: relative;
-    width: 90%;
-    max-width: 400px;
-    background: var(--frosted-black); 
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 20px;
-    padding: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    max-height: 80vh;
-    overflow-y: auto;
-    text-align: left;
+position: relative;
+width: 90%;
+max-width: 400px;
+background: var(--frosted-black);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.1);
+border-radius: 20px;
+padding: 1.5rem;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+max-height: 80vh;
+overflow-y: auto;
+text-align: left;
 }
 #modal-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 2rem;
-    cursor: pointer;
+position: absolute;
+top: 10px;
+right: 10px;
+background: none;
+border: none;
+color: white;
+font-size: 2rem;
+cursor: pointer;
 }
 #modal-title {
-    margin-top: 0;
-    border-bottom: 2px solid var(--green);
-    padding-bottom: 0.5rem;
+margin-top: 0;
+border-bottom: 2px solid var(--green);
+padding-bottom: 0.5rem;
 }
 #modal-content {
-    text-align: left; 
-    padding: 0 0.5rem; 
+text-align: left;
+padding: 0 0.5rem;
 }
-
 .location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
 .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
 .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
@@ -314,26 +291,23 @@ border-radius: 8px;
 border: 1px solid var(--border-color);
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
-
-/* LEADERBOARD LIST ITEM STYLES CORRECTED TO MATCH GENERAL UI (card-bg) */
 #leaderboard-list .list-item {
-    background: var(--card-bg); 
-    border: 1px solid var(--border-color); 
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
-.list-item .rank-text { 
-    font-weight: bold; 
-    font-size: 1.2rem; 
-    margin-left: 0.5rem; 
-    white-space: nowrap; 
+.list-item .rank-text {
+font-weight: bold;
+font-size: 1.2rem;
+margin-left: 0.5rem;
+white-space: nowrap;
 }
-#leaderboard-list .list-item span { 
-    font-weight: bold; 
-    font-size: 1.3rem;
-    color: var(--green);
+#leaderboard-list .list-item span {
+font-weight: bold;
+font-size: 1.3rem;
+color: var(--green);
 }
-
 #log-list .list-item > div:first-child { display: flex; flex-direction: column; align-items: flex-start; }
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
@@ -363,25 +337,24 @@ z-index: -1;
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
 .reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
-footer { 
-    position: absolute; 
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    padding: 10px 10px 20px 10px; 
-    color: rgba(255, 255, 255, 0.7); 
-    font-size: 0.8rem; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: center; 
+footer {
+position: absolute;
+bottom: 0;
+left: 0;
+right: 0;
+padding: 10px 10px 20px 10px;
+color: rgba(255, 255, 255, 0.7);
+font-size: 0.8rem;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
 }
-/* FOOTER LOGO FIX */
-.footer-logo { 
-    height: 50px; 
-    margin: 0 auto 5px auto; /* Tighter spacing */
-    display: block; 
-    object-fit: contain; /* Ensures image maintains aspect ratio */
+.footer-logo {
+height: 50px;
+margin: 0 auto 5px auto;
+display: block;
+object-fit: contain;
 }
 footer p { margin: 2px 0; }
 #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
@@ -397,8 +370,6 @@ footer p { margin: 2px 0; }
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
 @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
 @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
-
-/* NEW STYLES FOR FADING DUCK FEET */
 #duck-feet-background-container {
 position: fixed;
 top: 0;
@@ -431,7 +402,7 @@ pointer-events: none;
 <body>
 <div id="golden-flash-overlay" class="hidden"></div>
 <div id="ribbon-message">
-    <div id="ribbon-content"></div>
+<div id="ribbon-content"></div>
 </div>
 <div id="lava-container"></div>
 <div id="duck-feet-background-container"></div>
@@ -479,12 +450,10 @@ pointer-events: none;
 </div>
 <div id="qr-reader"></div>
 </div>
-
 <div id="scanner-footer-details">
 <a id="scan-history-link" href="#" data-page="log-page">Scan History</a>
 <div id="player-rank-display"></div>
 </div>
-
 </div>
 </section>
 <section id="map-page" class="app-page">
@@ -506,7 +475,7 @@ pointer-events: none;
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
 <div id="info-container">
-    </div>
+</div>
 </section>
 </main>
 <nav id="tab-bar">
@@ -516,65 +485,32 @@ pointer-events: none;
 <button class="tab-button" data-page="info-page">Info</button>
 </nav>
 </div>
-
 <div id="info-modal-backdrop" style="display: none;">
-    <div id="info-modal">
-        <button id="modal-close-btn">&times;</button>
-        <h3 id="modal-title"></h3>
-        <div id="modal-content"></div>
-    </div>
+<div id="info-modal">
+<button id="modal-close-btn">&times;</button>
+<h3 id="modal-title"></h3>
+<div id="modal-content"></div>
 </div>
-
+</div>
 <script>
-// --- CORE SCANNING & SYNC LOGIC ---
-function displaySuccessPopup(message, isGolden = false) {
-    const successPop = document.createElement('div');
-    successPop.className = 'point-pop';
-    
-    if (isGolden) {
-        successPop.classList.add('golden-point-pop');
-    }
-
-    successPop.textContent = message;
-    document.getElementById('qr-reader-container').appendChild(successPop);
-    setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
-}
-function displayErrorPopup(message) {
-const errorPop = document.createElement('div');
-errorPop.className = 'point-pop';
-errorPop.textContent = message;
-document.getElementById('qr-reader-container').appendChild(errorPop);
-setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
-}
-function displayRevertPopup(message) {
-const revertPop = document.createElement('div');
-revertPop.className = 'point-pop';
-revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</small>`;
-document.getElementById('qr-reader-container').appendChild(revertPop);
-setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
-}
-
 // --- CONFIGURATION ---
-// *** SCRIPT URL UPDATED TO NEW DEPLOYMENT ***
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwi9lZdXYXSBsp6GRA7RvGwvdjTsAsQmTiRJ7ZYj5ckozmINsKpAncSCz3ujiD6pGqT/exec';
+// *** SCRIPT URL UPDATED TO THE LATEST DEPLOYMENT ***
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYGcZRFUIOJvsC3rmQ8dLgBlJ5NmCyMQsO_U-7Qrl7ba5ADD9-/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
-
 // --- GLOBAL STATE & DOM REFERENCES ---
 let html5QrCode = null;
 let currentUser = null;
 let initialDuckId = null;
-/* Info Page variables restored as placeholders */
 let infoDataCache = [];
-let infoDataFetchTime = null; 
+let infoDataFetchTime = null;
 const loginScreen = document.getElementById('login-screen');
 const appWrapper = document.getElementById('app-wrapper');
 const loginView = document.getElementById('login-view');
 const registrationView = document.getElementById('registration-view');
 const ribbonMessage = document.getElementById('ribbon-message');
-const infoSpinner = null; /* Placeholder for removed spinner element */
-
+const infoSpinner = null;
 // --- CACHING & STATE ---
 let duckDataCache = {};
 let claimedDucksCache = new Set();
@@ -583,7 +519,6 @@ let scanHistoryCache = [];
 let scanQueue = [];
 let batchSendTimer = null;
 let dataRefreshTimer = null;
-
 // --- FETCH HELPER (FOR CORS FIX) ---
 async function postToAction(action, payload = {}) {
 try {
@@ -600,115 +535,74 @@ console.error(`Fetch error for action "${action}":`, error);
 return { status: "error", message: "Network error or script failure." };
 }
 }
-
 // --- RIBBON DISPLAY FUNCTION (FIXED) ---
 function updateRibbon(ribbonText) {
-    const ribbonContent = document.getElementById('ribbon-content');
-    const scrollSpeed = 25; // Slower speed for teleprompter effect (25 px/sec)
-
-    // Clear old animation style
-    ribbonContent.style.animation = 'none';
-    ribbonContent.style.transform = 'translateX(0)';
-    ribbonContent.style.paddingLeft = '100%'; // Reset to start position
-
-    if (ribbonText && ribbonText.trim() !== '') {
-        // Set the content with the gold announcement emoji and wrap the text
-        ribbonContent.innerHTML = `📢<span>${ribbonText}</span>`;
-        ribbonMessage.classList.add('visible');
-        appWrapper.classList.add('ribbon-active'); // Adjust app content padding
-
-        // Use a slight timeout to force DOM redraw before measuring width
-        setTimeout(() => {
-            // Use scrollWidth to get the full, unclipped width of the content
-            const contentWidth = ribbonContent.scrollWidth;
-            const viewWidth = ribbonMessage.clientWidth;
-            
-            if (contentWidth > viewWidth) {
-                // Distance to scroll is content width to move content fully off-screen to the left
-                const totalDistance = contentWidth;
-                const duration = totalDistance / scrollSpeed;
-                
-                // Set CSS variables and restart animation
-                ribbonContent.style.setProperty('--marquee-distance', `-${totalDistance}px`);
-                ribbonContent.style.animation = `marquee-scroll ${duration}s linear infinite`;
-                ribbonContent.style.paddingLeft = `${viewWidth}px`; // Starts content off-screen right
-                ribbonContent.style.textAlign = 'left';
-
-            } else {
-                // If text fits, center it (remove animation)
-                ribbonContent.style.paddingLeft = '0'; // Clear initial 100% padding
-                ribbonContent.style.textAlign = 'center';
-                // Calculate padding to center the content
-                const centeredPadding = (viewWidth - ribbonContent.offsetWidth) / 2;
-                ribbonContent.style.paddingLeft = `${Math.max(0, centeredPadding)}px`;
-                ribbonContent.style.transform = 'translateX(0)';
-                ribbonContent.style.animation = 'none';
-            }
-        }, 10);
-        
-    } else {
-        // Hide ribbon
-        ribbonContent.innerHTML = '';
-        ribbonMessage.classList.remove('visible');
-        appWrapper.classList.remove('ribbon-active'); // Restore app content padding
-        ribbonContent.style.animation = 'none';
-    }
+const ribbonContent = document.getElementById('ribbon-content');
+const scrollSpeed = 25;
+ribbonContent.style.animation = 'none';
+ribbonContent.style.transform = 'translateX(0)';
+ribbonContent.style.paddingLeft = '100%';
+if (ribbonText && ribbonText.trim() !== '') {
+ribbonContent.innerHTML = `📢<span>${ribbonText}</span>`;
+ribbonMessage.classList.add('visible');
+appWrapper.classList.add('ribbon-active');
+setTimeout(() => {
+const contentWidth = ribbonContent.scrollWidth;
+const viewWidth = ribbonMessage.clientWidth;
+if (contentWidth > viewWidth) {
+const totalDistance = contentWidth;
+const duration = totalDistance / scrollSpeed;
+ribbonContent.style.setProperty('--marquee-distance', `-${totalDistance}px`);
+ribbonContent.style.animation = `marquee-scroll ${duration}s linear infinite`;
+ribbonContent.style.paddingLeft = `${viewWidth}px`;
+ribbonContent.style.textAlign = 'left';
+} else {
+ribbonContent.style.paddingLeft = '0';
+ribbonContent.style.textAlign = 'center';
+const centeredPadding = (viewWidth - ribbonContent.offsetWidth) / 2;
+ribbonContent.style.paddingLeft = `${Math.max(0, centeredPadding)}px`;
+ribbonContent.style.transform = 'translateX(0)';
+ribbonContent.style.animation = 'none';
 }
-
-
+}, 10);
+} else {
+ribbonContent.innerHTML = '';
+ribbonMessage.classList.remove('visible');
+appWrapper.classList.remove('ribbon-active');
+ribbonContent.style.animation = 'none';
+}
+}
 // --- ANIMATION FUNCTIONS ---
-
-/**
-* Creates and launches persistent duck feet animation in the background.
-*/
 function startRandomFadingDuckFeet() {
 const container = document.getElementById('duck-feet-background-container');
-const maxFeetOnScreen = 7; // Max number of feet visible at any time
-const minDelay = 1000; // Minimum delay between new feet appearing (1 second)
-const maxDelay = 3000; // Maximum delay between new feet appearing (3 seconds)
-const animationDuration = 6000; // Total duration for fade in/out (6 seconds)
-
+const maxFeetOnScreen = 7;
+const minDelay = 1000;
+const maxDelay = 3000;
+const animationDuration = 6000;
 function createFadingFeet() {
-// Remove oldest feet if too many are on screen
 const currentFeet = container.querySelectorAll('.fading-duck-feet');
 if (currentFeet.length >= maxFeetOnScreen) {
 currentFeet[0].remove();
 }
-
 const feet = document.createElement('div');
 feet.className = 'fading-duck-feet';
-
-// Random position across the screen
-// Use innerWidth/innerHeight for the viewport dimensions
-const randomX = Math.random() * (window.innerWidth - 60); // 60px for feet width
-const randomY = Math.random() * (window.innerHeight - 60); // 60px for feet height
+const randomX = Math.random() * (window.innerWidth - 60);
+const randomY = Math.random() * (window.innerHeight - 60);
 feet.style.left = `${randomX}px`;
 feet.style.top = `${randomY}px`;
-
-// Random scale and rotation for variation
-const randomScale = 0.7 + Math.random() * 0.6; // Scale between 0.7 and 1.3
+const randomScale = 0.7 + Math.random() * 0.6;
 feet.style.transform = `scale(${randomScale}) rotate(${Math.random() * 360}deg)`;
-
 feet.style.animationDuration = `${animationDuration}ms`;
-
 container.appendChild(feet);
-
-// Remove the feet after the animation is complete
 setTimeout(() => {
 feet.remove();
 }, animationDuration);
-
-// Schedule the next feet creation
 const nextDelay = Math.random() * (maxDelay - minDelay) + minDelay;
 setTimeout(createFadingFeet, nextDelay);
 }
-
-// Start the first feet, and it will recursively schedule more
 createFadingFeet();
 }
-
 function triggerDuckAnimation() {
-// Increased duck count for more flair (3-7 ducks now)
 const duckCount = Math.floor(Math.random() * 5) + 3;
 for (let i = 0; i < duckCount; i++) {
 setTimeout(() => {
@@ -719,44 +613,34 @@ duck.style.top = `${30 + Math.random() * 40}%`;
 duck.style.animationDuration = `${1.5 + Math.random()}s`;
 document.body.appendChild(duck);
 setTimeout(() => duck.remove(), 2500);
-}, i * 150); // Slightly faster launch interval
+}, i * 150);
 }
 }
-
 function triggerGoldenDuckAnimation() {
-    // ENHANCED GOLDEN DUCK ANIMATION SEQUENCE
-    const flash = document.getElementById('golden-flash-overlay');
-    flash.classList.remove('hidden');
-    
-    // Sequence the animation: Flash -> Gold items fall
-    flash.style.animation = 'gold-flash 0.8s ease-out forwards';
-    
-    // EMOJIS: Guaranteed Gold/Reward Emojis
-    const emojis = ['🦆', '🥇', '💰', '✨']; 
-    const count = 10; 
-    
-    for (let i = 0; i < count; i++) {
-        setTimeout(() => {
-            const item = document.createElement('div');
-            item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-            item.className = 'frost-animation';
-            item.style.fontSize = `${1.5 + Math.random() * 2.5}rem`;
-            item.style.color = '#FFD700';
-            item.style.left = `${Math.random() * 100}vw`;
-            item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`;
-            item.style.animationDelay = `${Math.random() * 0.5}s`;
-            document.body.appendChild(item);
-            setTimeout(() => item.remove(), 5000);
-        }, 150 + i * 50); // Delay start slightly after flash begins
-    }
-    
-    // Remove the flash animation class after the sequence is done
-    setTimeout(() => {
-        flash.classList.add('hidden');
-        flash.style.animation = 'none';
-    }, 850); 
+const flash = document.getElementById('golden-flash-overlay');
+flash.classList.remove('hidden');
+flash.style.animation = 'gold-flash 0.8s ease-out forwards';
+const emojis = ['🦆', '🥇', '💰', '✨'];
+const count = 10;
+for (let i = 0; i < count; i++) {
+setTimeout(() => {
+const item = document.createElement('div');
+item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+item.className = 'frost-animation';
+item.style.fontSize = `${1.5 + Math.random() * 2.5}rem`;
+item.style.color = '#FFD700';
+item.style.left = `${Math.random() * 100}vw`;
+item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`;
+item.style.animationDelay = `${Math.random() * 0.5}s`;
+document.body.appendChild(item);
+setTimeout(() => item.remove(), 5000);
+}, 150 + i * 50);
 }
-
+setTimeout(() => {
+flash.classList.add('hidden');
+flash.style.animation = 'none';
+}, 850);
+}
 function triggerFrostAnimation() {
 const flakeCount = 15;
 for (let i = 0; i < flakeCount; i++) {
@@ -770,19 +654,205 @@ document.body.appendChild(flake);
 setTimeout(() => flake.remove(), 5000);
 }
 }
-
 // --- CORE SCANNING & SYNC LOGIC ---
+async function onScanSuccess(decodedText) {
+if (!currentUser) return;
+let finalDuckId = decodedText;
+try {
+const url = new URL(decodedText);
+if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+} catch (e) {}
+const lookupId = finalDuckId.trim().toLowerCase();
+if (claimedDucksCache.has(lookupId)) {
+const qrContainer = document.getElementById('qr-reader-container');
+qrContainer.classList.add('error-flash');
+setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+return;
+}
+const duckInfo = duckDataCache[lookupId];
+if (!duckInfo) {
+displayErrorPopup("Invalid Duck ID");
+return;
+}
+if (duckInfo.type === 'Virtual Duck') {
+const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+if (localVirtualScanTimestamps.length >= 10) {
+displayErrorPopup("Daily limit for Virtual Ducks reached.");
+triggerFrostAnimation();
+return;
+}
+localVirtualScanTimestamps.push(new Date().getTime());
+}
+scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+claimedDucksCache.add(lookupId);
+const points = duckInfo.points || 0;
+currentUser.points += points;
+const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
+document.getElementById('player-ducks').textContent = currentDucks + 1;
+document.getElementById('player-points').textContent = currentUser.points;
+const isGoldenDuck = duckInfo.type === 'Golden Duck';
+displaySuccessPopup(`+${points}`, isGoldenDuck);
+if (isGoldenDuck) {
+triggerGoldenDuckAnimation();
+} else {
+triggerDuckAnimation();
+}
+}
+async function sendBatchScans() {
+if (scanQueue.length === 0) return;
+const scansToSend = [...scanQueue];
+scanQueue = [];
+const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+if (batchResult.status === "success") {
+if (batchResult.updatedUser) {
+currentUser.points = batchResult.updatedUser.points;
+document.getElementById('player-points').textContent = currentUser.points;
+if (batchResult.updatedUser.duckCount !== undefined) {
+document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
+}
+}
+if (batchResult.results) {
+batchResult.results.forEach(result => {
+if (result.status !== "success") {
+displayRevertPopup(result.message || "A duck was claimed just before you!");
+}
+});
+}
+} else {
+displayRevertPopup(batchResult.message || "A server error occurred.");
+scanQueue = [...scansToSend, ...scanQueue];
+}
+}
+function periodicDataRefresh() {
+if (!currentUser) return;
+updateUserDashboard();
+postToAction('getClaimedDucks').then(result => {
+if (result.status === 'success' && Array.isArray(result.claimed)) {
+claimedDucksCache = new Set(result.claimed);
+}
+});
+postToAction('getInfoData').then(result => {
+if (result.status === 'success') {
+updateRibbon(result.ribbonText);
+} else {
+updateRibbon('');
+}
+});
+}
+// --- APP INITIALIZATION & LOGIN ---
+async function showApp(user, initialPageId) {
+currentUser = user;
+sessionStorage.setItem('currentUserStudentId', user.studentId);
+try {
+const [duckResult, historyResult, claimedDucksResult, ribbonResult] = await Promise.all([
+postToAction('getDuckData'),
+postToAction('getScanHistory', { studentId: currentUser.studentId }),
+postToAction('getClaimedDucks'),
+postToAction('getInfoData')
+]);
+if (duckResult.status === "success") {
+duckDataCache = duckResult.ducks;
+} else { throw new Error("Failed to load duck data."); }
+if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
+claimedDucksCache = new Set(claimedDucksResult.claimed);
+}
+if (Array.isArray(historyResult)) {
+scanHistoryCache = historyResult;
+document.getElementById('player-ducks').textContent = historyResult.length;
+const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
+}
+if (ribbonResult.status === 'success') {
+updateRibbon(ribbonResult.ribbonText);
+}
+} catch (e) {
+console.error("Failed to initialize app data:", e);
+alert("Could not load game data. Please try again.");
+const signinBtn = document.getElementById('signin-btn');
+if (signinBtn) { signinBtn.disabled = false; signinBtn.innerHTML = "Sign In"; }
+const submitBtn = document.getElementById('submit-btn');
+if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = "Submit"; }
+return;
+}
+loginScreen.classList.remove('visible');
+appWrapper.classList.add('visible');
+if (batchSendTimer) clearInterval(batchSendTimer);
+batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+await updateUserDashboard();
+switchPage(initialPageId);
+if (initialDuckId) {
+onScanSuccess(initialDuckId);
+initialDuckId = null;
+}
+}
+async function signIn(studentId) {
+const signinBtn = document.getElementById('signin-btn');
+const originalText = signinBtn.innerHTML;
+signinBtn.innerHTML = '<div class="spinner"></div>';
+signinBtn.disabled = true;
+const result = await postToAction('getUser', { studentId });
+if (result.status === "success") {
+showApp(result.user, 'hunt-page');
+} else {
+alert("User not found! Please register before signing in.");
+signinBtn.innerHTML = originalText;
+signinBtn.disabled = false;
+}
+}
+async function registerUser() {
+const submitBtn = document.getElementById('submit-btn');
+const originalText = submitBtn.innerHTML;
+submitBtn.innerHTML = '<div class="spinner"></div>';
+submitBtn.disabled = true;
+const payload = {
+firstName: document.getElementById('reg-firstname').value.trim(),
+lastName: document.getElementById('reg-lastname').value.trim(),
+studentId: document.getElementById('reg-studentid').value.trim(),
+email: document.getElementById('reg-email').value.trim()
+};
+if (!payload.firstName || !payload.studentId) {
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+return alert("First Name and Student ID are required.");
+}
+if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+return alert("Registration requires an @my.gcu.edu email address.");
+}
+try {
+const result = await postToAction('registerUser', payload);
+if (result.status === "success") {
+const userResult = await postToAction('getUser', { studentId: payload.studentId });
+if (userResult.status === "success") {
+showApp(userResult.user, 'hunt-page');
+} else {
+throw new Error("Auto sign-in failed.");
+}
+} else {
+alert(result.message);
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+}
+} catch (error) {
+alert("Error registering.");
+submitBtn.innerHTML = originalText;
+submitBtn.disabled = false;
+}
+}
+// --- UI & DATA DISPLAY FUNCTIONS ---
 function displaySuccessPopup(message, isGolden = false) {
-    const successPop = document.createElement('div');
-    successPop.className = 'point-pop';
-    
-    if (isGolden) {
-        successPop.classList.add('golden-point-pop');
-    }
-
-    successPop.textContent = message;
-    document.getElementById('qr-reader-container').appendChild(successPop);
-    setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
+const successPop = document.createElement('div');
+successPop.className = 'point-pop';
+if (isGolden) {
+successPop.classList.add('golden-point-pop');
+}
+successPop.textContent = message;
+document.getElementById('qr-reader-container').appendChild(successPop);
+setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
 }
 function displayErrorPopup(message) {
 const errorPop = document.createElement('div');
@@ -798,7 +868,6 @@ revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</sm
 document.getElementById('qr-reader-container').appendChild(revertPop);
 setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 }
-
 async function updateUserDashboard(shouldUpdatePoints = true) {
 if (!currentUser) return;
 try {
@@ -809,10 +878,8 @@ postToAction('getScanHistory', { studentId: currentUser.studentId })
 if (shouldUpdatePoints) {
 fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
 }
-
 const responses = await Promise.all(fetches);
 let userResult, leaderboardData, historyResult;
-
 if (shouldUpdatePoints) {
 userResult = responses.shift();
 if (userResult.status === "success") {
@@ -820,10 +887,8 @@ currentUser.points = userResult.user.points;
 document.getElementById('player-points').textContent = currentUser.points;
 }
 }
-
 leaderboardData = responses[0];
 historyResult = responses[1];
-
 document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 if (Array.isArray(leaderboardData)) {
 const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
@@ -841,7 +906,6 @@ document.getElementById('player-ducks').textContent = historyResult.length;
 console.error("Failed to update dashboard", e);
 }
 }
-
 async function updateLeaderboard() {
 const listElement = document.getElementById('leaderboard-list');
 if (listElement.innerHTML === '') {
@@ -859,13 +923,10 @@ const rank = index + 1;
 const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
 const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
 const displayName = `${player.firstName} ${lastNameInitial}`;
-
-// This HTML structure matches the CSS layout for proper two-column display
 html += `<li class="list-item"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
 });
 listElement.innerHTML = html;
 }
-
 function updateScanHistory() {
 const listElement = document.getElementById('log-list');
 const scanData = scanHistoryCache;
@@ -881,7 +942,6 @@ html += `<li class="list-item"><div><div class="primary-text">${scan.duckType ||
 });
 listElement.innerHTML = html;
 }
-
 async function updateDuckMap() {
 const container = document.getElementById('map-container');
 if (container.innerHTML === '') {
@@ -895,13 +955,11 @@ container.innerHTML = '<h4>No active locations found.</h4>';
 return;
 }
 const locationArray = Object.entries(locations).map(([name, count]) => ({ name, count, isVirtual: name.toLowerCase().includes('virtual') }));
-
 locationArray.sort((a, b) => {
 if (a.isVirtual !== b.isVirtual) return a.isVirtual ? 1 : -1;
 if (b.count !== a.count) return b.count - a.count;
 return a.name.localeCompare(b.name);
 });
-
 let html = '';
 locationArray.forEach(location => {
 const plural = location.count === 1 ? 'Code Remains' : 'Codes Remain';
@@ -913,41 +971,29 @@ container.innerHTML = `<p class="transparent-heading-box" style="margin: 0 auto 
 container.innerHTML = `<h4>Error loading location data.</h4><small>${result.message || ''}</small>`;
 }
 }
-
-
 // --- INFO PAGE PLACEHOLDER FUNCTIONS (RESTORED) ---
-
 function showInfoModal(title, contentArray) {
-    document.getElementById('modal-title').textContent = title || "Information Detail";
-    document.getElementById('modal-content').innerHTML = "<p style='text-align:center;'>Content loading not yet implemented. Use this modal for announcements.</p>";
-
-    document.getElementById('info-modal-backdrop').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+document.getElementById('modal-title').textContent = title || "Information Detail";
+document.getElementById('modal-content').innerHTML = "<p style='text-align:center;'>Content loading not yet implemented. Use this modal for announcements.</p>";
+document.getElementById('info-modal-backdrop').style.display = 'flex';
+document.body.style.overflow = 'hidden';
 }
-
 function updateInfoPage() {
-    const container = document.getElementById('info-container');
-    // Placeholder content for the empty info container
-    container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>Information content will be built here.</h4>";
+const container = document.getElementById('info-container');
+container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>Information content will be built here.</h4>";
 }
-
 function fetchAndRenderInfoData(silent = false) {
-    if (!silent) {
-        // Just render the placeholder content
-        updateInfoPage(); 
-    }
-    
-    // Continue fetching ribbon data silently
-    postToAction('getInfoData').then(result => {
-        if (result.status === 'success') {
-            updateRibbon(result.ribbonText);
-        } else {
-            updateRibbon('');
-        }
-    });
+if (!silent) {
+updateInfoPage();
 }
-
-
+postToAction('getInfoData').then(result => {
+if (result.status === 'success') {
+updateRibbon(result.ribbonText);
+} else {
+updateRibbon('');
+}
+});
+}
 // --- UTILITY & NAVIGATION ---
 function startScanner() {
 if (document.getElementById('hunt-page')?.classList.contains('active')) {
@@ -977,10 +1023,9 @@ updateScanHistory();
 } else if (pageId === 'map-page') {
 updateDuckMap();
 } else if (pageId === 'info-page') {
-    fetchAndRenderInfoData(); // Call the placeholder function
+fetchAndRenderInfoData();
 } else {
-    // Ensure ribbon is still updated on non-info page clicks
-    periodicDataRefresh(); 
+periodicDataRefresh();
 }
 }
 function checkForInitialDuck() {
@@ -999,7 +1044,7 @@ el.style.left = '50%';
 el.style.transform = 'translateX(-50%)';
 el.style.zIndex = '999';
 el.style.width = '80%';
-el.maxWidth = '350px';
+el.style.maxWidth = '350px';
 el.innerHTML = `<p>${message}</p>`;
 document.body.appendChild(el);
 setTimeout(() => el.style.top = '20px', 10);
@@ -1008,155 +1053,26 @@ el.style.top = '-150px';
 setTimeout(() => el.remove(), 500);
 }, 3000);
 }
-
-// --- CORE LOGIN LOGIC (RESTORED) ---
-async function showApp(user, initialPageId) {
-currentUser = user;
-sessionStorage.setItem('currentUserStudentId', user.studentId);
-try {
-const [duckResult, historyResult, claimedDucksResult, ribbonResult] = await Promise.all([
-postToAction('getDuckData'),
-postToAction('getScanHistory', { studentId: currentUser.studentId }),
-postToAction('getClaimedDucks'),
-postToAction('getInfoData') // Fetch ribbon data on startup
-]);
-
-if (duckResult.status === "success") {
-duckDataCache = duckResult.ducks;
-} else { throw new Error("Failed to load duck data."); }
-
-if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
-claimedDucksCache = new Set(claimedDucksResult.claimed);
-}
-
-if (Array.isArray(historyResult)) {
-scanHistoryCache = historyResult;
-document.getElementById('player-ducks').textContent = historyResult.length;
-const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
-}
-
-if (ribbonResult.status === 'success') {
-    updateRibbon(ribbonResult.ribbonText);
-}
-
-} catch (e) {
-console.error("Failed to initialize app data:", e);
-alert("Could not load game data. Please try again.");
-const signinBtn = document.getElementById('signin-btn');
-if (signinBtn) { signinBtn.disabled = false; signinBtn.innerHTML = "Sign In"; }
-const submitBtn = document.getElementById('submit-btn');
-if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = "Submit"; }
-return;
-}
-loginScreen.classList.remove('visible');
-appWrapper.classList.add('visible');
-if (batchSendTimer) clearInterval(batchSendTimer);
-batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-await updateUserDashboard();
-
-switchPage(initialPageId);
-if (initialDuckId) {
-onScanSuccess(initialDuckId);
-initialDuckId = null;
-}
-}
-
-
-async function signIn(studentId) {
-    const signinBtn = document.getElementById('signin-btn');
-    const originalText = signinBtn.innerHTML;
-    signinBtn.innerHTML = '<div class="spinner"></div>';
-    signinBtn.disabled = true;
-
-    // The line that sends the request to the Google Apps Script
-    const result = await postToAction('getUser', { studentId });
-
-    if (result.status === "success") {
-        showApp(result.user, 'hunt-page');
-    } else {
-        alert("User not found! Please register before signing in.");
-        signinBtn.innerHTML = originalText;
-        signinBtn.disabled = false;
-    }
-}
-
-async function registerUser() {
-    const submitBtn = document.getElementById('submit-btn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<div class="spinner"></div>';
-    submitBtn.disabled = true;
-    const payload = {
-        firstName: document.getElementById('reg-firstname').value.trim(),
-        lastName: document.getElementById('reg-lastname').value.trim(),
-        studentId: document.getElementById('reg-studentid').value.trim(),
-        email: document.getElementById('reg-email').value.trim()
-    };
-    if (!payload.firstName || !payload.studentId) {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        return alert("First Name and Student ID are required.");
-    }
-    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        return alert("Registration requires an @my.gcu.edu email address.");
-    }
-    try {
-        const result = await postToAction('registerUser', payload);
-        if (result.status === "success") {
-            const userResult = await postToAction('getUser', { studentId: payload.studentId });
-            if (userResult.status === "success") {
-                showApp(userResult.user, 'hunt-page');
-            } else {
-                throw new Error("Auto sign-in failed.");
-            }
-        } else {
-            alert(result.message);
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    } catch (error) {
-        alert("Error registering.");
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
-}
-
-
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
-// Start continuous feet animation immediately
 startRandomFadingDuckFeet();
-
 checkForInitialDuck();
 const savedStudentId = sessionStorage.getItem('currentUserStudentId');
 if (savedStudentId) {
 signIn(savedStudentId);
 }
-// FIX: Sign-in button listener now calls signIn() with input value
 document.getElementById('signin-btn').addEventListener('click', () => {
-    const studentIdInput = document.getElementById('login-studentid');
-    const studentId = studentIdInput ? studentIdInput.value.trim() : '';
-    if (studentId) {
-        signIn(studentId);
-    } else {
-        alert("Please enter your Student ID.");
-    }
+const studentId = document.getElementById('login-studentid').value.trim();
+if (studentId) signIn(studentId);
 });
-
-// FIX: Registration button listener now calls registerUser
 document.getElementById('submit-btn').addEventListener('click', registerUser);
-
 document.getElementById('register-btn').addEventListener('click', () => {
 loginView.classList.add('hidden');
 registrationView.classList.remove('hidden');
 });
 document.getElementById('back-btn').addEventListener('click', () => {
-loginView.classList.remove('hidden');
 registrationView.classList.add('hidden');
+loginView.classList.remove('hidden');
 });
 document.getElementById('close-instructions').addEventListener('click', () => {
 document.getElementById('instructions-card').style.display = 'none';
@@ -1170,21 +1086,18 @@ document.getElementById('scan-history-link').addEventListener('click', (e) => {
 e.preventDefault();
 switchPage(e.target.dataset.page);
 });
-
-/* MODAL CLOSE LISTENERS (Restored) */
 const modalBackdrop = document.getElementById('info-modal-backdrop');
 if (modalBackdrop) {
-    document.getElementById('modal-close-btn').addEventListener('click', () => {
-        modalBackdrop.style.display = 'none';
-        document.body.style.overflow = 'auto'; // Restore background scrolling
-    });
-    modalBackdrop.addEventListener('click', (e) => {
-        // Only close if the click is on the backdrop, not the modal content itself
-        if (e.target.id === 'info-modal-backdrop') {
-            modalBackdrop.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    });
+document.getElementById('modal-close-btn').addEventListener('click', () => {
+modalBackdrop.style.display = 'none';
+document.body.style.overflow = 'auto';
+});
+modalBackdrop.addEventListener('click', (e) => {
+if (e.target.id === 'info-modal-backdrop') {
+modalBackdrop.style.display = 'none';
+document.body.style.overflow = 'auto';
+}
+});
 }
 });
 </script>
