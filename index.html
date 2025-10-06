@@ -604,6 +604,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYG
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
+const VIRTUAL_LIMIT = 10; // Explicitly define the limit
 // UPDATED: Only locations that provide Virtual Codes are listed here (using their data key/backend name)
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
@@ -917,14 +918,18 @@ displayErrorPopup("Invalid Duck ID");
 return;
 }
 if (duckInfo.type === 'Virtual Duck') {
-const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-if (localVirtualScanTimestamps.length >= 10) {
-displayErrorPopup("Daily limit for Virtual Ducks reached.");
-triggerFrostAnimation();
-return;
-}
-localVirtualScanTimestamps.push(new Date().getTime());
+    const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+    localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+    
+    // FIX: Change to check if the count is already 10 (or more), which means the 11th scan is blocked.
+    // If the reported issue is correct, this will allow the 10th scan to proceed.
+    if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+        displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} for Virtual Ducks reached.`);
+        triggerFrostAnimation();
+        return;
+    }
+    
+    localVirtualScanTimestamps.push(new Date().getTime());
 }
 // Perform Optimistic Update
 scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
