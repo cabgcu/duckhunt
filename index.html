@@ -147,8 +147,56 @@ flex-shrink: 0;
 #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
 @keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
-.point-pop { position: absolute; top: 85%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 800; color: #FFFFFF; background: rgba(0, 0, 0, 0.7); border: 2px solid #FFFFFF; box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); padding: 0.5rem 1.5rem; border-radius: 5px; min-width: 250px; text-shadow: 0 0 5px rgba(255,255,255,0.5); animation: float-up-short 3s ease-out forwards; pointer-events: none; }
+.point-pop { 
+    position: absolute; 
+    top: 85%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    font-size: 1.5rem; 
+    font-weight: 800; 
+    color: #FFFFFF; 
+    background: rgba(0, 0, 0, 0.7); 
+    border: 2px solid #FFFFFF; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); 
+    padding: 0.5rem 1.5rem; 
+    border-radius: 5px; 
+    min-width: 250px; 
+    text-shadow: 0 0 5px rgba(255,255,255,0.5); 
+    animation: float-up-short 3s ease-out forwards; 
+    pointer-events: none; 
+}
 @keyframes float-up-short { 0% { top: 85%; opacity: 1; } 50% { top: 70%; opacity: 1; } 100% { top: 70%; opacity: 0; } }
+
+/* GOLDEN DUCK ANIMATION STYLES */
+#golden-flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--gold);
+    z-index: 1001; /* Above all content, below point pop */
+    opacity: 0;
+    pointer-events: none;
+}
+@keyframes gold-flash {
+    0% { opacity: 0; }
+    10% { opacity: 0.9; }
+    50% { opacity: 0.4; }
+    100% { opacity: 0; }
+}
+
+/* Enhanced style for the Golden Duck point popup */
+.golden-point-pop {
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
+    box-shadow: 0 0 15px var(--gold), 0 0 5px rgba(255, 215, 0, 0.5) !important;
+    text-shadow: 0 0 8px #fff !important;
+    font-size: 1.8rem !important; /* Larger text */
+}
+/* END GOLDEN DUCK ANIMATION STYLES */
+
 
 /* NEW CONTAINER TO ALIGN SCAN HISTORY AND RANK */
 #scanner-footer-details {
@@ -172,7 +220,6 @@ font-weight: bold;
 
 #log-container, #leaderboard-container, #map-container, #info-container {
 flex: 1;
-/* FIX APPLIED HERE: Enables vertical scrolling for all data containers */
 overflow-y: auto; 
 min-height: 0;
 padding: var(--safe-padding) 0;
@@ -187,9 +234,6 @@ flex-direction: column;
 width: 100%;
 max-width: 450px;
 }
-
-/* FIX FOR LOG CONTAINER SCROLLING (Now handled by the general block above) */
-/* #log-container { overflow-y: auto; } */
 
 #map-container .transparent-heading-box { margin: 0 auto 1.5rem auto; padding: 0.75rem 1rem; width: fit-content; align-self: center; }
 
@@ -366,6 +410,7 @@ pointer-events: none;
 </style>
 </head>
 <body>
+<div id="golden-flash-overlay" class="hidden"></div>
 <div id="ribbon-message">
     <div id="ribbon-content"></div>
 </div>
@@ -632,25 +677,37 @@ setTimeout(() => duck.remove(), 2500);
 }
 
 function triggerGoldenDuckAnimation() {
-// Golden duck animation using gold-related emojis
-const emojis = ['🦆', '💰', '✨', '🪙', '⭐'];
-const count = 10; // Launch 10 golden items
-for (let i = 0; i < count; i++) {
-setTimeout(() => {
-const item = document.createElement('div');
-item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-
-// Re-using frost-animation class for the falling effect
-item.className = 'frost-animation';
-item.style.fontSize = `${1.5 + Math.random()}rem`;
-item.style.color = '#FFD700'; // Gold color
-item.style.left = `${Math.random() * 100}vw`;
-item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`; // Shorter, more exciting fall
-item.style.animationDelay = `${Math.random() * 0.5}s`;
-document.body.appendChild(item);
-setTimeout(() => item.remove(), 5000);
-}, i * 50);
-}
+    // ENHANCED GOLDEN DUCK ANIMATION SEQUENCE
+    const flash = document.getElementById('golden-flash-overlay');
+    flash.classList.remove('hidden');
+    
+    // Sequence the animation: Flash -> Gold items fall
+    flash.style.animation = 'gold-flash 0.8s ease-out forwards';
+    
+    // EMOJIS: Guaranteed Gold/Reward Emojis
+    const emojis = ['🦆', '🥇', '💰', '✨']; // Removed 🪙 and 🔸
+    const count = 10; 
+    
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+            const item = document.createElement('div');
+            item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            item.className = 'frost-animation';
+            item.style.fontSize = `${1.5 + Math.random()}rem`;
+            item.style.color = '#FFD700';
+            item.style.left = `${Math.random() * 100}vw`;
+            item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`;
+            item.style.animationDelay = `${Math.random() * 0.5}s`;
+            document.body.appendChild(item);
+            setTimeout(() => item.remove(), 5000);
+        }, 150 + i * 50); // Delay start slightly after flash begins
+    }
+    
+    // Remove the flash animation class after the sequence is done
+    setTimeout(() => {
+        flash.classList.add('hidden');
+        flash.style.animation = 'none';
+    }, 850); 
 }
 
 function triggerFrostAnimation() {
@@ -706,12 +763,16 @@ currentUser.points += points;
 const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
 document.getElementById('player-ducks').textContent = currentDucks + 1;
 document.getElementById('player-points').textContent = currentUser.points;
-displaySuccessPopup(`+${points}`);
 
-if (duckInfo.type === 'Golden Duck') {
-triggerGoldenDuckAnimation();
+const isGoldenDuck = duckInfo.type === 'Golden Duck';
+displaySuccessPopup(`+${points}`, isGoldenDuck);
+
+if (isGoldenDuck) {
+    // Trigger the enhanced sequenced animation
+    triggerGoldenDuckAnimation(); 
 } else {
-triggerDuckAnimation();
+    // Trigger the standard duck animation
+    triggerDuckAnimation();
 }
 }
 
@@ -877,12 +938,17 @@ submitBtn.disabled = false;
 }
 
 // --- UI & DATA DISPLAY FUNCTIONS ---
-function displaySuccessPopup(message) {
-const successPop = document.createElement('div');
-successPop.className = 'point-pop';
-successPop.textContent = message;
-document.getElementById('qr-reader-container').appendChild(successPop);
-setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
+function displaySuccessPopup(message, isGolden = false) {
+    const successPop = document.createElement('div');
+    successPop.className = 'point-pop';
+    
+    if (isGolden) {
+        successPop.classList.add('golden-point-pop');
+    }
+
+    successPop.textContent = message;
+    document.getElementById('qr-reader-container').appendChild(successPop);
+    setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
 }
 
 function displayErrorPopup(message) {
