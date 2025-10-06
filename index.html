@@ -124,9 +124,7 @@ flex-shrink: 0;
 
 /* MAP PAGE SPECIFIC STYLES FOR EDGE-TO-EDGE */
 #map-page {
-padding-top: 5px; /* Minimal top margin */
-padding-left: 0; /* EDGE TO EDGE HORIZONTAL */
-padding-right: 0; /* EDGE TO EDGE HORIZONTAL */
+padding: 0; /* REMOVED ALL PADDING */
 }
 #hunt-content-wrapper {
 position: relative;
@@ -212,15 +210,13 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-padding-top: 5px;
-padding-left: 0;
-padding-right: 0;
+padding: 0; /* REMOVED ALL PADDING */
 }
 #map-wrapper {
 width: 250vw; /* HUGE WIDTH for large, scrollable panoramic view on mobile */
 position: relative;
 max-width: none; /* Ensure it can exceed 600px */
-margin: 0 auto; /* SET TO 0 VERTICAL MARGIN for maximum height */
+margin: 0; /* REMOVED VERTICAL MARGINS for maximum height */
 line-height: 0; /* Prevents extra space below image */
 }
 #campus-map-img {
@@ -568,14 +564,13 @@ pointer-events: none;
 </section>
 
 <section id="map-page" class="app-page">
-<!-- REMOVED: <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header"> -->
+<!-- REMOVED HEADER IMAGE -->
 
 <div id="map-wrapper">
 <img id="campus-map-img"
 src="https://i.imgur.com/1aQCsPk.jpeg"
 alt="Interactive Campus Map">
 <div id="map-markers-overlay"></div>
-<!-- REMOVED OLD #map-info-popup DIV -->
 </div>
 
 </section>
