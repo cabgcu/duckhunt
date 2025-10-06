@@ -115,17 +115,12 @@ align-items: center;
 .app-page .header-image-top {
 width: 70%;
 max-width: 250px;
-margin: 0.2rem auto 0.2rem auto; /* SHRUNK: Reduced vertical margin */
+margin: 0.5rem auto 0.5rem auto;
 display: block;
 flex-shrink: 0;
 }
 #hunt-page { justify-content: flex-start; padding-top: 0; }
-#info-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
-
-/* MAP PAGE SPECIFIC STYLES FOR EDGE-TO-EDGE */
-#map-page {
-padding: 0; /* REMOVED ALL PADDING */
-}
+#info-page, #map-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
 #hunt-content-wrapper {
 position: relative;
 width: 100%;
@@ -210,13 +205,13 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-padding: 0; /* REMOVED ALL PADDING */
+padding-top: 0;
 }
 #map-wrapper {
-width: 250vw; /* HUGE WIDTH for large, scrollable panoramic view on mobile */
+width: 250vw; /* INCREASED for large, scrollable panoramic view on mobile */
 position: relative;
 max-width: none; /* Ensure it can exceed 600px */
-margin: 0; /* REMOVED VERTICAL MARGINS for maximum height */
+margin: 1rem auto;
 line-height: 0; /* Prevents extra space below image */
 }
 #campus-map-img {
@@ -251,9 +246,8 @@ backdrop-filter: blur(8px);
 -webkit-backdrop-filter: blur(8px);
 border: 1px solid var(--green);
 border-radius: 8px;
-/* SIZING WITH VW UNITS for dynamic scaling on mobile zoom */
-padding: 0.7vw 1.2vw; 
-min-width: 15vw; 
+padding: 0.3rem 0.5rem; /* SHRUNK: Reduced padding */
+min-width: 90px; /* SHRUNK: Reduced minimum width */
 text-align: center;
 box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 white-space: normal;
@@ -262,14 +256,14 @@ line-height: 1.3;
 
 .map-label h4 {
 margin: 0;
-font-size: 2.2vw; /* DYNAMIC FONT SIZE */
+font-size: 0.8rem; /* SHRUNK: Smaller font */
 font-weight: bold;
 color: white; /* Ensure text is visible */
 }
 .map-label p {
 margin: 0;
-padding-top: 0.3vw; /* DYNAMIC SPACING */
-font-size: 1.8vw; /* DYNAMIC FONT SIZE */
+padding-top: 0.1rem; /* SHRUNK: Less space between title and count */
+font-size: 0.7rem; /* SHRUNK: Smaller font */
 color: rgba(255, 255, 255, 0.9);
 }
 
@@ -564,13 +558,15 @@ pointer-events: none;
 </section>
 
 <section id="map-page" class="app-page">
-<!-- REMOVED HEADER IMAGE -->
+<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<!-- REMOVED: <h2 class="transparent-heading-box">Map of Duck Locations</h2> -->
 
 <div id="map-wrapper">
 <img id="campus-map-img"
 src="https://i.imgur.com/1aQCsPk.jpeg"
 alt="Interactive Campus Map">
 <div id="map-markers-overlay"></div>
+<!-- REMOVED OLD #map-info-popup DIV -->
 </div>
 
 </section>
