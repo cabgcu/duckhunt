@@ -920,68 +920,62 @@ function fetchAndRenderInfoData(silent = false) {
 }
 
 
-// --- UTILITY & NAVIGATION ---
-function startScanner() {
-if (document.getElementById('hunt-page')?.classList.contains('active')) {
-html5QrCode = new Html5Qrcode("qr-reader");
-const config = { fps: 10, qrbox: { width: 180, height: 180 }, aspectRatio: 1.0 };
-html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}).catch(err => console.log("QR scanner failed to start."));
-}
-}
-function stopScanner() {
-if (html5QrCode && html5QrCode.isScanning) {
-html5QrCode.stop().catch(err => {});
-}
-}
-function switchPage(pageId) {
-stopScanner();
-document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
-document.getElementById(pageId)?.classList.add('active');
-document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
-if (pageId === 'hunt-page') {
-updateUserDashboard();
-setTimeout(startScanner, 250);
-} else if (pageId === 'leaderboard-page') {
-updateLeaderboard();
-} else if (pageId === 'log-page') {
-updateScanHistory();
-} else if (pageId === 'map-page') {
-updateDuckMap();
-} else if (pageId === 'info-page') {
-    fetchAndRenderInfoData(); // Call the placeholder function
-} else {
-    // Ensure ribbon is still updated on non-info page clicks
-    periodicDataRefresh(); 
-}
-}
-function checkForInitialDuck() {
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.has('duckId')) {
-initialDuckId = urlParams.get('duckId');
-showNotification("Duck found! Sign in or register to claim it.");
-}
-}
-function showNotification(message) {
-const el = document.createElement('div');
-el.className = 'glass-card';
-el.style.position = 'fixed';
-el.style.top = '-150px';
-el.style.left = '50%';
-el.style.transform = 'translateX(-50%)';
-el.style.zIndex = '999';
-el.style.width = '80%';
-el.style.maxWidth = '350px';
-el.innerHTML = `<p>${message}</p>`;
-document.body.appendChild(el);
-setTimeout(() => el.style.top = '20px', 10);
-setTimeout(() => {
-el.style.top = '-150px';
-setTimeout(() => el.remove(), 500);
-}, 3000);
+// --- CORE LOGIN LOGIC (RESTORED) ---
+async function showApp(user, initialPageId) {
+currentUser = user;
+sessionStorage.setItem('currentUserStudentId', user.studentId);
+try {
+const [duckResult, historyResult, claimedDucksResult, ribbonResult] = await Promise.all([
+postToAction('getDuckData'),
+postToAction('getScanHistory', { studentId: currentUser.studentId }),
+postToAction('getClaimedDucks'),
+postToAction('getInfoData') // Fetch ribbon data on startup
+]);
+
+if (duckResult.status === "success") {
+duckDataCache = duckResult.ducks;
+} else { throw new Error("Failed to load duck data."); }
+
+if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
+claimedDucksCache = new Set(claimedDucksResult.claimed);
 }
 
-// --- CORE LOGIN LOGIC (RESTORED) ---
+if (Array.isArray(historyResult)) {
+scanHistoryCache = historyResult;
+document.getElementById('player-ducks').textContent = historyResult.length;
+const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+localVirtualScanTimestamps = historyResult.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo).map(scan => new Date(scan.timestamp).getTime());
+}
+
+if (ribbonResult.status === 'success') {
+    updateRibbon(ribbonResult.ribbonText);
+}
+
+} catch (e) {
+console.error("Failed to initialize app data:", e);
+alert("Could not load game data. Please try again.");
+const signinBtn = document.getElementById('signin-btn');
+if (signinBtn) { signinBtn.disabled = false; signinBtn.innerHTML = "Sign In"; }
+const submitBtn = document.getElementById('submit-btn');
+if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = "Submit"; }
+return;
+}
+loginScreen.classList.remove('visible');
+appWrapper.classList.add('visible');
+if (batchSendTimer) clearInterval(batchSendTimer);
+batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+await updateUserDashboard();
+
+switchPage(initialPageId);
+if (initialDuckId) {
+onScanSuccess(initialDuckId);
+initialDuckId = null;
+}
+}
+
+
 async function signIn(studentId) {
     const signinBtn = document.getElementById('signin-btn');
     const originalText = signinBtn.innerHTML;
