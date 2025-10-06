@@ -205,30 +205,47 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-    /* Set fixed height minus ribbon/nav bar and remove all padding */
+    /* Set fixed height for the content area minus navigation bar and ribbon */
     height: calc(100svh - var(--ribbon-height) - var(--tab-bar-height)); 
     overflow: hidden; /* Prevent page-level scrollbars */
     padding: 0; 
-    
-    /* Ensure flex children take space, but we manually handle the image container */
-    display: block; 
+    display: flex; /* Make it a flex container */
+    justify-content: center;
+    align-items: center;
 }
-#map-wrapper {
-    /* Map wrapper takes up all available vertical space in the page */
-    width: fit-content; 
-    height: 100%;
-    position: relative;
-    margin: 0; 
-    /* This handles the internal scrolling of the map content */
+/* New container to frame the map in a rounded glass card */
+#map-card-frame {
+    width: 100%;
+    height: 98%; /* Use almost all vertical space */
+    max-width: 100%;
+    margin: 0.5rem;
+    padding: 0;
+    
+    /* Apply Glass Card Styling */
+    background: var(--card-bg); 
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px); 
+    border: 1px solid var(--border-color); 
+    border-radius: 20px; 
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    
+    /* Enable internal scrolling for the zoomed content */
     overflow-x: scroll;
     overflow-y: scroll;
+    position: relative;
+}
+#map-wrapper {
+    /* Removed max-width restriction; map width now drives container width */
+    width: fit-content; 
+    position: relative;
+    margin: 0; 
 }
 #campus-map-img {
     /* Set image width to maintain zoom level */
     width: 300vw; 
-    min-width: 600px; 
+    min-width: 600px; /* Ensure a base size for detail */
     height: auto;
-    border-radius: 0;
+    border-radius: 0; 
     box-shadow: none; 
     display: block;
     user-select: none; 
@@ -499,16 +516,21 @@ pointer-events: none;
 </section>
 
 <section id="map-page" class="app-page">
-<!-- The page itself needs no padding, headers, or margins for full screen map -->
-<div id="map-wrapper" style="width: 100%; min-width: 1000px; position: relative; margin: 0;">
+<!-- 1. MAP CARD FRAME (New container for the rounded glass look) -->
+<div id="map-card-frame">
     
-    <img id="campus-map-img" 
-         src="https://i.imgur.com/1aQCsPk.jpeg" 
-         alt="Interactive Campus Map"
-         style="width: 100%; height: auto; border-radius: 0; display: block;">
-    
-    <!-- CANVAS OVERLAY FOR DRAWING STATUS TEXT -->
-    <canvas id="map-canvas"></canvas>
+    <!-- 2. INTERACTIVE MAP SECTION (Scrollable container, internal to the card) -->
+    <div id="map-wrapper" style="width: fit-content; position: relative; margin: 0;">
+        
+        <img id="campus-map-img" 
+             src="https://i.imgur.com/1aQCsPk.jpeg" 
+             alt="Interactive Campus Map"
+             style="width: 300vw; min-width: 600px; height: auto; border-radius: 0; display: block;">
+        
+        <!-- CANVAS OVERLAY FOR DRAWING STATUS TEXT -->
+        <canvas id="map-canvas"></canvas>
+        
+    </div>
     
 </div>
 </section>
