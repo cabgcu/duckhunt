@@ -61,7 +61,7 @@ transition: padding-top 0.3s ease;
     -webkit-backdrop-filter: blur(5px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
-    /* FINAL FONT SIZE: 0.85rem is a good, readable compromise */
+    /* FIX: Final reduced font size for containment and readability */
     font-size: 0.85rem; 
     display: flex;
     align-items: center;
@@ -76,8 +76,9 @@ transition: padding-top 0.3s ease;
 }
 #ribbon-content {
     white-space: nowrap;
-    display: flex; /* USE FLEXBOX */
-    align-items: center; /* VERTICALLY CENTERED CONTENT */
+    /* Use flex on the message container to guarantee vertical centering */
+    display: flex; 
+    align-items: center; 
     will-change: transform;
     color: var(--gold); /* Default color for the emoji */
     height: 100%; 
@@ -198,13 +199,6 @@ flex-shrink: 0;
 }
 /* END GOLDEN DUCK ANIMATION STYLES */
 
-/* FOOTER LOGO FIX */
-.footer-logo { 
-    height: 50px; 
-    margin: 0 auto 5px auto; /* Tighter spacing */
-    display: block; 
-    object-fit: contain; /* Ensures image maintains aspect ratio */
-}
 
 /* NEW CONTAINER TO ALIGN SCAN HISTORY AND RANK */
 #scanner-footer-details {
@@ -751,6 +745,18 @@ setTimeout(() => flake.remove(), 5000);
 }
 
 // --- CORE SCANNING & SYNC LOGIC ---
+function displaySuccessPopup(message, isGolden = false) {
+    const successPop = document.createElement('div');
+    successPop.className = 'point-pop';
+    
+    if (isGolden) {
+        successPop.classList.add('golden-point-pop');
+    }
+
+    successPop.textContent = message;
+    document.getElementById('qr-reader-container').appendChild(successPop);
+    setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
+}
 async function onScanSuccess(decodedText) {
 if (!currentUser) return;
 let finalDuckId = decodedText;
