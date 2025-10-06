@@ -235,13 +235,14 @@ font-weight: bold;
     position: relative;
 }
 #map-wrapper {
-    width: fit-content; 
+    /* FIX 4: Change img width to 110% of map-card-frame width for contained zoom */
+    width: 300vw; /* This size drives the internal scroll width */
     position: relative;
     margin: 0; 
 }
 #campus-map-img {
-    /* Set image width to be larger than container for zoomed effect, allowing scroll */
-    width: 300vw; 
+    /* Set image width to maintain zoom level */
+    width: 100%; /* Image takes up full width of map-wrapper (300vw) */
     min-width: 600px; 
     height: auto;
     border-radius: 0; 
