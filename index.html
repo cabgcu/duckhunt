@@ -601,7 +601,8 @@ alt="Interactive Campus Map">
 </div>
 <script>
 // --- CONFIGURATION ---
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYGcZRFUIOJvsC3rmQ8dLbBlJ5NmCyMQsO_U-7Qrl7ba5ADD9-/exec';
+// UPDATED SCRIPT URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
@@ -648,7 +649,7 @@ let scanHistoryCache = [];
 let scanQueue = [];
 let batchSendTimer = null;
 let dataRefreshTimer = null;
-let locationCountsCache = {}; 
+let locationCountsCache = {}; 
 
 // --- MAP INTERACTION LOGIC ---
 const mapWrapper = document.getElementById('map-wrapper');
@@ -657,12 +658,12 @@ function positionMarkers() {
 const overlay = document.getElementById('map-markers-overlay');
 if (!overlay || !mapImageElement || mapImageElement.naturalWidth === 0) return;
 
-overlay.innerHTML = ''; 
-const locationData = locationCountsCache; 
+overlay.innerHTML = ''; 
+const locationData = locationCountsCache; 
 
 MAP_SPOTS.forEach(spot => {
 const marker = document.createElement('div');
-marker.className = 'map-label'; 
+marker.className = 'map-label'; 
 
 const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
 const centerX = (x1 + x2) / 2;
@@ -671,8 +672,8 @@ const centerY = (y1 + y2) / 2;
 marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
 marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
 
-const dataKey = spot.dataKey; 
-const displayName = spot.name; 
+const dataKey = spot.dataKey; 
+const displayName = spot.name; 
 
 let remainingText;
 let spotData = locationData[dataKey]; 
@@ -702,7 +703,7 @@ async function updateDuckMapData() {
     if (result.status === 'success' && result.locations) {
         locationCountsCache = {};
         Object.keys(result.locations).forEach(name => {
-            locationCountsCache[name] = { count: result.locations[name] };
+            locationCountsCache[name] = { count: result.locations[name] };
         });
     }
 }
@@ -877,125 +878,124 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
+    if (!currentUser) return;
+    
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
 
-    // 🛑 CRITICAL FIX 🛑
-    // 1. Check if already claimed (server confirmed)
-    if (claimedDucksCache.has(lookupId)) {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-        return;
-    }
-    
-    // 2. Check if currently being processed (local lock)
-    if (processingDucks.has(lookupId)) {
-        displayErrorPopup("Scanning too fast! Processing previous scan.");
-        return;
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        displayErrorPopup("Invalid Duck ID");
-        return;
-    }
+    // 1. Check if already claimed (server confirmed)
+    if (claimedDucksCache.has(lookupId)) {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+        return;
+    }
+    
+    // 2. Check if currently being processed (local lock)
+    if (processingDucks.has(lookupId)) {
+        displayErrorPopup("Scanning too fast! Processing previous scan.");
+        return;
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        displayErrorPopup("Invalid Duck ID");
+        return;
+    }
 
-    // --- LOCK THE DUCK ID NOW ---
-    processingDucks.add(lookupId); 
-    
-    // --- Virtual Duck Limit Check ---
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} for Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId); // Unlock immediately if failed local check
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
+    // --- LOCK THE DUCK ID NOW ---
+    processingDucks.add(lookupId); 
+    
+    // --- Virtual Duck Limit Check ---
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} for Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId); // Unlock immediately if failed local check
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
 
-    // Perform Optimistic Update
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    // IMPORTANT: DO NOT add to claimedDucksCache here. Only add on server success.
+    // Perform Optimistic Update
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    // IMPORTANT: DO NOT add to claimedDucksCache here. Only add on server success.
 
-    const points = duckInfo.points || 0;
-    // Only optimistically update the points if it's not a virtual duck that might be blocked
-    if (duckInfo.type !== 'Virtual Duck' || localVirtualScanTimestamps.length <= VIRTUAL_LIMIT) {
-        currentUser.points += points;
-        const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
-        document.getElementById('player-ducks').textContent = currentDucks + 1;
-        document.getElementById('player-points').textContent = currentUser.points;
-    }
+    const points = duckInfo.points || 0;
+    // Only optimistically update the points if it's not a virtual duck that might be blocked
+    if (duckInfo.type !== 'Virtual Duck' || localVirtualScanTimestamps.length <= VIRTUAL_LIMIT) {
+        currentUser.points += points;
+        const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
+        document.getElementById('player-ducks').textContent = currentDucks + 1;
+        document.getElementById('player-points').textContent = currentUser.points;
+    }
 
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    displaySuccessPopup(`+${points}`, isGoldenDuck);
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    displaySuccessPopup(`+${points}`, isGoldenDuck);
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
 async function sendBatchScans() {
-    if (scanQueue.length === 0) return;
-    
-    const scansToSend = [...scanQueue];
-    scanQueue = [];
-    
-    // Collect IDs that were sent to the server to know which ones to unlock
-    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
+    if (scanQueue.length === 0) return;
+    
+    const scansToSend = [...scanQueue];
+    scanQueue = [];
+    
+    // Collect IDs that were sent to the server to know which ones to unlock
+    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
 
-    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-    
-    // --- UNLOCK ALL DUCKS THAT WERE SENT (FINALLY) ---
-    sentDuckIds.forEach(id => processingDucks.delete(id));
+    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+    
+    // --- UNLOCK ALL DUCKS THAT WERE SENT (FINALLY) ---
+    sentDuckIds.forEach(id => processingDucks.delete(id));
 
-    if (batchResult.status === "success") {
-        if (batchResult.updatedUser) {
-            // Synchronization: Overwrite optimistic total with authoritative server total
-            currentUser.points = batchResult.updatedUser.points;
-            document.getElementById('player-points').textContent = currentUser.points;
-            if (batchResult.updatedUser.duckCount !== undefined) {
-                document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
-            }
-        }
-        
-        if (batchResult.results) {
-            batchResult.results.forEach(result => {
-                const id = result.duckId.trim().toLowerCase();
-                
-                if (result.status === "success") {
-                    // Permanently lock the duck only on success
-                    claimedDucksCache.add(id); 
-                } else {
-                    // Revert the local optimistic point count (if applicable) and pop-up error
-                    displayRevertPopup(result.message || "A duck was claimed just before you!");
-                    // Note: If the server rejects the scan, the logic relies on the periodic
-                    // dashboard update (which fetches history) to synchronize the final points.
-                }
-            });
-        }
-    } else {
-        displayRevertPopup(batchResult.message || "A server error occurred.");
-        // Re-queue the failed scans to be retried
-        scanQueue = [...scansToSend, ...scanQueue];
-    }
+    if (batchResult.status === "success") {
+        if (batchResult.updatedUser) {
+            // Synchronization: Overwrite optimistic total with authoritative server total
+            currentUser.points = batchResult.updatedUser.points;
+            document.getElementById('player-points').textContent = currentUser.points;
+            if (batchResult.updatedUser.duckCount !== undefined) {
+                document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
+            }
+        }
+        
+        if (batchResult.results) {
+            batchResult.results.forEach(result => {
+                const id = result.duckId.trim().toLowerCase();
+                
+                if (result.status === "success") {
+                    // Permanently lock the duck only on success
+                    claimedDucksCache.add(id); 
+                } else {
+                    // Revert the local optimistic point count (if applicable) and pop-up error
+                    displayRevertPopup(result.message || "A duck was claimed just before you!");
+                    // Note: If the server rejects the scan, the logic relies on the periodic
+                    // dashboard update (which fetches history) to synchronize the final points.
+                }
+            });
+        }
+    } else {
+        displayRevertPopup(batchResult.message || "A server error occurred.");
+        // Re-queue the failed scans to be retried
+        scanQueue = [...scansToSend, ...scanQueue];
+    }
 }
 
 function periodicDataRefresh() {
 if (!currentUser) return;
 // Update dashboard, but only fetch and update points/ducks if there are NO pending scans
-updateUserDashboard(scanQueue.length === 0); 
+updateUserDashboard(scanQueue.length === 0); 
 
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
@@ -1005,165 +1005,165 @@ claimedDucksCache = new Set(result.claimed);
 // Fetch auxiliary data in the background if it's old
 const fiveMinutes = 5 * 60 * 1000;
 if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
-    postToAction('getInfoData').then(result => {
-        if (result.status === 'success') {
-            updateRibbon(result.ribbonText);
-            infoDataCache = result.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        } else {
-            updateRibbon('');
-        }
-    });
+    postToAction('getInfoData').then(result => {
+        if (result.status === 'success') {
+            updateRibbon(result.ribbonText);
+            infoDataCache = result.infoItems || [];
+            infoDataFetchTime = new Date();
+            if (document.getElementById('info-page').classList.contains('active')) {
+                renderInfoCards(infoDataCache);
+            }
+        } else {
+            updateRibbon('');
+        }
+    });
 }
 }
 
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId) {
-    currentUser = user;
-    sessionStorage.setItem('currentUserStudentId', user.studentId);
-    
-    // 1. Load CRITICAL Data (Duck Map & Claimed Status) - MUST COMPLETE BEFORE UI IS SHOWN
-    try {
-        const [duckResult, claimedDucksResult] = await Promise.all([
-            postToAction('getDuckData'),
-            postToAction('getClaimedDucks')
-        ]);
-        
-        if (duckResult.status === "success") {
-            duckDataCache = duckResult.ducks;
-        } else { throw new Error("Failed to load duck data."); }
-        
-        if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
-            claimedDucksCache = new Set(claimedDucksResult.claimed);
-        }
-    } catch (e) {
-        console.error("Failed to load critical game data:", e);
-        alert("Could not load critical game data. Please try again.");
-        return; 
-    }
+    currentUser = user;
+    sessionStorage.setItem('currentUserStudentId', user.studentId);
+    
+    // 1. Load CRITICAL Data (Duck Map & Claimed Status) - MUST COMPLETE BEFORE UI IS SHOWN
+    try {
+        const [duckResult, claimedDucksResult] = await Promise.all([
+            postToAction('getDuckData'),
+            postToAction('getClaimedDucks')
+        ]);
+        
+        if (duckResult.status === "success") {
+            duckDataCache = duckResult.ducks;
+        } else { throw new Error("Failed to load duck data."); }
+        
+        if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
+            claimedDucksCache = new Set(claimedDucksResult.claimed);
+        }
+    } catch (e) {
+        console.error("Failed to load critical game data:", e);
+        alert("Could not load critical game data. Please try again.");
+        return; 
+    }
 
-    // 2. Show UI and Start Scanner Immediately
-    loginScreen.classList.remove('visible');
-    appWrapper.classList.add('visible');
-    
-    // Set up timers
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-    
-    // Start scanner and switch to initial page
-    switchPage(initialPageId); 
-    
-    // Process initial duck QR code from URL if present
-    if (initialDuckId) {
-        onScanSuccess(initialDuckId);
-        initialDuckId = null;
-    }
+    // 2. Show UI and Start Scanner Immediately
+    loginScreen.classList.remove('visible');
+    appWrapper.classList.add('visible');
+    
+    // Set up timers
+    if (batchSendTimer) clearInterval(batchSendTimer);
+    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+    
+    // Start scanner and switch to initial page
+    switchPage(initialPageId); 
+    
+    // Process initial duck QR code from URL if present
+    if (initialDuckId) {
+        onScanSuccess(initialDuckId);
+        initialDuckId = null;
+    }
 
-    // 3. Load AUXILIARY Data (Asynchronously, in the background)
-    try {
-        const [historyResult, infoResult] = await Promise.all([
-            postToAction('getScanHistory', { studentId: currentUser.studentId }),
-            postToAction('getInfoData')
-        ]);
-        
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            document.getElementById('player-ducks').textContent = historyResult.length; 
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
-        
-        if (infoResult.status === 'success') {
-            updateRibbon(infoResult.ribbonText);
-            infoDataCache = infoResult.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load auxiliary data in background:", e);
-    }
-    
-    // Final update to set the welcome message and rank
-    await updateUserDashboard();
+    // 3. Load AUXILIARY Data (Asynchronously, in the background)
+    try {
+        const [historyResult, infoResult] = await Promise.all([
+            postToAction('getScanHistory', { studentId: currentUser.studentId }),
+            postToAction('getInfoData')
+        ]);
+        
+        if (Array.isArray(historyResult)) {
+            scanHistoryCache = historyResult;
+            document.getElementById('player-ducks').textContent = historyResult.length; 
+            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+            localVirtualScanTimestamps = historyResult
+                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                .map(scan => new Date(scan.timestamp).getTime());
+        }
+        
+        if (infoResult.status === 'success') {
+            updateRibbon(infoResult.ribbonText);
+            infoDataCache = infoResult.infoItems || [];
+            infoDataFetchTime = new Date();
+            if (document.getElementById('info-page').classList.contains('active')) {
+                renderInfoCards(infoDataCache);
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load auxiliary data in background:", e);
+    }
+    
+    // Final update to set the welcome message and rank
+    await updateUserDashboard();
 }
 
 async function signIn(studentId) {
-    const signinBtn = document.getElementById('signin-btn');
-    const originalContent = signinBtn.innerHTML;
-    
-    // IMMEDIATE UX FEEDBACK: Show spinner and disable button
-    signinBtn.innerHTML = '<div class="spinner"></div>';
-    signinBtn.disabled = true;
+    const signinBtn = document.getElementById('signin-btn');
+    const originalContent = signinBtn.innerHTML;
+    
+    // IMMEDIATE UX FEEDBACK: Show spinner and disable button
+    signinBtn.innerHTML = '<div class="spinner"></div>';
+    signinBtn.disabled = true;
 
-    const result = await postToAction('getUser', { studentId });
-    
-    // Reset button state
-    signinBtn.innerHTML = originalContent;
-    signinBtn.disabled = false;
+    const result = await postToAction('getUser', { studentId });
+    
+    // Reset button state
+    signinBtn.innerHTML = originalContent;
+    signinBtn.disabled = false;
 
-    if (result.status === "success") {
-        showApp(result.user, 'hunt-page');
-    } else {
-        alert("User not found! Please register before signing in.");
-    }
+    if (result.status === "success") {
+        showApp(result.user, 'hunt-page');
+    } else {
+        alert("User not found! Please register before signing in.");
+    }
 }
 
 async function registerUser() {
-    const submitBtn = document.getElementById('submit-btn');
-    const originalContent = submitBtn.innerHTML;
+    const submitBtn = document.getElementById('submit-btn');
+    const originalContent = submitBtn.innerHTML;
 
-    // VALIDATION (Quick local checks)
-    const payload = {
-        firstName: document.getElementById('reg-firstname').value.trim(),
-        lastName: document.getElementById('reg-lastname').value.trim(),
-        studentId: document.getElementById('reg-studentid').value.trim(),
-        email: document.getElementById('reg-email').value.trim()
-    };
-    
-    if (!payload.firstName || !payload.studentId) {
-        return alert("First Name and Student ID are required.");
-    }
-    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
-        return alert("Registration requires an @my.gcu.edu email address.");
-    }
-    
-    // IMMEDIATE UX FEEDBACK: Show spinner and disable button
-    submitBtn.innerHTML = '<div class="spinner"></div>';
-    submitBtn.disabled = true;
+    // VALIDATION (Quick local checks)
+    const payload = {
+        firstName: document.getElementById('reg-firstname').value.trim(),
+        lastName: document.getElementById('reg-lastname').value.trim(),
+        studentId: document.getElementById('reg-studentid').value.trim(),
+        email: document.getElementById('reg-email').value.trim()
+    };
+    
+    if (!payload.firstName || !payload.studentId) {
+        return alert("First Name and Student ID are required.");
+    }
+    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+        return alert("Registration requires an @my.gcu.edu email address.");
+    }
+    
+    // IMMEDIATE UX FEEDBACK: Show spinner and disable button
+    submitBtn.innerHTML = '<div class="spinner"></div>';
+    submitBtn.disabled = true;
 
-    try {
-        const result = await postToAction('registerUser', payload);
-        
-        // Reset button state
-        submitBtn.innerHTML = originalContent;
-        submitBtn.disabled = false;
-        
-        if (result.status === "success") {
-            // Fetch the created user profile (safe pattern)
-            const userResult = await postToAction('getUser', { studentId: payload.studentId });
-            if (userResult.status === "success") {
-                showApp(userResult.user, 'hunt-page');
-            } else {
-                throw new Error("Auto sign-in failed after registration.");
-            }
-        } else {
-            alert(result.message);
-        }
-    } catch (error) {
-        // Reset button state on error
-        submitBtn.innerHTML = originalContent;
-        submitBtn.disabled = false;
-        alert("Error registering. Please check your Student ID and try again.");
-    }
+    try {
+        const result = await postToAction('registerUser', payload);
+        
+        // Reset button state
+        submitBtn.innerHTML = originalContent;
+        submitBtn.disabled = false;
+        
+        if (result.status === "success") {
+            // Fetch the created user profile (safe pattern)
+            const userResult = await postToAction('getUser', { studentId: payload.studentId });
+            if (userResult.status === "success") {
+                showApp(userResult.user, 'hunt-page');
+            } else {
+                throw new Error("Auto sign-in failed after registration.");
+            }
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        // Reset button state on error
+        submitBtn.innerHTML = originalContent;
+        submitBtn.disabled = false;
+        alert("Error registering. Please check your Student ID and try again.");
+    }
 }
 // --- UI & DATA DISPLAY FUNCTIONS ---
 function displaySuccessPopup(message, isGolden = false) {
@@ -1218,11 +1218,11 @@ try {
         responses.shift(); 
     }
 
-    const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
-    const historyIndex = shouldUpdatePoints ? 1 : 1; 
+    const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
+    const historyIndex = shouldUpdatePoints ? 1 : 1; 
 
-    leaderboardData = responses[leaderboardIndex];
-    historyResult = responses[historyIndex];
+    leaderboardData = responses[leaderboardIndex];
+    historyResult = responses[historyIndex];
 
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
@@ -1251,7 +1251,7 @@ const listElement = document.getElementById('leaderboard-list');
 if (listElement.innerHTML === '') {
 listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
 }
-const leaderboardData = await postToAction('getLeaderboard'); 
+const leaderboardData = await postToAction('getLeaderboard'); 
 if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
 listElement.innerHTML = '<li class="list-item" style="justify-content:center;">No one has scanned any ducks yet!</li>';
 return;
@@ -1270,12 +1270,12 @@ function updateScanHistory() {
 const listElement = document.getElementById('log-list');
 const scanData = scanHistoryCache;
 if (!scanData || scanData.length === 0) {
-    if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
-        listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
-    } else {
-        listElement.innerHTML = '<li class="list-item" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
-    }
-    return;
+    if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
+        listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
+    } else {
+        listElement.innerHTML = '<li class="list-item" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
+    }
+    return;
 }
 let html = '';
 scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(scan => {
@@ -1393,7 +1393,7 @@ updateLeaderboard();
 } else if (pageId === 'log-page') {
 updateScanHistory();
 } else if (pageId === 'map-page') {
-initializeMap(); 
+initializeMap(); 
 } else if (pageId === 'info-page') {
 fetchAndRenderInfoData();
 }
