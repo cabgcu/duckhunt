@@ -585,6 +585,7 @@ pointer-events: none;
 
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<!-- Removed h2 class="transparent-heading-box">Campus Map</h2> -->
 <div id="map-card-container" class="glass-card">
     <div id="map-wrapper">
         <img id="campus-map-img"
@@ -632,7 +633,7 @@ pointer-events: none;
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
-const DATA_REFRESH_INTERVAL_MS = 60000;
+const DATA_REFRESH_INTERVAL_MS = 30000; // FIX: Sync every 30 seconds for stable points
 const VIRTUAL_LIMIT = 10; // Explicitly define the limit
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
@@ -958,19 +959,20 @@ async function onScanSuccess(decodedText) {
         localVirtualScanTimestamps.push(new Date().getTime());
     }
 
-    // Perform Optimistic Update... (rest of the function remains the same)
+    // Perform Optimistic Update... 
     scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
     
     const points = duckInfo.points || 0;
-    if (duckInfo.type !== 'Virtual Duck' || localVirtualScanTimestamps.length <= VIRTUAL_LIMIT) {
-        currentUser.points += points;
-        const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
-        document.getElementById('player-ducks').textContent = currentDucks + 1;
-        document.getElementById('player-points').textContent = currentUser.points;
-    }
+    
+    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
+     * The points and duck count will now ONLY update when the 
+     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
+     * This eliminates the visual flicker caused by premature local updates.
+     */
 
     const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    displaySuccessPopup(`+${points}`, isGoldenDuck);
+    // Still show the points pop-up to indicate the scan was captured.
+    displaySuccessPopup(`+${points}`, isGoldenDuck); 
     if (isGoldenDuck) {
         triggerGoldenDuckAnimation();
     } else {
@@ -994,7 +996,7 @@ async function sendBatchScans() {
 
     if (batchResult.status === "success") {
         if (batchResult.updatedUser) {
-            // Synchronization: Overwrite optimistic total with authoritative server total
+            // Synchronization: Overwrite client totals with authoritative server data
             currentUser.points = batchResult.updatedUser.points;
             document.getElementById('player-points').textContent = currentUser.points;
             if (batchResult.updatedUser.duckCount !== undefined) {
@@ -1012,8 +1014,6 @@ async function sendBatchScans() {
                 } else {
                     // Revert the local optimistic point count (if applicable) and pop-up error
                     displayRevertPopup(result.message || "A duck was claimed just before you!");
-                    // Note: If the server rejects the scan, the logic relies on the periodic
-                    // dashboard update (which fetches history) to synchronize the final points.
                 }
             });
         }
@@ -1026,8 +1026,8 @@ async function sendBatchScans() {
 
 function periodicDataRefresh() {
 if (!currentUser) return;
-// Update dashboard, but only fetch and update points/ducks if there are NO pending scans
-updateUserDashboard(scanQueue.length === 0); 
+// Update dashboard, relies on server data since we removed optimistic updates
+updateUserDashboard(true); 
 
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
@@ -1368,7 +1368,7 @@ container.innerHTML = html;
 
 document.querySelectorAll('.info-card-button').forEach(button => {
 button.addEventListener('click', (e) => {
-const index = e.currentTarget.dataset.infoInfoIndex;
+const index = e.currentTarget.dataset.infoIndex;
 const infoItem = infoDataCache[index];
 if (infoItem) {
 showInfoModal(infoItem.title, infoItem.content);
