@@ -585,7 +585,6 @@ pointer-events: none;
 
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<h2 class="transparent-heading-box">Campus Map</h2>
 <div id="map-card-container" class="glass-card">
     <div id="map-wrapper">
         <img id="campus-map-img"
@@ -1369,7 +1368,7 @@ container.innerHTML = html;
 
 document.querySelectorAll('.info-card-button').forEach(button => {
 button.addEventListener('click', (e) => {
-const index = e.currentTarget.dataset.infoIndex;
+const index = e.currentTarget.dataset.infoInfoIndex;
 const infoItem = infoDataCache[index];
 if (infoItem) {
 showInfoModal(infoItem.title, infoItem.content);
