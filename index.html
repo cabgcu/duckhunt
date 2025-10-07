@@ -878,72 +878,78 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
+    if (!currentUser) return;
+    
+    // Helper to trigger the visual error ring
+    const triggerVisualError = () => {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+    };
 
-    // 1. Check if already claimed (server confirmed)
-    if (claimedDucksCache.has(lookupId)) {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-        return;
-    }
-    
-    // 2. Check if currently being processed (local lock)
-    if (processingDucks.has(lookupId)) {
-        displayErrorPopup("Scanning too fast! Processing previous scan.");
-        return;
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        displayErrorPopup("Invalid Duck ID");
-        return;
-    }
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
 
-    // --- LOCK THE DUCK ID NOW ---
-    processingDucks.add(lookupId); 
-    
-    // --- Virtual Duck Limit Check ---
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} for Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId); // Unlock immediately if failed local check
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
+    // 1. Check if already permanently claimed
+    if (claimedDucksCache.has(lookupId)) {
+        triggerVisualError(); 
+        displayErrorPopup("Already Claimed"); 
+        return;
+    }
+    
+    // 2. Check if currently being processed (local lock)
+    if (processingDucks.has(lookupId)) {
+        triggerVisualError(); 
+        return;
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        // FIX: Use the visual error ring for invalid codes, no message pop-up.
+        triggerVisualError();
+        return;
+    }
 
-    // Perform Optimistic Update
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    // IMPORTANT: DO NOT add to claimedDucksCache here. Only add on server success.
+    // --- LOCK THE DUCK ID NOW ---
+    processingDucks.add(lookupId); 
+    
+    // --- Virtual Duck Limit Check ---
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            triggerVisualError(); 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId); // Unlock immediately if failed local check
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
 
-    const points = duckInfo.points || 0;
-    // Only optimistically update the points if it's not a virtual duck that might be blocked
-    if (duckInfo.type !== 'Virtual Duck' || localVirtualScanTimestamps.length <= VIRTUAL_LIMIT) {
-        currentUser.points += points;
-        const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
-        document.getElementById('player-ducks').textContent = currentDucks + 1;
-        document.getElementById('player-points').textContent = currentUser.points;
-    }
+    // Perform Optimistic Update... (rest of the function remains the same)
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    
+    const points = duckInfo.points || 0;
+    if (duckInfo.type !== 'Virtual Duck' || localVirtualScanTimestamps.length <= VIRTUAL_LIMIT) {
+        currentUser.points += points;
+        const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
+        document.getElementById('player-ducks').textContent = currentDucks + 1;
+        document.getElementById('player-points').textContent = currentUser.points;
+    }
 
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    displaySuccessPopup(`+${points}`, isGoldenDuck);
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    displaySuccessPopup(`+${points}`, isGoldenDuck);
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
 async function sendBatchScans() {
@@ -1111,8 +1117,10 @@ async function signIn(studentId) {
     signinBtn.disabled = false;
 
     if (result.status === "success") {
+        // SUCCESS: Spinner remains until showApp transitions the screen.
         showApp(result.user, 'hunt-page');
     } else {
+        // FAILURE: Reset button state
         alert("User not found! Please register before signing in.");
     }
 }
@@ -1143,7 +1151,7 @@ async function registerUser() {
     try {
         const result = await postToAction('registerUser', payload);
         
-        // Reset button state
+        // Reset button state on failure only
         submitBtn.innerHTML = originalContent;
         submitBtn.disabled = false;
         
@@ -1151,6 +1159,7 @@ async function registerUser() {
             // Fetch the created user profile (safe pattern)
             const userResult = await postToAction('getUser', { studentId: payload.studentId });
             if (userResult.status === "success") {
+                // SUCCESS: Spinner remains until showApp transitions the screen.
                 showApp(userResult.user, 'hunt-page');
             } else {
                 throw new Error("Auto sign-in failed after registration.");
