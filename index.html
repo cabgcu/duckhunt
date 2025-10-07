@@ -1027,7 +1027,7 @@ if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
 }
 
 // --- APP INITIALIZATION & LOGIN ---
-async function showApp(user, initialPageId) {
+async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     
@@ -1048,9 +1048,22 @@ async function showApp(user, initialPageId) {
     } catch (e) {
         console.error("Failed to load critical game data:", e);
         alert("Could not load critical game data. Please try again.");
+        
+        // Ensure buttons are functional if critical load fails
+        if (loginButtonEl) {
+            loginButtonEl.innerHTML = loginButtonContent;
+            loginButtonEl.disabled = false;
+        }
         return; 
     }
 
+    // 🛑 FIX: Reset the login button immediately after critical data loads, 
+    // but before the UI transition. This eliminates the flicker.
+    if (loginButtonEl) {
+        loginButtonEl.innerHTML = loginButtonContent;
+        loginButtonEl.disabled = false;
+    }
+    
     // 2. Show UI and Start Scanner Immediately
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
@@ -1112,15 +1125,13 @@ async function signIn(studentId) {
 
     const result = await postToAction('getUser', { studentId });
     
-    // Reset button state
-    signinBtn.innerHTML = originalContent;
-    signinBtn.disabled = false;
-
     if (result.status === "success") {
-        // SUCCESS: Spinner remains until showApp transitions the screen.
-        showApp(result.user, 'hunt-page');
+        // SUCCESS: Pass button state to showApp
+        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
     } else {
         // FAILURE: Reset button state
+        signinBtn.innerHTML = originalContent;
+        signinBtn.disabled = false;
         alert("User not found! Please register before signing in.");
     }
 }
@@ -1151,24 +1162,22 @@ async function registerUser() {
     try {
         const result = await postToAction('registerUser', payload);
         
-        // Reset button state on failure only
-        submitBtn.innerHTML = originalContent;
-        submitBtn.disabled = false;
-        
         if (result.status === "success") {
-            // Fetch the created user profile (safe pattern)
             const userResult = await postToAction('getUser', { studentId: payload.studentId });
             if (userResult.status === "success") {
-                // SUCCESS: Spinner remains until showApp transitions the screen.
-                showApp(userResult.user, 'hunt-page');
+                // SUCCESS: Pass button state to showApp
+                showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
             } else {
                 throw new Error("Auto sign-in failed after registration.");
             }
         } else {
+            // FAILURE: Reset button state
+            submitBtn.innerHTML = originalContent;
+            submitBtn.disabled = false;
             alert(result.message);
         }
     } catch (error) {
-        // Reset button state on error
+        // CATCH FAILURE: Reset button state
         submitBtn.innerHTML = originalContent;
         submitBtn.disabled = false;
         alert("Error registering. Please check your Student ID and try again.");
