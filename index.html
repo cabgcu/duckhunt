@@ -601,7 +601,7 @@ alt="Interactive Campus Map">
 </div>
 <script>
 // --- CONFIGURATION ---
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYGcZRFUIOJvsC3rmQ8dLgBlJ5NmCyMQsO_U-7Qrl7ba5ADD9-/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXX8-Bl1PnaAKkLSjYGcZRFUIOJvsC3rmQ8dLbBlJ5NmCyMQsO_U-7Qrl7ba5ADD9-/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 60000;
@@ -642,6 +642,7 @@ const mapImageElement = document.getElementById('campus-map-img');
 // --- CACHING & STATE ---
 let duckDataCache = {};
 let claimedDucksCache = new Set();
+let processingDucks = new Set(); // CRITICAL FIX: Tracks ducks currently sent to server
 let localVirtualScanTimestamps = [];
 let scanHistoryCache = [];
 let scanQueue = [];
@@ -876,89 +877,121 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 async function onScanSuccess(decodedText) {
-if (!currentUser) return;
-let finalDuckId = decodedText;
-try {
-const url = new URL(decodedText);
-if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-} catch (e) {}
-const lookupId = finalDuckId.trim().toLowerCase();
-if (claimedDucksCache.has(lookupId)) {
-const qrContainer = document.getElementById('qr-reader-container');
-qrContainer.classList.add('error-flash');
-setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-return;
-}
-const duckInfo = duckDataCache[lookupId];
-if (!duckInfo) {
-displayErrorPopup("Invalid Duck ID");
-return;
-}
-if (duckInfo.type === 'Virtual Duck') {
-    const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-    localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-    
-    if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-        displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} for Virtual Ducks reached.`);
-        triggerFrostAnimation();
-        return;
-    }
-    
-    localVirtualScanTimestamps.push(new Date().getTime());
-}
-// Perform Optimistic Update
-scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-claimedDucksCache.add(lookupId);
-const points = duckInfo.points || 0;
-// Only optimistically update the points if the duck is NOT a virtual one (to be safer about rate limits)
-if (duckInfo.type !== 'Virtual Duck' || localVirtualScanTimestamps.length <= VIRTUAL_LIMIT) {
-    currentUser.points += points;
-    const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
-    document.getElementById('player-ducks').textContent = currentDucks + 1;
-    document.getElementById('player-points').textContent = currentUser.points;
+    if (!currentUser) return;
+    
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
+
+    // 🛑 CRITICAL FIX 🛑
+    // 1. Check if already claimed (server confirmed)
+    if (claimedDucksCache.has(lookupId)) {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+        return;
+    }
+    
+    // 2. Check if currently being processed (local lock)
+    if (processingDucks.has(lookupId)) {
+        displayErrorPopup("Scanning too fast! Processing previous scan.");
+        return;
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        displayErrorPopup("Invalid Duck ID");
+        return;
+    }
+
+    // --- LOCK THE DUCK ID NOW ---
+    processingDucks.add(lookupId); 
+    
+    // --- Virtual Duck Limit Check ---
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} for Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId); // Unlock immediately if failed local check
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
+
+    // Perform Optimistic Update
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    // IMPORTANT: DO NOT add to claimedDucksCache here. Only add on server success.
+
+    const points = duckInfo.points || 0;
+    // Only optimistically update the points if it's not a virtual duck that might be blocked
+    if (duckInfo.type !== 'Virtual Duck' || localVirtualScanTimestamps.length <= VIRTUAL_LIMIT) {
+        currentUser.points += points;
+        const currentDucks = parseInt(document.getElementById('player-ducks').textContent, 10) || 0;
+        document.getElementById('player-ducks').textContent = currentDucks + 1;
+        document.getElementById('player-points').textContent = currentUser.points;
+    }
+
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    displaySuccessPopup(`+${points}`, isGoldenDuck);
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
-
-const isGoldenDuck = duckInfo.type === 'Golden Duck';
-displaySuccessPopup(`+${points}`, isGoldenDuck);
-if (isGoldenDuck) {
-triggerGoldenDuckAnimation();
-} else {
-triggerDuckAnimation();
-}
-}
 async function sendBatchScans() {
-if (scanQueue.length === 0) return;
-const scansToSend = [...scanQueue];
-scanQueue = [];
-const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-if (batchResult.status === "success") {
-if (batchResult.updatedUser) {
-// Synchronization: Overwrite optimistic total with authoritative server total
-currentUser.points = batchResult.updatedUser.points;
-document.getElementById('player-points').textContent = currentUser.points;
-if (batchResult.updatedUser.duckCount !== undefined) {
-document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
+    if (scanQueue.length === 0) return;
+    
+    const scansToSend = [...scanQueue];
+    scanQueue = [];
+    
+    // Collect IDs that were sent to the server to know which ones to unlock
+    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
+
+    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+    
+    // --- UNLOCK ALL DUCKS THAT WERE SENT (FINALLY) ---
+    sentDuckIds.forEach(id => processingDucks.delete(id));
+
+    if (batchResult.status === "success") {
+        if (batchResult.updatedUser) {
+            // Synchronization: Overwrite optimistic total with authoritative server total
+            currentUser.points = batchResult.updatedUser.points;
+            document.getElementById('player-points').textContent = currentUser.points;
+            if (batchResult.updatedUser.duckCount !== undefined) {
+                document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
+            }
+        }
+        
+        if (batchResult.results) {
+            batchResult.results.forEach(result => {
+                const id = result.duckId.trim().toLowerCase();
+                
+                if (result.status === "success") {
+                    // Permanently lock the duck only on success
+                    claimedDucksCache.add(id); 
+                } else {
+                    // Revert the local optimistic point count (if applicable) and pop-up error
+                    displayRevertPopup(result.message || "A duck was claimed just before you!");
+                    // Note: If the server rejects the scan, the logic relies on the periodic
+                    // dashboard update (which fetches history) to synchronize the final points.
+                }
+            });
+        }
+    } else {
+        displayRevertPopup(batchResult.message || "A server error occurred.");
+        // Re-queue the failed scans to be retried
+        scanQueue = [...scansToSend, ...scanQueue];
+    }
 }
-}
-if (batchResult.results) {
-batchResult.results.forEach(result => {
-if (result.status !== "success") {
-// Handle server rejections and revert local claim
-displayRevertPopup(result.message || "A duck was claimed just before you!");
-const failedDuckId = result.duckId.trim().toLowerCase();
-if (claimedDucksCache.has(failedDuckId)) {
-    claimedDucksCache.delete(failedDuckId);
-}
-}
-});
-}
-} else {
-displayRevertPopup(batchResult.message || "A server error occurred.");
-// Re-queue the failed scans to be retried
-scanQueue = [...scansToSend, ...scanQueue];
-}
-}
+
 function periodicDataRefresh() {
 if (!currentUser) return;
 // Update dashboard, but only fetch and update points/ducks if there are NO pending scans
