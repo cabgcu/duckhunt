@@ -897,14 +897,13 @@ async function onScanSuccess(decodedText) {
     // 1. Check if already permanently claimed
     if (claimedDucksCache.has(lookupId)) {
         triggerVisualError(); 
-        displayErrorPopup("Already Claimed"); 
-        return;
+        return; // No message pop-up on duplicate
     }
     
     // 2. Check if currently being processed (local lock)
     if (processingDucks.has(lookupId)) {
         triggerVisualError(); 
-        return;
+        return; // No message pop-up on scanning too fast
     }
     
     const duckInfo = duckDataCache[lookupId];
