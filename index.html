@@ -205,23 +205,48 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-padding-top: 0;
+    /* New: Allows map card to scroll vertically relative to the page */
+    padding-top: var(--safe-padding); 
+    justify-content: flex-start;
 }
+
+#map-card-container {
+    /* Card container properties */
+    flex: 1; 
+    width: 100%;
+    max-width: 450px; 
+    
+    /* CRITICAL: Set a fixed height and enable internal scrolling */
+    height: 60vh; /* Adjust height as needed for mobile screen visibility */
+    padding: 0; 
+    overflow-x: scroll; /* Enables horizontal scrolling within this card */
+    overflow-y: hidden; /* Disables vertical scrolling if map is wider than tall */
+}
+
 #map-wrapper {
-width: 250vw; /* HUGE WIDTH for large, scrollable panoramic view on mobile */
-position: relative;
-max-width: none; /* Ensure it can exceed 600px */
-margin: 0.5rem auto; /* SHRUNK: Reduced top/bottom margin to push map up */
-line-height: 0; /* Prevents extra space below image */
+    /* We still need a very large width to allow the image to scale beyond the screen */
+    width: 250vw; 
+    max-width: none; 
+    
+    /* CRITICAL: Make wrapper match the height of #map-card-container */
+    height: 100%; 
+    
+    position: relative;
+    margin: 0; 
+    line-height: 0;
 }
 #campus-map-img {
-width: 100%;
-height: auto;
-border-radius: 10px;
-box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-display: block;
-user-select: none;
--webkit-user-drag: none;
+    width: 100%;
+    /* CRITICAL: Allow image to scale its height proportionally based on the 100% width, 
+       but clip the bottom if it exceeds the 60vh height of the card. */
+    height: 100%; 
+    object-fit: contain; /* Ensures the whole image is visible within the 100% height/width */
+    object-position: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 #map-markers-overlay {
 position: absolute;
@@ -560,14 +585,17 @@ pointer-events: none;
 
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<div id="map-wrapper">
-<img id="campus-map-img"
-src="https://i.imgur.com/1aQCsPk.jpeg"
-alt="Interactive Campus Map">
-<div id="map-markers-overlay"></div>
+<h2 class="transparent-heading-box">Campus Map</h2>
+<div id="map-card-container" class="glass-card">
+    <div id="map-wrapper">
+        <img id="campus-map-img"
+        src="https://i.imgur.com/1aQCsPk.jpeg"
+        alt="Interactive Campus Map">
+        <div id="map-markers-overlay"></div>
+    </div>
 </div>
-
 </section>
+
 <section id="leaderboard-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Leaderboard</h2>
@@ -897,7 +925,7 @@ async function onScanSuccess(decodedText) {
     // 1. Check if already permanently claimed
     if (claimedDucksCache.has(lookupId)) {
         triggerVisualError(); 
-        return; // No message pop-up on duplicate
+        return; // No message pop-up on duplicate claim
     }
     
     // 2. Check if currently being processed (local lock)
