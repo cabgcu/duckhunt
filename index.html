@@ -219,36 +219,26 @@ font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 
-/* --- CORRECTED MAP STYLES --- */
+/* --- MAP STYLES --- */
 #map-page {
     padding-top: var(--safe-padding);
     justify-content: flex-start;
 }
-/* This is the card that acts as our viewport */
 #map-card-container {
-    /* Sizing to fit mobile screen */
     width: 100%;
     max-width: 450px;
-    height: 75vh; /* A good height for mobile */
-
-    /* CRITICAL FIX: Enable scrolling within THIS element */
-    overflow: scroll;
-
-    /* Remove padding so the map image is edge-to-edge inside the card */
-    padding: 0;
+    height: 75vh;
+    overflow: scroll; /* Allow scrolling/panning inside the card */
+    padding: 0; /* Remove padding for edge-to-edge map */
 }
-/* This wrapper holds the very large map image */
 #map-wrapper {
     position: relative;
-    /* Make the content much wider than the screen */
-    width: 250vw;
-    height: 100%; /* Match the card's height */
+    width: 250vw; /* Make content wider than screen for panning */
+    height: 100%;
 }
-/* The actual map image */
 #campus-map-img {
     width: 100%;
     height: 100%;
-    /* Use 'cover' to ensure the image fills the wrapper, allowing for panning */
     object-fit: cover;
     display: block;
 }
@@ -260,6 +250,7 @@ font-weight: bold;
     height: 100%;
     pointer-events: none;
 }
+/* UPDATED: Smaller default labels with smooth transition */
 .map-label {
     position: absolute;
     z-index: 10;
@@ -271,24 +262,24 @@ font-weight: bold;
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--green);
     border-radius: 8px;
-    /* Use px for sizes so they are consistent while scrolling */
-    padding: 8px 12px;
-    min-width: 140px;
+    padding: 5px 10px;
+    min-width: 110px;
     text-align: center;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     white-space: normal;
     line-height: 1.3;
+    transition: transform 0.2s ease-out; /* For smooth scaling */
 }
 .map-label h4 {
     margin: 0;
-    font-size: 16px; /* Changed from vw */
+    font-size: 14px;
     font-weight: bold;
     color: white;
 }
 .map-label p {
     margin: 0;
-    padding-top: 4px; /* Changed from vw */
-    font-size: 13px; /* Changed from vw */
+    padding-top: 4px;
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.9);
 }
 .map-label.cleared {
@@ -628,17 +619,21 @@ pointer-events: none;
 </div>
 <script>
 // --- CONFIGURATION ---
-// UPDATED SCRIPT URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
-const DATA_REFRESH_INTERVAL_MS = 30000; // FIX: Sync every 30 seconds for stable points
-const VIRTUAL_LIMIT = 10; // Explicitly define the limit
+const DATA_REFRESH_INTERVAL_MS = 30000;
+const VIRTUAL_LIMIT = 10;
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
 /*
 |=================================================================================|
 | **MAP COORDINATE SETUP (EDIT THESE VALUES)** |
+|=================================================================================|
+| The 'coords' values below are absolute pixel coordinates based on the original  |
+| map image file (e.g., in an image editor like Photoshop or GIMP).               |
+| The format is 'x1,y1,x2,y2' defining a bounding box for the location.           |
+| To adjust a label's position, you must fine-tune these numbers.                 |
 |=================================================================================|
 */
 const MAP_SPOTS = [
@@ -670,7 +665,7 @@ const mapImageElement = document.getElementById('campus-map-img');
 // --- CACHING & STATE ---
 let duckDataCache = {};
 let claimedDucksCache = new Set();
-let processingDucks = new Set(); // CRITICAL FIX: Tracks ducks currently sent to server
+let processingDucks = new Set();
 let localVirtualScanTimestamps = [];
 let scanHistoryCache = [];
 let scanQueue = [];
@@ -679,7 +674,34 @@ let dataRefreshTimer = null;
 let locationCountsCache = {}; 
 
 // --- MAP INTERACTION LOGIC ---
-const mapWrapper = document.getElementById('map-wrapper');
+const mapCardContainer = document.getElementById('map-card-container');
+let isPanning = false;
+
+// NEW: Scales labels based on their proximity to the center of the viewport
+function updateLabelSizeOnPan() {
+    if (!isPanning) return; // Only run when needed
+
+    const viewportCenterX = mapCardContainer.scrollLeft + mapCardContainer.clientWidth / 2;
+    const viewportCenterY = mapCardContainer.scrollTop + mapCardContainer.clientHeight / 2;
+    // Use a diagonal of the viewport as a rough max distance for scaling
+    const maxDistance = Math.sqrt(Math.pow(mapCardContainer.clientWidth / 2, 2) + Math.pow(mapCardContainer.clientHeight / 2, 2));
+
+    document.querySelectorAll('.map-label').forEach(label => {
+        const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
+        const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
+
+        // Calculate distance from the label's center to the viewport's center
+        const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
+
+        // Scale is largest (1.15) at the center, and smallest (0.9) at the edges
+        const scale = 1.15 - (distance / maxDistance) * 0.25;
+
+        // Apply the original centering transform plus the new scale, clamped to a reasonable size
+        label.style.transform = `translate(-50%, -50%) scale(${Math.max(0.9, Math.min(scale, 1.15))})`;
+    });
+
+    isPanning = false; // Reset the flag until the next scroll event
+}
 
 function positionMarkers() {
 const overlay = document.getElementById('map-markers-overlay');
@@ -696,7 +718,6 @@ const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
 const centerX = (x1 + x2) / 2;
 const centerY = (y1 + y2) / 2;
 
-// Position based on the natural dimensions of the source image
 marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
 marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
 
@@ -723,6 +744,9 @@ marker.classList.add('cleared');
 marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
 overlay.appendChild(marker);
 });
+// Initial size update after placing markers
+isPanning = true;
+updateLabelSizeOnPan();
 }
 
 async function updateDuckMapData() {
@@ -741,6 +765,14 @@ function initializeMap() {
         mapResizeObserver.disconnect();
         mapResizeObserver = null;
     }
+
+    // NEW: Add event listener for dynamic scaling
+    mapCardContainer.addEventListener('scroll', () => {
+        if (!isPanning) {
+            isPanning = true;
+            window.requestAnimationFrame(updateLabelSizeOnPan);
+        }
+    });
 
     const imageLoadPromise = new Promise(resolve => {
         if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
@@ -908,7 +940,6 @@ setTimeout(() => flake.remove(), 5000);
 async function onScanSuccess(decodedText) {
     if (!currentUser) return;
     
-    // Helper to trigger the visual error ring
     const triggerVisualError = () => {
         const qrContainer = document.getElementById('qr-reader-container');
         qrContainer.classList.add('error-flash');
@@ -922,29 +953,24 @@ async function onScanSuccess(decodedText) {
     } catch (e) {}
     const lookupId = finalDuckId.trim().toLowerCase();
 
-    // 1. Check if already permanently claimed
     if (claimedDucksCache.has(lookupId)) {
         triggerVisualError(); 
-        return; // No message pop-up on duplicate claim
+        return;
     }
     
-    // 2. Check if currently being processed (local lock)
     if (processingDucks.has(lookupId)) {
         triggerVisualError(); 
-        return; // No message pop-up on scanning too fast
+        return;
     }
     
     const duckInfo = duckDataCache[lookupId];
     if (!duckInfo) {
-        // FIX: Use the visual error ring for invalid codes, no message pop-up.
         triggerVisualError();
         return;
     }
 
-    // --- LOCK THE DUCK ID NOW ---
     processingDucks.add(lookupId); 
     
-    // --- Virtual Duck Limit Check ---
     if (duckInfo.type === 'Virtual Duck') {
         const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
         localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
@@ -953,25 +979,17 @@ async function onScanSuccess(decodedText) {
             triggerVisualError(); 
             displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
             triggerFrostAnimation();
-            processingDucks.delete(lookupId); // Unlock immediately if failed local check
+            processingDucks.delete(lookupId);
             return;
         }
         localVirtualScanTimestamps.push(new Date().getTime());
     }
 
-    // Perform Optimistic Update... 
     scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
     
     const points = duckInfo.points || 0;
     
-    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
-     * The points and duck count will now ONLY update when the 
-     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
-     * This eliminates the visual flicker caused by premature local updates.
-     */
-
     const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    // Still show the points pop-up to indicate the scan was captured.
     displaySuccessPopup(`+${points}`, isGoldenDuck); 
     if (isGoldenDuck) {
         triggerGoldenDuckAnimation();
@@ -986,17 +1004,14 @@ async function sendBatchScans() {
     const scansToSend = [...scanQueue];
     scanQueue = [];
     
-    // Collect IDs that were sent to the server to know which ones to unlock
     const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
 
     const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
     
-    // --- UNLOCK ALL DUCKS THAT WERE SENT (FINALLY) ---
     sentDuckIds.forEach(id => processingDucks.delete(id));
 
     if (batchResult.status === "success") {
         if (batchResult.updatedUser) {
-            // Synchronization: Overwrite client totals with authoritative server data
             currentUser.points = batchResult.updatedUser.points;
             document.getElementById('player-points').textContent = currentUser.points;
             if (batchResult.updatedUser.duckCount !== undefined) {
@@ -1009,24 +1024,20 @@ async function sendBatchScans() {
                 const id = result.duckId.trim().toLowerCase();
                 
                 if (result.status === "success") {
-                    // Permanently lock the duck only on success
                     claimedDucksCache.add(id); 
                 } else {
-                    // Revert the local optimistic point count (if applicable) and pop-up error
                     displayRevertPopup(result.message || "A duck was claimed just before you!");
                 }
             });
         }
     } else {
         displayRevertPopup(batchResult.message || "A server error occurred.");
-        // Re-queue the failed scans to be retried
         scanQueue = [...scansToSend, ...scanQueue];
     }
 }
 
 function periodicDataRefresh() {
 if (!currentUser) return;
-// Update dashboard, relies on server data since we removed optimistic updates
 updateUserDashboard(true); 
 
 postToAction('getClaimedDucks').then(result => {
@@ -1034,7 +1045,6 @@ if (result.status === 'success' && Array.isArray(result.claimed)) {
 claimedDucksCache = new Set(result.claimed);
 }
 });
-// Fetch auxiliary data in the background if it's old
 const fiveMinutes = 5 * 60 * 1000;
 if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
     postToAction('getInfoData').then(result => {
@@ -1057,7 +1067,6 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     
-    // 1. Load CRITICAL Data (Duck Map & Claimed Status) - MUST COMPLETE BEFORE UI IS SHOWN
     try {
         const [duckResult, claimedDucksResult] = await Promise.all([
             postToAction('getDuckData'),
@@ -1075,7 +1084,6 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         console.error("Failed to load critical game data:", e);
         alert("Could not load critical game data. Please try again.");
         
-        // Ensure buttons are functional if critical load fails
         if (loginButtonEl) {
             loginButtonEl.innerHTML = loginButtonContent;
             loginButtonEl.disabled = false;
@@ -1083,33 +1091,26 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         return; 
     }
 
-    // 🛑 FIX: Reset the login button immediately after critical data loads, 
-    // but before the UI transition. This eliminates the flicker.
     if (loginButtonEl) {
         loginButtonEl.innerHTML = loginButtonContent;
         loginButtonEl.disabled = false;
     }
     
-    // 2. Show UI and Start Scanner Immediately
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
     
-    // Set up timers
     if (batchSendTimer) clearInterval(batchSendTimer);
     batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
     dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
     
-    // Start scanner and switch to initial page
     switchPage(initialPageId); 
     
-    // Process initial duck QR code from URL if present
     if (initialDuckId) {
         onScanSuccess(initialDuckId);
         initialDuckId = null;
     }
 
-    // 3. Load AUXILIARY Data (Asynchronously, in the background)
     try {
         const [historyResult, infoResult] = await Promise.all([
             postToAction('getScanHistory', { studentId: currentUser.studentId }),
@@ -1137,7 +1138,6 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         console.error("Failed to load auxiliary data in background:", e);
     }
     
-    // Final update to set the welcome message and rank
     await updateUserDashboard();
 }
 
@@ -1145,17 +1145,14 @@ async function signIn(studentId) {
     const signinBtn = document.getElementById('signin-btn');
     const originalContent = signinBtn.innerHTML;
     
-    // IMMEDIATE UX FEEDBACK: Show spinner and disable button
     signinBtn.innerHTML = '<div class="spinner"></div>';
     signinBtn.disabled = true;
 
     const result = await postToAction('getUser', { studentId });
     
     if (result.status === "success") {
-        // SUCCESS: Pass button state to showApp
         showApp(result.user, 'hunt-page', signinBtn, originalContent); 
     } else {
-        // FAILURE: Reset button state
         signinBtn.innerHTML = originalContent;
         signinBtn.disabled = false;
         alert("User not found! Please register before signing in.");
@@ -1166,7 +1163,6 @@ async function registerUser() {
     const submitBtn = document.getElementById('submit-btn');
     const originalContent = submitBtn.innerHTML;
 
-    // VALIDATION (Quick local checks)
     const payload = {
         firstName: document.getElementById('reg-firstname').value.trim(),
         lastName: document.getElementById('reg-lastname').value.trim(),
@@ -1181,7 +1177,6 @@ async function registerUser() {
         return alert("Registration requires an @my.gcu.edu email address.");
     }
     
-    // IMMEDIATE UX FEEDBACK: Show spinner and disable button
     submitBtn.innerHTML = '<div class="spinner"></div>';
     submitBtn.disabled = true;
 
@@ -1191,19 +1186,16 @@ async function registerUser() {
         if (result.status === "success") {
             const userResult = await postToAction('getUser', { studentId: payload.studentId });
             if (userResult.status === "success") {
-                // SUCCESS: Pass button state to showApp
                 showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
             } else {
                 throw new Error("Auto sign-in failed after registration.");
             }
         } else {
-            // FAILURE: Reset button state
             submitBtn.innerHTML = originalContent;
             submitBtn.disabled = false;
             alert(result.message);
         }
     } catch (error) {
-        // CATCH FAILURE: Reset button state
         submitBtn.innerHTML = originalContent;
         submitBtn.disabled = false;
         alert("Error registering. Please check your Student ID and try again.");
@@ -1385,7 +1377,6 @@ if (!infoDataCache || infoDataCache.length === 0) {
 container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
 }
 
-// Use cached data if it's recent (less than 5 minutes old)
 if (infoDataCache.length > 0 && infoDataFetchTime && (new Date() - infoDataFetchTime < fiveMinutes)) {
 renderInfoCards(infoDataCache);
 return;
