@@ -51,7 +51,7 @@ text-align: center;
     background: var(--glass-bg); 
     backdrop-filter: blur(15px); 
     -webkit-backdrop-filter: blur(15px); 
-    border: 1px solid var(--glass-border); /* Used glass border */
+    border: 1px solid var(--glass-border); 
     border-radius: 20px; 
     box-shadow: 0 8px 32px 0 var(--glass-shadow); 
     padding: 1.5rem; 
@@ -235,7 +235,7 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 
 /* ----------------------------------------------------------------- */
-/* 🗺️ MAP SPECIFIC STYLES (EXACTLY AS PROVIDED IN YOUR SOURCE) 🗺️ */
+/* 🗺️ MAP SPECIFIC STYLES (EXACTLY AS REQUESTED) 🗺️ */
 /* ----------------------------------------------------------------- */
 #map-page {
     /* New: Allows map card to scroll vertically relative to the page */
@@ -312,11 +312,10 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 white-space: normal;
 line-height: 1.3;
 }
-/* Re-applying glow for consistency */
+/* Applying glow for consistency */
 .map-label:hover {
     box-shadow: 0 0 15px var(--glow-color);
 }
-
 
 .map-label h4 {
 margin: 0;
@@ -336,6 +335,7 @@ border-color: #ff4d4d;
 background-color: rgba(50, 50, 50, 0.85);
 opacity: 0.8;
 }
+
 /* End Map Specific Styles */
 /* ----------------------------------------------------------------- */
 /* 🎨 UI ELEMENTS - MERGED WITH GLASS GLOW STYLING */
@@ -419,7 +419,7 @@ padding-left: 25px;
 margin-bottom: 0.5rem;
 }
 .info-card-button {
-background: var(--glass-bg);
+background: var(--glass-bg); /* Using glass style */
 border: 1px solid var(--glass-border);
 border-radius: 12px;
 padding: 1rem 1.5rem;
@@ -447,7 +447,7 @@ color: white;
     border: 1px solid var(--glass-border); 
     border-radius: 12px; 
     padding: 0.8rem 1.2rem; 
-    box-shadow: 0 4px 8px 0 var(--glass-shadow); 
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); 
     display: flex; 
     justify-content: space-between; 
     align-items: flex-start; 
@@ -516,7 +516,6 @@ color: var(--green);
 .primary-btn { background-color: var(--green); color: white; }
 .secondary-btn { background-color: transparent; color: var(--green); border-color: var(--glass-border); }
 .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
-
 #lava-container {
 position: fixed;
 top: 0;
@@ -755,7 +754,7 @@ let batchSendTimer = null;
 let dataRefreshTimer = null;
 let locationCountsCache = {}; 
 
-// --- MAP INTERACTION LOGIC ---
+// --- MAP INTERACTION LOGIC (Your exact map code/rules) ---
 const mapWrapper = document.getElementById('map-wrapper');
 
 function positionMarkers() {
@@ -1062,7 +1061,6 @@ async function sendBatchScans() {
     const scansToSend = [...scanQueue];
     scanQueue = [];
     
-    // Collect IDs that were sent to the server to know which ones to unlock
     const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
 
     const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
@@ -1078,7 +1076,6 @@ async function sendBatchScans() {
                 const points = duckInfo ? duckInfo.points : 0;
                 
                 if (result.status === "success") {
-                    // Permanently lock the duck only on success
                     claimedDucksCache.add(id); 
                 } else {
                     // 🌟 REVERT OPTIMISTIC UPDATE if the server failed the scan 🌟
@@ -1133,16 +1130,19 @@ if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
 }
 }
 
-// --- APP INITIALIZATION & LOGIN ---
+// --- APP INITIALIZATION & LOGIN (Sequential Data Load Restored) ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     
     // 1. Load CRITICAL Data (Duck Map & Claimed Status) - MUST COMPLETE BEFORE UI IS SHOWN
     try {
-        const [duckResult, claimedDucksResult] = await Promise.all([
-            postToAction('getDuckData'),
-            postToAction('getClaimedDucks')
+        // Fetch ALL CRITICAL data sequentially here to prevent a split-second blank screen
+        const [duckResult, claimedDucksResult, historyResult, infoResult] = await Promise.all([
+            postToAction('getDuckData'), // Critical for scanning
+            postToAction('getClaimedDucks'), // Critical for scanning
+            postToAction('getScanHistory', { studentId: currentUser.studentId }), // Needed for local V-duck check/initial display
+            postToAction('getInfoData') // Needed for initial ribbon
         ]);
         
         if (duckResult.status === "success") {
@@ -1152,11 +1152,24 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
             claimedDucksCache = new Set(claimedDucksResult.claimed);
         }
+        if (Array.isArray(historyResult)) {
+            scanHistoryCache = historyResult;
+            // Populate local V-duck list for immediate check
+            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+            localVirtualScanTimestamps = historyResult
+                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                .map(scan => new Date(scan.timestamp).getTime());
+        }
+        if (infoResult.status === 'success') {
+            updateRibbon(infoResult.ribbonText);
+            infoDataCache = infoResult.infoItems || [];
+            infoDataFetchTime = new Date();
+        }
+
     } catch (e) {
         console.error("Failed to load critical game data:", e);
         alert("Could not load critical game data. Please try again.");
         
-        // Ensure buttons are functional if critical load fails
         if (loginButtonEl) {
             loginButtonEl.innerHTML = loginButtonContent;
             loginButtonEl.disabled = false;
@@ -1164,10 +1177,9 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         return; 
     }
 
-    // 🛑 FIX: Reset the login button immediately after critical data loads, 
-    // but before the UI transition. This eliminates the flicker.
+    // 🛑 Reset the login button immediately after critical data loads, 
     if (loginButtonEl) {
-        loginButtonEl.innerHTML = originalContent;
+        loginButtonEl.innerHTML = loginButtonContent;
         loginButtonEl.disabled = false;
     }
     
@@ -1175,11 +1187,11 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
     
-    // 3. Initialize points/ducks from 'user' object (now returned by GAS)
+    // Initialize points/ducks from 'user' object and locally loaded history
     document.getElementById('player-points').textContent = currentUser.points || 0;
-    document.getElementById('player-ducks').textContent = currentUser.duckCount || 0;
+    document.getElementById('player-ducks').textContent = scanHistoryCache.length; // Use locally calculated count for immediate display
 
-    // Set up timers
+    // Set up timers (15s batch send, 60s server sync)
     if (batchSendTimer) clearInterval(batchSendTimer);
     batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
@@ -1194,34 +1206,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         initialDuckId = null;
     }
 
-    // 4. Load AUXILIARY Data (Asynchronously, in the background)
-    try {
-        const [historyResult, infoResult] = await Promise.all([
-            postToAction('getScanHistory', { studentId: currentUser.studentId }),
-            postToAction('getInfoData')
-        ]);
-        
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
-        
-        if (infoResult.status === 'success') {
-            updateRibbon(infoResult.ribbonText);
-            infoDataCache = infoResult.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load auxiliary data in background:", e);
-    }
-    
-    // Final update to set the welcome message and rank
+    // Final update to set the welcome message and rank (which involves one last fetch)
     await updateUserDashboard();
 }
 
@@ -1233,10 +1218,11 @@ async function signIn(studentId) {
     signinBtn.innerHTML = '<div class="spinner"></div>';
     signinBtn.disabled = true;
 
+    // Fetch ONLY user data first
     const result = await postToAction('getUser', { studentId });
     
     if (result.status === "success") {
-        // SUCCESS: Pass button state to showApp
+        // SUCCESS: Proceed to showApp with the user data
         showApp(result.user, 'hunt-page', signinBtn, originalContent); 
     } else {
         // FAILURE: Reset button state
@@ -1323,6 +1309,7 @@ setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 async function updateUserDashboard(shouldUpdatePoints = true) {
 if (!currentUser) return;
 try {
+    // 1. Set up concurrent fetches (Leaderboard, History, and optionally User Points)
     const fetches = [
         postToAction('getLeaderboard'),
         postToAction('getScanHistory', { studentId: currentUser.studentId })
@@ -1334,11 +1321,13 @@ try {
 
     let userResult, leaderboardData, historyResult;
         
+    // Check if there are scans waiting to be sent; if so, rely on local counts until a server sync confirms them
     const hasPendingScans = scanQueue.length > 0;
         
     if (shouldUpdatePoints) {
         userResult = responses.shift();
         if (userResult.status === "success") {
+            // 🌟 Server Correction/Sync 🌟
             currentUser.points = userResult.user.points;
             document.getElementById('player-points').textContent = currentUser.points;
             if (userResult.user.duckCount !== undefined) {
@@ -1346,10 +1335,9 @@ try {
                 document.getElementById('player-ducks').textContent = currentUser.duckCount;
             }
         }
-    } else if (shouldUpdatePoints) {
-        responses.shift(); 
-    }
+    } 
 
+    // Adjust indices based on whether userResult was shifted
     const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
     const historyIndex = shouldUpdatePoints ? 1 : 1; 
 
@@ -1369,8 +1357,8 @@ try {
 
     if (Array.isArray(historyResult)) {
         scanHistoryCache = historyResult;
-        // On initial load (shouldUpdatePoints=false), if duck count was empty, update it from history
-        if (!hasPendingScans && !shouldUpdatePoints && document.getElementById('player-ducks').textContent === '...') {
+        // Only update ducks from history if not updated by server (i.e., on first load)
+        if (!shouldUpdatePoints && !currentUser.duckCount) {
             document.getElementById('player-ducks').textContent = historyResult.length;
         }
     }
