@@ -301,23 +301,20 @@ font-weight: bold;
 }
 /* --- End Map Styles --- */
 
-/* UPDATED: Centering and spacing for list containers */
 #log-container, #leaderboard-container, #info-container {
-flex: 1;
-overflow-y: auto;
-min-height: 0;
-padding: var(--safe-padding) 0;
-position: relative;
-background: none;
-border-radius: 0;
-box-shadow: none;
-border: none;
-gap: 0.75rem;
-display: flex;
-flex-direction: column;
-width: 100%;
-max-width: 450px;
-margin: 0 auto;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: var(--safe-padding) 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
 }
 
 #leaderboard-list, #log-list {
@@ -400,7 +397,6 @@ justify-content: space-between;
 padding: 1rem;
 border-radius: 12px;
 }
-/* UPDATED: Increased gap between rank and name */
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; gap: 0.75rem; }
 .list-item .rank-text {
 font-weight: bold;
@@ -421,7 +417,7 @@ color: var(--green);
 .secondary-btn { background-color: rgba(255, 255, 255, 0.1); color: white; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
 .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); border-color: var(--green); transform: translateY(-2px); }
 
-/* === UPDATED LAVA CONTAINER STYLES === */
+/* === LAVA CONTAINER STYLES === */
 #lava-container {
     position: fixed;
     top: 0;
@@ -431,7 +427,7 @@ color: var(--green);
     z-index: -1;
     overflow: hidden;
 }
-#lava-container::before, #lava-container::after, #lava-blob-purple {
+#lava-container::before, #lava-container::after {
     content: '';
     position: absolute;
     width: 70vmax;
@@ -445,23 +441,16 @@ color: var(--green);
     background-color: var(--pink);
     top: -35vmax;
     left: -35vmax;
-    animation: move-pink 14s infinite linear; /* Faster */
+    animation: move-pink 14s infinite linear;
 }
 #lava-container::after {
     background-color: var(--green);
     bottom: -35vmax;
     right: -35vmax;
-    animation: move-green 12s infinite linear; /* Faster */
+    animation: move-green 12s infinite linear;
     animation-delay: -8s;
 }
-#lava-blob-purple {
-    background-color: #6f42c1;
-    top: 20vh;
-    right: -30vmax;
-    animation: move-purple 16s infinite linear;
-    animation-delay: -4s;
-}
-/* === END UPDATED LAVA STYLES === */
+/* === END LAVA STYLES === */
 
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
@@ -496,7 +485,15 @@ footer p { margin: 2px 0; }
 #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px 20px 0 0; border-bottom: 1px solid var(--glass-border-top); padding: 0.8rem; display: flex; justify-content: space-around; }
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
-.stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
+.stat p { margin: 0; font-size: 1.2rem; font-weight: bold; transition: all 0.3s ease; }
+.stat p.pending-update {
+    animation: pulse-green 1.5s infinite;
+}
+@keyframes pulse-green {
+    0% { color: white; text-shadow: none; }
+    50% { color: var(--green); text-shadow: 0 0 8px var(--green); }
+    100% { color: white; text-shadow: none; }
+}
 #tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(30, 30, 30, 0.5); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid var(--glass-border-top); display: flex; justify-content: space-around; }
 .tab-button {
 background: none;
@@ -514,7 +511,7 @@ transition: color 0.3s ease;
 @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
 
-/* === UPDATED BACKGROUND KEYFRAMES === */
+/* === BACKGROUND KEYFRAMES === */
 @keyframes move-pink { 
     0%, 100% { transform: translate(0, 0); } 
     25% { transform: translate(calc(100vw - 70vmax), 0); } 
@@ -527,13 +524,7 @@ transition: color 0.3s ease;
     50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 
     75% { transform: translate(0, calc(-100vh + 70vmax)); } 
 }
-@keyframes move-purple {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    25% { transform: translate(calc(-80vw + 40vmax), 40vh) scale(0.8); }
-    50% { transform: translate(calc(-20vw + 20vmax), calc(-50vh + 20vmax)) scale(1.2); }
-    75% { transform: translate(calc(-100vw + 50vmax), 10vh) scale(1); }
-}
-/* === END UPDATED KEYFRAMES === */
+/* === END KEYFRAMES === */
 
 #duck-feet-background-container {
 position: fixed;
@@ -563,6 +554,20 @@ pointer-events: none;
 80% { opacity: 0.3; transform: scale(1); }
 100% { opacity: 0; transform: scale(1.2); }
 }
+
+@media (max-width: 480px) {
+    .map-label {
+        min-width: 90px;
+        padding: 4px 8px;
+    }
+    .map-label h4 {
+        font-size: 12px;
+    }
+    .map-label p {
+        font-size: 10px;
+        padding-top: 2px;
+    }
+}
 </style>
 </head>
 <body>
@@ -570,9 +575,7 @@ pointer-events: none;
 <div id="ribbon-message">
 <div id="ribbon-content"></div>
 </div>
-<div id="lava-container">
-    <div id="lava-blob-purple"></div>
-</div>
+<div id="lava-container"></div>
 <div id="duck-feet-background-container"></div>
 <div id="login-screen" class="screen visible">
 <div class="glass-card" id="instructions-card">
@@ -675,17 +678,6 @@ const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 30000;
 const VIRTUAL_LIMIT = 10;
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
-
-/*
-|=================================================================================|
-| **MAP COORDINATE SETUP (EDIT THESE VALUES)** |
-|=================================================================================|
-| The 'coords' values below are absolute pixel coordinates based on the original  |
-| map image file (e.g., in an image editor like Photoshop or GIMP).               |
-| The format is 'x1,y1,x2,y2' defining a bounding box for the location.           |
-| To adjust a label's position, you must fine-tune these numbers.                 |
-|=================================================================================|
-*/
 const MAP_SPOTS = [
 { name: 'The Grove', dataKey: 'The Grove', coords: '1295,758,1311,774' },
 { name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, 
@@ -722,6 +714,8 @@ let scanQueue = [];
 let batchSendTimer = null;
 let dataRefreshTimer = null;
 let locationCountsCache = {}; 
+let pendingPoints = 0;
+let pendingDucks = 0;
 
 // --- MAP INTERACTION LOGIC ---
 const mapCardContainer = document.getElementById('map-card-container');
@@ -823,7 +817,7 @@ function initializeMap() {
         } else {
             mapImageElement.onload = null;
             mapImageElement.onerror = null; 
-            
+           
             mapImageElement.onload = resolve;
             mapImageElement.onerror = resolve; 
         }
@@ -832,7 +826,7 @@ function initializeMap() {
     Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
         if (mapImageElement.naturalWidth > 0) {
             positionMarkers();
-            
+           
             if (!mapResizeObserver) {
                 mapResizeObserver = new ResizeObserver(positionMarkers);
                 mapResizeObserver.observe(mapImageElement);
@@ -980,6 +974,26 @@ setTimeout(() => flake.remove(), 5000);
 }
 }
 // --- CORE SCANNING & SYNC LOGIC ---
+function updateOptimisticDisplay() {
+    if (!currentUser) return;
+    const pointsEl = document.getElementById('player-points');
+    const ducksEl = document.getElementById('player-ducks');
+
+    const totalPoints = (currentUser.points || 0) + pendingPoints;
+    const totalDucks = (currentUser.duckCount || 0) + pendingDucks;
+
+    pointsEl.textContent = totalPoints;
+    ducksEl.textContent = totalDucks;
+
+    if (pendingPoints > 0 || pendingDucks > 0) {
+        pointsEl.classList.add('pending-update');
+        ducksEl.classList.add('pending-update');
+    } else {
+        pointsEl.classList.remove('pending-update');
+        ducksEl.classList.remove('pending-update');
+    }
+}
+
 async function onScanSuccess(decodedText) {
     if (!currentUser) return;
     
@@ -996,12 +1010,7 @@ async function onScanSuccess(decodedText) {
     } catch (e) {}
     const lookupId = finalDuckId.trim().toLowerCase();
 
-    if (claimedDucksCache.has(lookupId)) {
-        triggerVisualError(); 
-        return;
-    }
-    
-    if (processingDucks.has(lookupId)) {
+    if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
         triggerVisualError(); 
         return;
     }
@@ -1031,6 +1040,9 @@ async function onScanSuccess(decodedText) {
     scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
     
     const points = duckInfo.points || 0;
+    pendingPoints += points;
+    pendingDucks += 1;
+    updateOptimisticDisplay();
     
     const isGoldenDuck = duckInfo.type === 'Golden Duck';
     displaySuccessPopup(`+${points}`, isGoldenDuck); 
@@ -1056,10 +1068,10 @@ async function sendBatchScans() {
     if (batchResult.status === "success") {
         if (batchResult.updatedUser) {
             currentUser.points = batchResult.updatedUser.points;
-            document.getElementById('player-points').textContent = currentUser.points;
-            if (batchResult.updatedUser.duckCount !== undefined) {
-                document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
-            }
+            currentUser.duckCount = batchResult.updatedUser.duckCount;
+            pendingPoints = 0;
+            pendingDucks = 0;
+            updateOptimisticDisplay();
         }
         
         if (batchResult.results) {
@@ -1108,6 +1120,7 @@ if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
+    currentUser.duckCount = user.duckCount || 0; 
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     
     try {
@@ -1162,7 +1175,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         
         if (Array.isArray(historyResult)) {
             scanHistoryCache = historyResult;
-            document.getElementById('player-ducks').textContent = historyResult.length; 
+            currentUser.duckCount = historyResult.length;
             const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
             localVirtualScanTimestamps = historyResult
                 .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
@@ -1286,16 +1299,17 @@ try {
     let userResult, leaderboardData, historyResult;
         
     const hasPendingScans = scanQueue.length > 0;
-        
+            
     if (shouldUpdatePoints && !hasPendingScans) {
         userResult = responses.shift();
         if (userResult.status === "success") {
             currentUser.points = userResult.user.points;
-            document.getElementById('player-points').textContent = currentUser.points;
+            currentUser.duckCount = userResult.user.duckCount;
         }
     } else if (shouldUpdatePoints) {
         responses.shift(); 
     }
+    updateOptimisticDisplay();
 
     const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
     const historyIndex = shouldUpdatePoints ? 1 : 1; 
@@ -1317,7 +1331,8 @@ try {
     if (Array.isArray(historyResult)) {
         scanHistoryCache = historyResult;
         if (!hasPendingScans) {
-            document.getElementById('player-ducks').textContent = historyResult.length;
+            currentUser.duckCount = historyResult.length;
+            updateOptimisticDisplay();
         }
     }
         
@@ -1519,7 +1534,7 @@ loginView.classList.add('hidden');
 registrationView.classList.remove('hidden');
 });
 document.getElementById('back-btn').addEventListener('click', () => {
-registrationView.classList.remove('hidden');
+registrationView.classList.add('hidden');
 loginView.classList.remove('hidden');
 });
 document.getElementById('close-instructions').addEventListener('click', () => {
