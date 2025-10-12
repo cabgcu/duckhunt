@@ -7,27 +7,36 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 :root {
+/* Core Palette */
 --green: #60A34D;
 --pink: #ff69b4;
-/* Glass/Liquid UI Variables */
---glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
---glass-border-color: rgba(255, 255, 255, 0.15);
---glass-blur: 18px;
---glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
---glow-color: rgba(96, 163, 77, 0.7);
-/* Original variables for map labels */
---border-color: rgba(96, 163, 77, 0.2);
-/* Sizing and Spacing Variables */
+--gold: #FFD700;
+
+/* NEW: iOS 26 Inspired UI Kit */
+--background-start: #1c0f29;
+--background-end: #0c0a15;
+--glass-bg: rgba(255, 255, 255, 0.08);
+--glass-blur: 24px;
+--glass-border-top: rgba(255, 255, 255, 0.25);
+--glass-border-bottom: rgba(255, 255, 255, 0.05);
+--glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+--inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+--highlight-color: #ffffff;
+--glow-color: rgba(96, 163, 77, 0.8);
+--active-glow: 0 0 12px rgba(96, 163, 77, 0.9);
+
+/* Sizing and Spacing */
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
 --frosted-black: rgba(0, 0, 0, 0.75);
---gold: #FFD700;
 }
+
 body {
 margin: 0;
-background-color: #000;
-overflow-x: hidden; /* CRITICAL FIX: Prevents the entire page from scrolling horizontally */
+background-color: var(--background-end);
+background-image: radial-gradient(circle at 10% 10%, var(--background-start) 0%, transparent 50%), radial-gradient(circle at 90% 90%, var(--pink) 0%, transparent 40%);
+overflow-x: hidden;
 min-height: 100vh;
 min-height: 100svh;
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -35,20 +44,25 @@ color: white;
 text-align: center;
 }
 .hidden { display: none !important; }
-/* Spinner styles */
+
+/* Classic Spinner */
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-/* Core Glass Card Style */
+
+
+/* UPDATED: New iOS 26 Glass Card Style */
 .glass-card {
 background: var(--glass-bg);
 backdrop-filter: blur(var(--glass-blur));
 -webkit-backdrop-filter: blur(var(--glass-blur));
-border: 1px solid var(--glass-border-color);
+border: 1px solid var(--glass-border-bottom);
+border-top-color: var(--glass-border-top);
 border-radius: 20px;
 box-shadow: var(--glass-shadow);
 padding: 1.5rem;
 }
+
 .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
 #app-wrapper {
 position: fixed;
@@ -70,9 +84,9 @@ top: 0;
 left: 0;
 width: 100%;
 height: var(--ribbon-height);
-background-color: var(--frosted-black);
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
+background-color: rgba(30, 30, 30, 0.5);
+backdrop-filter: blur(15px);
+-webkit-backdrop-filter: blur(15px);
 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 font-weight: bold;
 font-size: 0.85rem;
@@ -130,7 +144,7 @@ align-items: center;
 .app-page .header-image-top {
 width: 70%;
 max-width: 250px;
-margin: 0.2rem auto 0.2rem auto; /* SHRUNK: Reduced vertical margin */
+margin: 0.2rem auto 0.2rem auto;
 display: block;
 flex-shrink: 0;
 }
@@ -147,10 +161,10 @@ align-items: center;
 margin-top: 0;
 flex-shrink: 0;
 }
-#qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 1px solid var(--glass-border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 300px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+#qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 300px; }
 #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
-@keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--glass-border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
+@keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); } 50% { box-shadow: var(--glass-shadow), 0 0 25px rgba(255, 0, 0, 0.9); } }
 .point-pop {
 position: absolute;
 top: 85%;
@@ -228,18 +242,17 @@ font-weight: bold;
     width: 100%;
     max-width: 450px;
     height: 75vh;
-    overflow: scroll; /* Allow scrolling/panning inside the card */
-    padding: 0; /* Remove padding for edge-to-edge map */
+    overflow: scroll;
+    padding: 0;
 }
 #map-wrapper {
     position: relative;
-    width: 250vw; /* Make content wider than screen for panning */
-    height: 100%;
+    width: 250vw;
+    height: auto;
 }
 #campus-map-img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     display: block;
 }
 #map-markers-overlay {
@@ -250,25 +263,24 @@ font-weight: bold;
     height: 100%;
     pointer-events: none;
 }
-/* UPDATED: Smaller default labels with smooth transition */
 .map-label {
     position: absolute;
     z-index: 10;
     transform: translate(-50%, -50%);
     cursor: default;
     pointer-events: auto;
-    background: var(--frosted-black);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--green);
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
     padding: 5px 10px;
     min-width: 110px;
     text-align: center;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     white-space: normal;
     line-height: 1.3;
-    transition: transform 0.2s ease-out; /* For smooth scaling */
+    transition: transform 0.2s ease-out;
 }
 .map-label h4 {
     margin: 0;
@@ -289,6 +301,7 @@ font-weight: bold;
 }
 /* --- End Map Styles --- */
 
+/* UPDATED: Centering and spacing for list containers */
 #log-container, #leaderboard-container, #info-container {
 flex: 1;
 overflow-y: auto;
@@ -299,21 +312,14 @@ background: none;
 border-radius: 0;
 box-shadow: none;
 border: none;
-gap: 0.5rem;
+gap: 0.75rem; /* INCREASED SPACING: was 0.5rem */
 display: flex;
 flex-direction: column;
 width: 100%;
 max-width: 450px;
+margin: 0 auto; /* ENSURE CENTERING */
 }
-#info-container {
-text-align: center;
-display: flex;
-flex-direction: column;
-gap: 0.5rem;
-width: 100%;
-max-width: 450px;
-margin: 0 auto;
-}
+
 #info-modal-backdrop {
 position: fixed;
 top: 0;
@@ -331,15 +337,7 @@ justify-content: center;
 position: relative;
 width: 90%;
 max-width: 400px;
-background: var(--glass-bg);
-backdrop-filter: blur(var(--glass-blur));
-border: 1px solid var(--glass-border-color);
-border-radius: 20px;
 padding: 1.5rem;
-box-shadow: var(--glass-shadow);
-max-height: 80vh;
-overflow-y: auto;
-text-align: left;
 }
 #modal-close-btn {
 position: absolute;
@@ -368,22 +366,16 @@ padding-left: 25px;
 margin-bottom: 0.5rem;
 }
 .info-card-button {
-background: var(--glass-bg);
-border: 1px solid var(--glass-border-color);
-backdrop-filter: blur(4px);
--webkit-backdrop-filter: blur(4px);
-border-radius: 12px;
 padding: 1rem 1.5rem;
 width: 100%;
 text-align: center;
 cursor: pointer;
-transition: background-color 0.3s ease, box-shadow 0.3s ease;
+transition: transform 0.2s ease;
 margin-bottom: 0.75rem;
 box-sizing: border-box;
 }
 .info-card-button:hover {
-background-color: rgba(96, 163, 77, 0.3);
-box-shadow: 0 0 10px var(--glow-color);
+transform: scale(1.03);
 }
 .info-card-button h4 {
 margin: 0;
@@ -391,27 +383,12 @@ font-size: 1.2rem;
 font-weight: bold;
 color: white;
 }
-.location-card { background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-.location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
-.location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
-.location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
-#leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .list-item {
 display: flex;
 align-items: center;
 justify-content: space-between;
 padding: 1rem;
-background: var(--glass-bg);
-backdrop-filter: blur(4px);
--webkit-backdrop-filter: blur(4px);
-border-radius: 8px;
-border: 1px solid var(--glass-border-color);
-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-}
-#leaderboard-list .list-item {
-background: var(--glass-bg);
-border: 1px solid var(--glass-border-color);
-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+border-radius: 12px;
 }
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
 .list-item .rank-text {
@@ -429,10 +406,12 @@ color: var(--green);
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
 .button-group { display: flex; gap: 0.5rem; }
-.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 1px solid transparent; transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); transition: all 0.2s ease; box-shadow: var(--inset-shadow); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
 .primary-btn { background-color: var(--green); color: white; border-color: rgba(255, 255, 255, 0.3); }
-.secondary-btn { background-color: rgba(255, 255, 255, 0.1); color: white; border-color: var(--glass-border-color); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); border-color: var(--green); }
+.secondary-btn { background-color: rgba(255, 255, 255, 0.1); color: white; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); border-color: var(--green); transform: translateY(-2px); }
+
+/* REVERTED: Original lava container styles */
 #lava-container {
 position: fixed;
 top: 0;
@@ -441,19 +420,40 @@ width: 100%;
 height: 100%;
 z-index: -1;
 }
-#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.7; mix-blend-mode: screen; filter: blur(120px); }
-#lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 35s infinite linear; }
-#lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 28s infinite linear; animation-delay: -10s; }
+#lava-container::before, #lava-container::after {
+content: '';
+position: absolute;
+width: 70vmax;
+height: 70vmax;
+border-radius: 50%;
+opacity: 0.8;
+mix-blend-mode: lighten;
+filter: blur(120px);
+}
+#lava-container::before {
+background-color: var(--pink);
+top: -35vmax;
+left: -35vmax;
+animation: move-pink 18s infinite linear; /* FASTER: Was 25s */
+}
+#lava-container::after {
+background-color: var(--green);
+bottom: -35vmax;
+right: -35vmax;
+animation: move-green 15s infinite linear; /* FASTER: Was 20s */
+animation-delay: -10s;
+}
+
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
 #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-.reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-.reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); background-color: rgba(255, 255, 255, 0.15); }
-#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.reg-input, #login-studentid { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow); }
+.reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); }
+#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
 #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
-.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border-color); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease; }
+
 footer {
 position: absolute;
 bottom: 0;
@@ -474,28 +474,41 @@ display: block;
 object-fit: contain;
 }
 footer p { margin: 2px 0; }
-#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px 20px 0 0; border-bottom: 1px solid var(--glass-border-color); padding: 0.8rem; display: flex; justify-content: space-around; }
+#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px 20px 0 0; border-bottom: 1px solid var(--glass-border-top); padding: 0.8rem; display: flex; justify-content: space-around; }
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
 .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid var(--glass-border-color); display: flex; justify-content: space-around; }
-.tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
-.tab-button.active { color: var(--green); font-weight: bold; }
+#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(30, 30, 30, 0.5); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid var(--glass-border-top); display: flex; justify-content: space-around; }
+.tab-button {
+background: none;
+border: none;
+color: rgba(255, 255, 255, 0.6);
+font-size: 0.9rem;
+cursor: pointer;
+flex-grow: 1;
+font-weight: 600;
+transition: color 0.3s ease;
+}
+.tab-button.active { color: var(--highlight-color); font-weight: bold; text-shadow: 0 0 8px var(--green); }
 .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
 .frost-animation { position: absolute; top: -20px; font-size: 1.5rem; color: white; pointer-events: none; z-index: 999; animation: fall-and-fade linear forwards; }
 @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+
+/* Original background keyframes */
 @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
 @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
+
 #duck-feet-background-container {
 position: fixed;
 top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-z-index: 0;
+z-index: -2;
 pointer-events: none;
 overflow: hidden;
+opacity: 0.5;
 }
 .fading-duck-feet {
 position: absolute;
@@ -510,8 +523,8 @@ pointer-events: none;
 }
 @keyframes fade-in-out {
 0% { opacity: 0; transform: scale(0.8); }
-20% { opacity: 0.6; transform: scale(1); }
-80% { opacity: 0.6; transform: scale(1); }
+20% { opacity: 0.3; transform: scale(1); }
+80% { opacity: 0.3; transform: scale(1); }
 100% { opacity: 0; transform: scale(1.2); }
 }
 </style>
@@ -599,8 +612,7 @@ pointer-events: none;
 <section id="info-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
-<div id="info-container">
-</div>
+<div id="info-container"></div>
 </section>
 </main>
 <nav id="tab-bar">
@@ -611,7 +623,7 @@ pointer-events: none;
 </nav>
 </div>
 <div id="info-modal-backdrop" style="display: none;">
-<div id="info-modal">
+<div id="info-modal" class="glass-card">
 <button id="modal-close-btn">&times;</button>
 <h3 id="modal-title"></h3>
 <div id="modal-content"></div>
@@ -677,30 +689,25 @@ let locationCountsCache = {}; 
 const mapCardContainer = document.getElementById('map-card-container');
 let isPanning = false;
 
-// NEW: Scales labels based on their proximity to the center of the viewport
 function updateLabelSizeOnPan() {
-    if (!isPanning) return; // Only run when needed
+    if (!isPanning) return;
 
     const viewportCenterX = mapCardContainer.scrollLeft + mapCardContainer.clientWidth / 2;
     const viewportCenterY = mapCardContainer.scrollTop + mapCardContainer.clientHeight / 2;
-    // Use a diagonal of the viewport as a rough max distance for scaling
     const maxDistance = Math.sqrt(Math.pow(mapCardContainer.clientWidth / 2, 2) + Math.pow(mapCardContainer.clientHeight / 2, 2));
 
     document.querySelectorAll('.map-label').forEach(label => {
         const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
         const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
 
-        // Calculate distance from the label's center to the viewport's center
         const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
 
-        // Scale is largest (1.15) at the center, and smallest (0.9) at the edges
         const scale = 1.15 - (distance / maxDistance) * 0.25;
 
-        // Apply the original centering transform plus the new scale, clamped to a reasonable size
         label.style.transform = `translate(-50%, -50%) scale(${Math.max(0.9, Math.min(scale, 1.15))})`;
     });
 
-    isPanning = false; // Reset the flag until the next scroll event
+    isPanning = false;
 }
 
 function positionMarkers() {
@@ -744,7 +751,6 @@ marker.classList.add('cleared');
 marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
 overlay.appendChild(marker);
 });
-// Initial size update after placing markers
 isPanning = true;
 updateLabelSizeOnPan();
 }
@@ -766,7 +772,6 @@ function initializeMap() {
         mapResizeObserver = null;
     }
 
-    // NEW: Add event listener for dynamic scaling
     mapCardContainer.addEventListener('scroll', () => {
         if (!isPanning) {
             isPanning = true;
@@ -1285,11 +1290,11 @@ try {
 async function updateLeaderboard() {
 const listElement = document.getElementById('leaderboard-list');
 if (listElement.innerHTML === '') {
-listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
+listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
 }
 const leaderboardData = await postToAction('getLeaderboard'); 
 if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
-listElement.innerHTML = '<li class="list-item" style="justify-content:center;">No one has scanned any ducks yet!</li>';
+listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet!</li>';
 return;
 }
 let html = '';
@@ -1298,7 +1303,7 @@ const rank = index + 1;
 const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
 const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
 const displayName = `${player.firstName} ${lastNameInitial}`;
-html += `<li class="list-item"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
+html += `<li class="list-item glass-card"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
 });
 listElement.innerHTML = html;
 }
@@ -1307,9 +1312,9 @@ const listElement = document.getElementById('log-list');
 const scanData = scanHistoryCache;
 if (!scanData || scanData.length === 0) {
     if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
-        listElement.innerHTML = '<li class="list-item" style="justify-content:center;"><div class="spinner"></div></li>';
+        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>';
     } else {
-        listElement.innerHTML = '<li class="list-item" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
+        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
     }
     return;
 }
@@ -1318,7 +1323,7 @@ scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(s
 const scanDate = new Date(scan.timestamp);
 const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const duckTypeDisplay = scan.duckType === 'Golden Duck' ? '🥇 Golden Duck' : scan.duckType || 'Duck';
-html += `<li class="list-item"><div><div class="primary-text">${duckTypeDisplay}</div><div class="secondary-text">${scan.duckId} - ${timeString}</div></div><span>+${scan.points || 0}</span></li>`;
+html += `<li class="list-item glass-card"><div><div class="primary-text">${duckTypeDisplay}</div><div class="secondary-text">${scan.duckId} - ${timeString}</div></div><span>+${scan.points || 0}</span></li>`;
 });
 listElement.innerHTML = html;
 }
@@ -1351,7 +1356,7 @@ return;
 let html = '';
 infoItems.forEach((item, index) => {
 html += `
-<div class="info-card-button" data-info-index="${index}">
+<div class="info-card-button glass-card" data-info-index="${index}">
 <h4>${item.title || 'Untitled'}</h4>
 </div>
 `;
@@ -1502,7 +1507,8 @@ if (e.target.id === 'info-modal-backdrop') {
 modalBackdrop.style.display = 'none';
 document.body.style.overflow = 'auto';
 }
-});
+}
+);
 }
 });
 </script>
