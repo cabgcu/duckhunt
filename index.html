@@ -7,33 +7,63 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 :root {
+/* REFINED COLORS FOR LIQUID GLASS EFFECT */
 --green: #60A34D;
 --pink: #ff69b4;
---card-bg: rgba(0, 0, 0, 0.45);
---border-color: rgba(96, 163, 77, 0.2);
+--card-bg: rgba(255, 255, 255, 0.05); /* Lighter, more transparent white base */
+--border-color: rgba(96, 163, 77, 0.4); /* Slightly more visible border */
 --glow-color: rgba(96, 163, 77, 0.7);
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
---frosted-black: rgba(0, 0, 0, 0.85);
+--frosted-black: rgba(10, 10, 10, 0.75); /* Darker, but still frosted */
 --gold: #FFD700;
+--glass-highlight: rgba(255, 255, 255, 0.15); /* New subtle white highlight */
 }
 body {
 margin: 0;
-background-color: #000;
-overflow-x: auto; /* ALLOW HORIZONTAL SCROLLING for map zoom */
-min-height: 100vh; /* Fallback */
-min-height: 100svh; /* FIX: Smallest Viewport Height for mobile */
+/* Darker, textured background to contrast with glass */
+background-color: #0d1117;
+background-image: radial-gradient(circle at top left, #303030 0%, transparent 50%), 
+                  radial-gradient(circle at bottom right, #1a1a1a 0%, transparent 50%);
+overflow-x: auto; 
+min-height: 100vh;
+min-height: 100svh;
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 color: white;
 text-align: center;
+/* Subtle text shadow for better readability over frosted glass */
+text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 .hidden { display: none !important; }
 /* Spinner styles */
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-.glass-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
+
+/* 🌟 ENHANCED LIQUID GLASS CARD STYLE 🌟 */
+.glass-card { 
+    background: var(--card-bg); 
+    backdrop-filter: blur(15px); /* INCREASED BLUR for stronger effect */
+    -webkit-backdrop-filter: blur(15px); 
+    border: 1px solid var(--border-color); 
+    border-radius: 20px; 
+    /* Multi-layer box-shadow for depth, glow, and internal reflection */
+    box-shadow: 
+        0 4px 30px rgba(0, 0, 0, 0.4), /* Dark shadow for depth */
+        inset 0 0 0 1px var(--glass-highlight), /* Internal highlight on top/left */
+        0 0 15px rgba(96, 163, 77, 0.15); /* Subtle color glow */
+    padding: 1.5rem; 
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth transition */
+}
+.glass-card:hover {
+    box-shadow: 
+      0 6px 35px rgba(0, 0, 0, 0.5), 
+      inset 0 0 0 1px rgba(255, 255, 255, 0.25), 
+      0 0 20px var(--glow-color);
+    transform: translateY(-2px); /* Subtle lift on hover */
+}
+
 .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
 #app-wrapper {
 position: fixed;
@@ -56,9 +86,9 @@ left: 0;
 width: 100%;
 height: var(--ribbon-height);
 background-color: var(--frosted-black);
-backdrop-filter: blur(5px);
--webkit-backdrop-filter: blur(5px);
-border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+backdrop-filter: blur(10px); /* Enhanced blur */
+-webkit-backdrop-filter: blur(10px);
+border-bottom: 1px solid var(--border-color); /* Glass border */
 font-weight: bold;
 font-size: 0.85rem;
 display: flex;
@@ -115,7 +145,7 @@ align-items: center;
 .app-page .header-image-top {
 width: 70%;
 max-width: 250px;
-margin: 0.2rem auto 0.2rem auto; /* SHRUNK: Reduced vertical margin */
+margin: 0.2rem auto 0.2rem auto; 
 display: block;
 flex-shrink: 0;
 }
@@ -203,50 +233,40 @@ margin-top: 0;
 font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
-/* Map Specific Styles */
+/* Map Specific Styles (CSS is fine here for functionality) */
 #map-page {
-    /* New: Allows map card to scroll vertically relative to the page */
-    padding-top: var(--safe-padding); 
-    justify-content: flex-start;
+    padding-top: var(--safe-padding); 
+    justify-content: flex-start;
 }
 
 #map-card-container {
-    /* Card container properties */
-    flex: 1; 
-    width: 100%;
-    max-width: 450px; 
-    
-    /* CRITICAL: Set a fixed height and enable internal scrolling */
-    height: 60vh; /* Adjust height as needed for mobile screen visibility */
-    padding: 0; 
-    overflow-x: scroll; /* Enables horizontal scrolling within this card */
-    overflow-y: hidden; /* Disables vertical scrolling if map is wider than tall */
+    flex: 1; 
+    width: 100%;
+    max-width: 450px; 
+    height: 60vh;
+    padding: 0; 
+    overflow-x: scroll; 
+    overflow-y: hidden; 
 }
 
 #map-wrapper {
-    /* We still need a very large width to allow the image to scale beyond the screen */
-    width: 250vw; 
-    max-width: none; 
-    
-    /* CRITICAL: Make wrapper match the height of #map-card-container */
-    height: 100%; 
-    
-    position: relative;
-    margin: 0; 
-    line-height: 0;
+    width: 250vw; 
+    max-width: none; 
+    height: 100%; 
+    position: relative;
+    margin: 0; 
+    line-height: 0;
 }
 #campus-map-img {
-    width: 100%;
-    /* CRITICAL: Allow image to scale its height proportionally based on the 100% width, 
-       but clip the bottom if it exceeds the 60vh height of the card. */
-    height: 100%; 
-    object-fit: contain; /* Ensures the whole image is visible within the 100% height/width */
-    object-position: center;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
+    width: 100%;
+    height: 100%; 
+    object-fit: contain;
+    object-position: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 #map-markers-overlay {
 position: absolute;
@@ -254,16 +274,16 @@ top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-pointer-events: none; /* Allows clicks to pass through to markers */
+pointer-events: none; 
 }
 
 /* --- NEW MAP LABEL STYLES --- */
 .map-label {
 position: absolute;
 z-index: 10;
-transform: translate(-50%, -50%); /* Center based on position */
+transform: translate(-50%, -50%); 
 cursor: default; 
-pointer-events: auto; /* Ensure the box is interactable/visible */
+pointer-events: auto; 
 
 /* Frosted Card Look */
 background: var(--frosted-black);
@@ -282,14 +302,14 @@ line-height: 1.3;
 
 .map-label h4 {
 margin: 0;
-font-size: 2.2vw; /* DYNAMIC FONT SIZE */
+font-size: 2.2vw; 
 font-weight: bold;
-color: white; /* Ensure text is visible */
+color: white; 
 }
 .map-label p {
 margin: 0;
-padding-top: 0.3vw; /* DYNAMIC SPACING */
-font-size: 1.8vw; /* DYNAMIC FONT SIZE */
+padding-top: 0.3vw; 
+font-size: 1.8vw; 
 color: rgba(255, 255, 255, 0.9);
 }
 
@@ -496,33 +516,6 @@ footer p { margin: 2px 0; }
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
 @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
 @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
-#duck-feet-background-container {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-z-index: 0;
-pointer-events: none;
-overflow: hidden;
-}
-.fading-duck-feet {
-position: absolute;
-width: 50px;
-height: 50px;
-background-image: url('https://i.imgur.com/S23b6Wc.png');
-background-size: contain;
-background-repeat: no-repeat;
-opacity: 0;
-animation: fade-in-out linear forwards;
-pointer-events: none;
-}
-@keyframes fade-in-out {
-0% { opacity: 0; transform: scale(0.8); }
-20% { opacity: 0.6; transform: scale(1); }
-80% { opacity: 0.6; transform: scale(1); }
-100% { opacity: 0; transform: scale(1.2); }
-}
 </style>
 </head>
 <body>
@@ -531,7 +524,6 @@ pointer-events: none;
 <div id="ribbon-content"></div>
 </div>
 <div id="lava-container"></div>
-<div id="duck-feet-background-container"></div>
 <div id="login-screen" class="screen visible">
 <div class="glass-card" id="instructions-card">
 <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
@@ -585,14 +577,13 @@ pointer-events: none;
 
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<!-- Removed h2 class="transparent-heading-box">Campus Map</h2> -->
 <div id="map-card-container" class="glass-card">
-    <div id="map-wrapper">
-        <img id="campus-map-img"
-        src="https://i.imgur.com/1aQCsPk.jpeg"
-        alt="Interactive Campus Map">
-        <div id="map-markers-overlay"></div>
-    </div>
+    <div id="map-wrapper">
+        <img id="campus-map-img"
+        src="https://i.imgur.com/1aQCsPk.jpeg"
+        alt="Interactive Campus Map">
+        <div id="map-markers-overlay"></div>
+    </div>
 </div>
 </section>
 
@@ -823,35 +814,7 @@ ribbonContent.style.animation = 'none';
 }
 }
 // --- ANIMATION FUNCTIONS ---
-function startRandomFadingDuckFeet() {
-const container = document.getElementById('duck-feet-background-container');
-const maxFeetOnScreen = 7;
-const minDelay = 1000;
-const maxDelay = 3000;
-const animationDuration = 6000;
-function createFadingFeet() {
-const currentFeet = container.querySelectorAll('.fading-duck-feet');
-if (currentFeet.length >= maxFeetOnScreen) {
-currentFeet[0].remove();
-}
-const feet = document.createElement('div');
-feet.className = 'fading-duck-feet';
-const randomX = Math.random() * (window.innerWidth - 60);
-const randomY = Math.random() * (window.innerHeight - 60);
-feet.style.left = `${randomX}px`;
-feet.style.top = `${randomY}px`;
-const randomScale = 0.7 + Math.random() * 0.6;
-feet.style.transform = `scale(${randomScale}) rotate(${Math.random() * 360}deg)`;
-feet.style.animationDuration = `${animationDuration}ms`;
-container.appendChild(feet);
-setTimeout(() => {
-feet.remove();
-}, animationDuration);
-const nextDelay = Math.random() * (maxDelay - minDelay) + minDelay;
-setTimeout(createFadingFeet, nextDelay);
-}
-createFadingFeet();
-}
+/* REMOVED startRandomFadingDuckFeet function as requested */
 function triggerDuckAnimation() {
 const duckCount = Math.floor(Math.random() * 5) + 3;
 for (let i = 0; i < duckCount; i++) {
@@ -906,78 +869,78 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    // Helper to trigger the visual error ring
-    const triggerVisualError = () => {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-    };
+    if (!currentUser) return;
+    
+    // Helper to trigger the visual error ring
+    const triggerVisualError = () => {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+    };
 
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
 
-    // 1. Check if already permanently claimed
-    if (claimedDucksCache.has(lookupId)) {
-        triggerVisualError(); 
-        return; // No message pop-up on duplicate claim
-    }
-    
-    // 2. Check if currently being processed (local lock)
-    if (processingDucks.has(lookupId)) {
-        triggerVisualError(); 
-        return; // No message pop-up on scanning too fast
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        // FIX: Use the visual error ring for invalid codes, no message pop-up.
-        triggerVisualError();
-        return;
-    }
+    // 1. Check if already permanently claimed
+    if (claimedDucksCache.has(lookupId)) {
+        triggerVisualError(); 
+        return; // No message pop-up on duplicate claim
+    }
+    
+    // 2. Check if currently being processed (local lock)
+    if (processingDucks.has(lookupId)) {
+        triggerVisualError(); 
+        return; // No message pop-up on scanning too fast
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        // FIX: Use the visual error ring for invalid codes, no message pop-up.
+        triggerVisualError();
+        return;
+    }
 
-    // --- LOCK THE DUCK ID NOW ---
-    processingDucks.add(lookupId); 
-    
-    // --- Virtual Duck Limit Check ---
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            triggerVisualError(); 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId); // Unlock immediately if failed local check
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
+    // --- LOCK THE DUCK ID NOW ---
+    processingDucks.add(lookupId); 
+    
+    // --- Virtual Duck Limit Check ---
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            triggerVisualError(); 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId); // Unlock immediately if failed local check
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
 
-    // Perform Optimistic Update... 
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    
-    const points = duckInfo.points || 0;
-    
-    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
-     * The points and duck count will now ONLY update when the 
-     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
-     * This eliminates the visual flicker caused by premature local updates.
-     */
+    // Perform Optimistic Update... 
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    
+    const points = duckInfo.points || 0;
+    
+    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
+     * The points and duck count will now ONLY update when the 
+     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
+     * This eliminates the visual flicker caused by premature local updates.
+     */
 
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    // Still show the points pop-up to indicate the scan was captured.
-    displaySuccessPopup(`+${points}`, isGoldenDuck); 
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    // Still show the points pop-up to indicate the scan was captured.
+    displaySuccessPopup(`+${points}`, isGoldenDuck); 
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
 async function sendBatchScans() {
@@ -1083,7 +1046,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         return; 
     }
 
-    // 🛑 FIX: Reset the login button immediately after critical data loads, 
+    // 🛑 FIX: Reset the login button immediately after critical data loads, 
     // but before the UI transition. This eliminates the flicker.
     if (loginButtonEl) {
         loginButtonEl.innerHTML = loginButtonContent;
@@ -1153,7 +1116,7 @@ async function signIn(studentId) {
     
     if (result.status === "success") {
         // SUCCESS: Pass button state to showApp
-        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
+        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
     } else {
         // FAILURE: Reset button state
         signinBtn.innerHTML = originalContent;
@@ -1469,7 +1432,7 @@ setTimeout(() => el.remove(), 500);
 }
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
-startRandomFadingDuckFeet();
+/* Removed call to startRandomFadingDuckFeet() */
 checkForInitialDuck();
 const savedStudentId = sessionStorage.getItem('currentUserStudentId');
 if (savedStudentId) {
