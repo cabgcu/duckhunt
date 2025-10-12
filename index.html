@@ -292,7 +292,6 @@ font-weight: bold;
     padding: 3px 6px; /* Smaller padding */
     min-width: 90px; /* Adjusted min-width */
     text-align: center;
-    /* Removed box-shadow here */
     white-space: normal;
     line-height: 1.2; /* Adjusted line height */
     transition: transform 0.2s ease-out;
@@ -829,48 +828,86 @@ function updateLabelSizeOnPan() {
 }
 
 function positionMarkers() {
-const overlay = document.getElementById('map-markers-overlay');
-if (!overlay || !mapImageElement || mapImageElement.naturalWidth === 0) return;
+    const overlay = document.getElementById('map-markers-overlay');
+    if (!overlay || !mapImageElement || mapImageElement.naturalWidth === 0) return;
 
-overlay.innerHTML = ''; 
-const locationData = locationCountsCache; 
+    overlay.innerHTML = '';
+    const locationData = locationCountsCache;
+    const placedLabelsBounds = [];
+    const verticalOffset = 5;
+    const labelMargin = 4;
 
-MAP_SPOTS.forEach(spot => {
-const marker = document.createElement('div');
-marker.className = 'map-label'; 
+    MAP_SPOTS.forEach(spot => {
+        const marker = document.createElement('div');
+        marker.className = 'map-label';
 
-const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
-const centerX = (x1 + x2) / 2;
-const centerY = (y1 + y2) / 2;
+        const dataKey = spot.dataKey;
+        const displayName = spot.name;
+        let remainingText;
+        let spotData = locationData[dataKey];
 
-marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
-marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
+        if (!spotData) {
+            remainingText = '<strong>N/A</strong> Codes Left';
+            marker.style.borderColor = 'gray';
+        } else {
+            const remaining = spotData.count;
+            if (remaining > 0) {
+                remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
+                marker.style.borderColor = 'var(--green)';
+            } else {
+                remainingText = `❌ <strong>CLEARED</strong>`;
+                marker.classList.add('cleared');
+            }
+        }
+        marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
+        
+        overlay.appendChild(marker);
+        const markerWidth = marker.offsetWidth + (2 * labelMargin);
+        const markerHeight = marker.offsetHeight + (2 * labelMargin);
+        
+        const [x1, y1] = spot.coords.split(',').map(Number);
+        let targetX = (x1 / mapImageElement.naturalWidth) * overlay.offsetWidth;
+        let targetY = (y1 / mapImageElement.naturalHeight) * overlay.offsetHeight;
 
-const dataKey = spot.dataKey; 
-const displayName = spot.name; 
+        let attempts = 0;
+        let collisionDetected = true;
+        while (collisionDetected && attempts < 20) {
+            collisionDetected = false;
+            let currentBounds = {
+                left: targetX - (markerWidth / 2),
+                top: targetY - (markerHeight / 2),
+                right: targetX + (markerWidth / 2),
+                bottom: targetY + (markerHeight / 2)
+            };
 
-let remainingText;
-let spotData = locationData[dataKey]; 
+            for (const placed of placedLabelsBounds) {
+                const isOverlapping = !(currentBounds.right < placed.left ||
+                                        currentBounds.left > placed.right ||
+                                        currentBounds.bottom < placed.top ||
+                                        currentBounds.top > placed.bottom);
 
-if (!spotData) {
-remainingText = '<strong>N/A</strong> Codes Left';
-marker.style.borderColor = 'gray'; 
-} else {
-const remaining = spotData.count;
-if (remaining > 0) {
-remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
-marker.style.borderColor = 'var(--green)';
-} else {
-remainingText = `❌ <strong>CLEARED</strong>`;
-marker.classList.add('cleared');
-}
-}
+                if (isOverlapping) {
+                    targetY += verticalOffset;
+                    collisionDetected = true;
+                    break;
+                }
+            }
+            attempts++;
+        }
 
-marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
-overlay.appendChild(marker);
-});
-isPanning = true;
-updateLabelSizeOnPan();
+        marker.style.left = `${targetX}px`;
+        marker.style.top = `${targetY}px`;
+
+        placedLabelsBounds.push({
+            left: targetX - (markerWidth / 2),
+            top: targetY - (markerHeight / 2),
+            right: targetX + (markerWidth / 2),
+            bottom: targetY + (markerHeight / 2)
+        });
+    });
+
+    isPanning = true;
+    updateLabelSizeOnPan();
 }
 
 async function updateDuckMapData() {
@@ -1544,39 +1581,36 @@ function startScanner() {
         const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
         const torchButton = document.getElementById('torch-toggle-btn');
 
-        html5QrCode.start(
-            { facingMode: "environment" },
-            config,
-            onScanSuccess, // On successful QR scan
-            () => {}       // On QR scan error (optional)
-        )
-        .then(() => {
-            // This block executes when the camera stream starts successfully.
-            try {
-                cameraTrack = html5QrCode.getRunningTrack();
-                if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
-                    const capabilities = cameraTrack.getCapabilities();
-                    if (capabilities && capabilities.torch) {
-                        torchButton.classList.remove('hidden');
-                    }
+        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
+            .then(() => {
+                try {
+                    // Check if the getRunningTrack a few times to ensure it's available
+                    const interval = setInterval(() => {
+                        if (html5QrCode && html5QrCode.getRunningTrack) {
+                            cameraTrack = html5QrCode.getRunningTrack();
+                            if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
+                                const capabilities = cameraTrack.getCapabilities();
+                                if (capabilities && capabilities.torch) {
+                                    torchButton.classList.remove('hidden');
+                                }
+                                clearInterval(interval);
+                            }
+                        }
+                    }, 100);
+                } catch (e) {
+                    console.warn("Could not get torch capabilities:", e);
+                    torchButton.classList.add('hidden');
                 }
-            } catch (e) {
-                console.warn("Could not get torch capabilities:", e);
-                torchButton.classList.add('hidden'); // Keep hidden on error
-            }
-        })
-        .catch(err => {
-            console.error("Failed to start QR scanner:", err);
-            torchButton.classList.add('hidden'); // Ensure button is hidden if camera fails
-        });
+            })
+            .catch(err => {
+                console.error("Failed to start QR scanner:", err);
+            });
     }
 }
-
 
 function stopScanner() {
     const torchButton = document.getElementById('torch-toggle-btn');
     if (cameraTrack && cameraTrack.readyState === 'live') {
-        // Turn off the torch before stopping the track
         if (isTorchOn) {
             cameraTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(()=>{});
         }
