@@ -6,24 +6,31 @@
 <title>Duck Hunt 2025</title>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
+/* ----------------------------------------------------------------- */
+/* 🍏 GLASS GLOW ENHANCEMENTS */
+/* ----------------------------------------------------------------- */
 :root {
 --green: #60A34D;
 --pink: #ff69b4;
---card-bg: rgba(0, 0, 0, 0.45);
---border-color: rgba(96, 163, 77, 0.2);
---glow-color: rgba(96, 163, 77, 0.7);
+
+/* Glass Variables (Kept for frosted look) */
+--glass-bg: rgba(255, 255, 255, 0.1); /* Lighter base for frosted look */
+--glass-border: rgba(255, 255, 255, 0.3); /* High-contrast white border */
+--glass-shadow: rgba(0, 0, 0, 0.5); /* Stronger shadow for lift */
+--frosted-black: rgba(0, 0, 0, 0.85);
+--glow-color: rgba(96, 163, 77, 0.8); /* Adjusted glow color opacity */
+
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
---frosted-black: rgba(0, 0, 0, 0.85);
 --gold: #FFD700;
 }
 body {
 margin: 0;
-background-color: #000;
-overflow-x: auto; /* ALLOW HORIZONTAL SCROLLING for map zoom */
-min-height: 100vh; /* Fallback */
-min-height: 100svh; /* FIX: Smallest Viewport Height for mobile */
+background-color: #0d1216; 
+overflow-x: auto;
+min-height: 100vh;
+min-height: 100svh;
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 color: white;
 text-align: center;
@@ -33,7 +40,31 @@ text-align: center;
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-.glass-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
+
+/* 🌟 CORE GLASS EFFECT - NO REFLECTION ANIMATION 🌟 */
+.glass-card {
+    position: relative;
+    background: var(--glass-bg); 
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: 
+        0 8px 32px 0 var(--glass-shadow),
+        inset 1px 1px 5px rgba(255, 255, 255, 0.2),
+        inset -1px -1px 5px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* 🌟 GREEN GLOW ON HOVER 🌟 */
+.glass-card:hover {
+    border-color: var(--green); /* Highlight border color */
+    box-shadow: 
+        0 0 15px var(--glow-color); /* Strong green glow */
+}
+
 .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
 #app-wrapper {
 position: fixed;
@@ -55,9 +86,9 @@ top: 0;
 left: 0;
 width: 100%;
 height: var(--ribbon-height);
-background-color: var(--frosted-black);
-backdrop-filter: blur(5px);
--webkit-backdrop-filter: blur(5px);
+background-color: var(--frosted-black); 
+backdrop-filter: blur(8px);
+-webkit-backdrop-filter: blur(8px);
 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 font-weight: bold;
 font-size: 0.85rem;
@@ -115,7 +146,7 @@ align-items: center;
 .app-page .header-image-top {
 width: 70%;
 max-width: 250px;
-margin: 0.2rem auto 0.2rem auto; /* SHRUNK: Reduced vertical margin */
+margin: 0.2rem auto 0.2rem auto;
 display: block;
 flex-shrink: 0;
 }
@@ -132,10 +163,20 @@ align-items: center;
 margin-top: 0;
 flex-shrink: 0;
 }
-#qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 300px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+/* Inherits glass-card */
+#qr-reader-container { 
+    padding: 0; 
+    display: flex; 
+    position: relative; 
+    width: 100%; 
+    aspect-ratio: 1 / 1; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.5); 
+    max-width: 300px; 
+    transition: box-shadow 0.3s ease, border-color 0.3s ease; 
+}
 #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
-@keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
+@keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--glass-border); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
 .point-pop {
 position: absolute;
 top: 85%;
@@ -153,6 +194,7 @@ min-width: 250px;
 text-shadow: 0 0 5px rgba(255,255,255,0.5);
 animation: float-up-short 3s ease-out forwards;
 pointer-events: none;
+z-index: 5;
 }
 @keyframes float-up-short { 0% { top: 85%; opacity: 1; } 50% { top: 70%; opacity: 1; } 100% { top: 70%; opacity: 0; } }
 #golden-flash-overlay {
@@ -205,48 +247,39 @@ font-weight: bold;
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 /* Map Specific Styles */
 #map-page {
-    /* New: Allows map card to scroll vertically relative to the page */
-    padding-top: var(--safe-padding); 
-    justify-content: flex-start;
+    padding-top: var(--safe-padding); 
+    justify-content: flex-start;
 }
 
 #map-card-container {
-    /* Card container properties */
-    flex: 1; 
-    width: 100%;
-    max-width: 450px; 
-    
-    /* CRITICAL: Set a fixed height and enable internal scrolling */
-    height: 60vh; /* Adjust height as needed for mobile screen visibility */
-    padding: 0; 
-    overflow-x: scroll; /* Enables horizontal scrolling within this card */
-    overflow-y: hidden; /* Disables vertical scrolling if map is wider than tall */
+    flex: 1; 
+    width: 100%;
+    max-width: 450px; 
+    
+    height: 60vh;
+    padding: 0; 
+    overflow-x: scroll;
+    overflow-y: hidden;
 }
 
 #map-wrapper {
-    /* We still need a very large width to allow the image to scale beyond the screen */
-    width: 250vw; 
-    max-width: none; 
-    
-    /* CRITICAL: Make wrapper match the height of #map-card-container */
-    height: 100%; 
-    
-    position: relative;
-    margin: 0; 
-    line-height: 0;
+    width: 250vw; 
+    max-width: none; 
+    height: 100%; 
+    position: relative;
+    margin: 0; 
+    line-height: 0;
 }
 #campus-map-img {
-    width: 100%;
-    /* CRITICAL: Allow image to scale its height proportionally based on the 100% width, 
-       but clip the bottom if it exceeds the 60vh height of the card. */
-    height: 100%; 
-    object-fit: contain; /* Ensures the whole image is visible within the 100% height/width */
-    object-position: center;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
+    width: 100%;
+    height: 100%; 
+    object-fit: contain;
+    object-position: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 #map-markers-overlay {
 position: absolute;
@@ -254,43 +287,51 @@ top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-pointer-events: none; /* Allows clicks to pass through to markers */
+pointer-events: none;
 }
 
-/* --- NEW MAP LABEL STYLES --- */
+/* --- MAP LABEL STYLES --- */
 .map-label {
 position: absolute;
 z-index: 10;
-transform: translate(-50%, -50%); /* Center based on position */
+transform: translate(-50%, -50%);
 cursor: default; 
-pointer-events: auto; /* Ensure the box is interactable/visible */
+pointer-events: auto;
 
-/* Frosted Card Look */
+/* Base Glass Look */
 background: var(--frosted-black);
 backdrop-filter: blur(8px);
 -webkit-backdrop-filter: blur(8px);
 border: 1px solid var(--green);
 border-radius: 8px;
-/* SIZING WITH VW UNITS for dynamic scaling on mobile zoom */
 padding: 0.7vw 1.2vw; 
 min-width: 15vw; 
 text-align: center;
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+box-shadow: 0 0 10px var(--glass-shadow);
 white-space: normal;
 line-height: 1.3;
+transition: all 0.3s ease;
+}
+
+/* 🌟 MAP LABEL GLOW ON HOVER 🌟 */
+.map-label:hover {
+    border-color: var(--green);
+    box-shadow: 0 0 15px var(--glow-color);
 }
 
 .map-label h4 {
 margin: 0;
-font-size: 2.2vw; /* DYNAMIC FONT SIZE */
+font-size: 2.2vw;
 font-weight: bold;
-color: white; /* Ensure text is visible */
+color: white;
+position: relative; z-index: 2;
 }
 .map-label p {
 margin: 0;
-padding-top: 0.3vw; /* DYNAMIC SPACING */
-font-size: 1.8vw; /* DYNAMIC FONT SIZE */
+padding-top: 0.3vw;
+font-size: 1.8vw;
 color: rgba(255, 255, 255, 0.9);
+position: relative; z-index: 2;
 }
 
 .map-label.cleared {
@@ -338,20 +379,31 @@ display: none;
 align-items: center;
 justify-content: center;
 }
+/* Apply glass effect to modal */
 #info-modal {
 position: relative;
 width: 90%;
 max-width: 400px;
-background: var(--frosted-black);
-backdrop-filter: blur(10px);
-border: 1px solid rgba(255, 255, 255, 0.1);
+background: var(--glass-bg);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border: 1px solid var(--glass-border);
 border-radius: 20px;
 padding: 1.5rem;
-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+box-shadow: 0 15px 40px var(--glass-shadow);
 max-height: 80vh;
 overflow-y: auto;
 text-align: left;
+overflow: hidden;
+transition: all 0.3s ease;
 }
+
+/* 🌟 MODAL GLOW ON HOVER 🌟 */
+#info-modal:hover {
+    border-color: var(--green);
+    box-shadow: 0 0 15px var(--glow-color);
+}
+
 #modal-close-btn {
 position: absolute;
 top: 10px;
@@ -361,15 +413,18 @@ border: none;
 color: white;
 font-size: 2rem;
 cursor: pointer;
+z-index: 3;
 }
 #modal-title {
 margin-top: 0;
 border-bottom: 2px solid var(--green);
 padding-bottom: 0.5rem;
+position: relative; z-index: 2;
 }
 #modal-content {
 text-align: left;
 padding: 0 0.5rem;
+position: relative; z-index: 2;
 }
 #modal-content ul {
 list-style-type: disc;
@@ -378,50 +433,88 @@ padding-left: 25px;
 #modal-content li {
 margin-bottom: 0.5rem;
 }
+/* Apply glass effect to info card buttons */
 .info-card-button {
-background: var(--card-bg);
-border: 1px solid var(--border-color);
+background: var(--glass-bg);
+border: 1px solid var(--glass-border);
 border-radius: 12px;
 padding: 1rem 1.5rem;
 width: 100%;
 text-align: center;
 cursor: pointer;
-transition: background-color 0.3s ease, box-shadow 0.3s ease;
+transition: all 0.3s ease;
 margin-bottom: 0.75rem;
 box-sizing: border-box;
+box-shadow: 0 4px 8px 0 var(--glass-shadow);
+position: relative;
+overflow: hidden;
 }
+
+/* 🌟 INFO BUTTON GLOW ON HOVER 🌟 */
 .info-card-button:hover {
-background-color: rgba(96, 163, 77, 0.3);
-box-shadow: 0 0 10px var(--glow-color);
+border-color: var(--green);
+box-shadow: 0 0 15px var(--glow-color);
 }
 .info-card-button h4 {
 margin: 0;
 font-size: 1.2rem;
 font-weight: bold;
 color: white;
+position: relative; z-index: 2;
 }
-.location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+/* Apply glass effect to list items */
+.location-card { 
+    background: var(--glass-bg); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+    border: 1px solid var(--glass-border); 
+    border-radius: 12px; 
+    padding: 0.8rem 1.2rem; 
+    box-shadow: 0 4px 8px 0 var(--glass-shadow); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    margin-bottom: 0.5rem; 
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* 🌟 LOCATION CARD GLOW ON HOVER 🌟 */
+.location-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 0 10px var(--glow-color);
+}
+
 .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
 .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
 .location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
 #leaderboard-list, #log-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* Apply glass effect to list items */
 .list-item {
 display: flex;
 align-items: center;
 justify-content: space-between;
 padding: 1rem;
-background: var(--card-bg);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
+background: var(--glass-bg);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
 border-radius: 8px;
-border: 1px solid var(--border-color);
-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+border: 1px solid var(--glass-border);
+box-shadow: 0 4px 8px 0 var(--glass-shadow);
+position: relative;
+overflow: hidden;
+transition: all 0.3s ease;
 }
-#leaderboard-list .list-item {
-background: var(--card-bg);
-border: 1px solid var(--border-color);
-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+.list-item > * { position: relative; z-index: 2; }
+
+/* 🌟 LIST ITEM GLOW ON HOVER 🌟 */
+.list-item:hover {
+    border-color: var(--green);
+    box-shadow: 0 0 10px var(--glow-color);
 }
+
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
 .list-item .rank-text {
 font-weight: bold;
@@ -438,10 +531,37 @@ color: var(--green);
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
 .button-group { display: flex; gap: 0.5rem; }
-.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
-.primary-btn { background-color: var(--green); color: white; }
-.secondary-btn { background-color: transparent; color: var(--green); }
-.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
+
+/* Apply glass-button styles - No reflection animation */
+.button-group button, .full-width-btn { 
+    flex: 1; 
+    border-radius: 10px; 
+    padding: 12px 15px; 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    cursor: pointer; 
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease; 
+    box-shadow: 0 2px 5px var(--glass-shadow); 
+    min-height: 48px; 
+    box-sizing: border-box; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    position: relative;
+    overflow: hidden;
+}
+
+.primary-btn { background-color: var(--green); color: white; border-color: var(--green); }
+.secondary-btn { background-color: rgba(255, 255, 255, 0.1); color: var(--green); }
+
+/* 🌟 BUTTON GLOW ON HOVER 🌟 */
+.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { 
+    border-color: var(--green);
+    box-shadow: 0 0 10px var(--glow-color);
+}
+
+/* Updated Lava (Blob) container for a deeper background */
 #lava-container {
 position: fixed;
 top: 0;
@@ -450,19 +570,45 @@ width: 100%;
 height: 100%;
 z-index: -1;
 }
-#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
+#lava-container::before, #lava-container::after { 
+    content: ''; 
+    position: absolute; 
+    width: 70vmax; 
+    height: 70vmax; 
+    border-radius: 50%; 
+    opacity: 0.5;
+    mix-blend-mode: color-dodge;
+    filter: blur(150px);
+}
 #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
 #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
+
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
 #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+/* Apply glass hover/focus to inputs */
+.reg-input, #login-studentid { 
+    background: rgba(255, 255, 255, 0.1); 
+    border: 1px solid var(--glass-border); 
+    border-radius: 10px; 
+    padding: 12px 15px; 
+    font-size: 1rem; 
+    color: white; 
+    text-align: center; 
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+/* 🌟 INPUT GLOW ON HOVER/FOCUS 🌟 */
 .reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
 .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
+
+#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
 #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
-.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+
 footer {
 position: absolute;
 bottom: 0;
@@ -483,13 +629,52 @@ display: block;
 object-fit: contain;
 }
 footer p { margin: 2px 0; }
-#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
+
+/* Apply glass effect to scanner overlay stats */
+#scanner-overlay-stats { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    z-index: 10; 
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+    border-radius: 20px 20px 0 0; 
+    padding: 0.8rem; 
+    display: flex; 
+    justify-content: space-around; 
+    border-bottom: 1px solid var(--glass-border);
+}
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
 .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
-.tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
+
+/* Apply glass effect to tab bar */
+#tab-bar { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    height: var(--tab-bar-height); 
+    z-index: 150; 
+    background: rgba(10, 10, 10, 0.6); 
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); 
+    border-top: 1px solid var(--glass-border); 
+    box-shadow: 0 -5px 15px var(--glass-shadow);
+    display: flex; 
+    justify-content: space-around; 
+}
+
+.tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; transition: color 0.3s ease; }
 .tab-button.active { color: var(--green); font-weight: bold; }
+
+/* Added hover effect to tab buttons */
+.tab-button:hover {
+    color: var(--glow-color);
+}
+
 .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
 .frost-animation { position: absolute; top: -20px; font-size: 1.5rem; color: white; pointer-events: none; z-index: 999; animation: fall-and-fade linear forwards; }
 @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
@@ -585,14 +770,13 @@ pointer-events: none;
 
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<!-- Removed h2 class="transparent-heading-box">Campus Map</h2> -->
 <div id="map-card-container" class="glass-card">
-    <div id="map-wrapper">
-        <img id="campus-map-img"
-        src="https://i.imgur.com/1aQCsPk.jpeg"
-        alt="Interactive Campus Map">
-        <div id="map-markers-overlay"></div>
-    </div>
+    <div id="map-wrapper">
+        <img id="campus-map-img"
+        src="https://i.imgur.com/1aQCsPk.jpeg"
+        alt="Interactive Campus Map">
+        <div id="map-markers-overlay"></div>
+    </div>
 </div>
 </section>
 
@@ -906,78 +1090,78 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    // Helper to trigger the visual error ring
-    const triggerVisualError = () => {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-    };
+    if (!currentUser) return;
+    
+    // Helper to trigger the visual error ring
+    const triggerVisualError = () => {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+    };
 
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
 
-    // 1. Check if already permanently claimed
-    if (claimedDucksCache.has(lookupId)) {
-        triggerVisualError(); 
-        return; // No message pop-up on duplicate claim
-    }
-    
-    // 2. Check if currently being processed (local lock)
-    if (processingDucks.has(lookupId)) {
-        triggerVisualError(); 
-        return; // No message pop-up on scanning too fast
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        // FIX: Use the visual error ring for invalid codes, no message pop-up.
-        triggerVisualError();
-        return;
-    }
+    // 1. Check if already permanently claimed
+    if (claimedDucksCache.has(lookupId)) {
+        triggerVisualError(); 
+        return; // No message pop-up on duplicate claim
+    }
+    
+    // 2. Check if currently being processed (local lock)
+    if (processingDucks.has(lookupId)) {
+        triggerVisualError(); 
+        return; // No message pop-up on scanning too fast
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        // FIX: Use the visual error ring for invalid codes, no message pop-up.
+        triggerVisualError();
+        return;
+    }
 
-    // --- LOCK THE DUCK ID NOW ---
-    processingDucks.add(lookupId); 
-    
-    // --- Virtual Duck Limit Check ---
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            triggerVisualError(); 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId); // Unlock immediately if failed local check
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
+    // --- LOCK THE DUCK ID NOW ---
+    processingDucks.add(lookupId); 
+    
+    // --- Virtual Duck Limit Check ---
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            triggerVisualError(); 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId); // Unlock immediately if failed local check
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
 
-    // Perform Optimistic Update... 
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    
-    const points = duckInfo.points || 0;
-    
-    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
-     * The points and duck count will now ONLY update when the 
-     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
-     * This eliminates the visual flicker caused by premature local updates.
-     */
+    // Perform Optimistic Update... 
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    
+    const points = duckInfo.points || 0;
+    
+    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
+     * The points and duck count will now ONLY update when the 
+     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
+     * This eliminates the visual flicker caused by premature local updates.
+     */
 
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    // Still show the points pop-up to indicate the scan was captured.
-    displaySuccessPopup(`+${points}`, isGoldenDuck); 
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    // Still show the points pop-up to indicate the scan was captured.
+    displaySuccessPopup(`+${points}`, isGoldenDuck); 
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
 async function sendBatchScans() {
@@ -1083,10 +1267,10 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         return; 
     }
 
-    // 🛑 FIX: Reset the login button immediately after critical data loads, 
+    // 🛑 FIX: Reset the login button immediately after critical data loads, 
     // but before the UI transition. This eliminates the flicker.
     if (loginButtonEl) {
-        loginButtonEl.innerHTML = loginButtonContent;
+        loginButtonEl.innerHTML = originalContent;
         loginButtonEl.disabled = false;
     }
     
@@ -1153,7 +1337,7 @@ async function signIn(studentId) {
     
     if (result.status === "success") {
         // SUCCESS: Pass button state to showApp
-        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
+        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
     } else {
         // FAILURE: Reset button state
         signinBtn.innerHTML = originalContent;
