@@ -7,7 +7,7 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 /* ----------------------------------------------------------------- */
-/* 🍏 GLASS GLOW UI (Your Preferred Style) */
+/* 🍏 GLASS GLOW UI (Merged Styles) */
 /* ----------------------------------------------------------------- */
 :root {
 --green: #60A34D;
@@ -298,7 +298,7 @@ transform: translate(-50%, -50%); /* Center based on position */
 cursor: default; 
 pointer-events: auto; /* Ensure the box is interactable/visible */
 
-/* Frosted Card Look */
+/* Merged Frosted Card Look */
 background: var(--frosted-black);
 backdrop-filter: blur(8px);
 -webkit-backdrop-filter: blur(8px);
@@ -426,7 +426,7 @@ padding: 1rem 1.5rem;
 width: 100%;
 text-align: center;
 cursor: pointer;
-transition: all 0.3s ease;
+transition: background-color 0.3s ease, box-shadow 0.3s ease;
 margin-bottom: 0.75rem;
 box-sizing: border-box;
 }
@@ -440,25 +440,7 @@ font-size: 1.2rem;
 font-weight: bold;
 color: white;
 }
-.location-card { 
-    background: var(--glass-bg); 
-    backdrop-filter: blur(8px); 
-    -webkit-backdrop-filter: blur(8px); 
-    border: 1px solid var(--glass-border); 
-    border-radius: 12px; 
-    padding: 0.8rem 1.2rem; 
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: flex-start; 
-    margin-bottom: 0.5rem; 
-    transition: all 0.3s ease;
-}
-.location-card:hover {
-    border-color: var(--green);
-    box-shadow: 0 0 10px var(--glow-color);
-}
-
+.location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
 .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
 .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
 .location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
@@ -468,19 +450,22 @@ display: flex;
 align-items: center;
 justify-content: space-between;
 padding: 1rem;
-background: var(--glass-bg);
+background: var(--card-bg);
 backdrop-filter: blur(8px);
 -webkit-backdrop-filter: blur(8px);
 border-radius: 8px;
-border: 1px solid var(--glass-border);
+border: 1px solid var(--border-color);
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-transition: all 0.3s ease;
+}
+#leaderboard-list .list-item {
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 .list-item:hover {
     border-color: var(--green);
     box-shadow: 0 0 10px var(--glow-color);
 }
-
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
 .list-item .rank-text {
 font-weight: bold;
@@ -497,24 +482,9 @@ color: var(--green);
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
 .button-group { display: flex; gap: 0.5rem; }
-.button-group button, .full-width-btn { 
-    flex: 1; 
-    border-radius: 10px; 
-    padding: 12px 15px; 
-    font-size: 1.1rem; 
-    font-weight: bold; 
-    cursor: pointer; 
-    border: 2px solid var(--green); 
-    transition: all 0.3s ease; 
-    box-shadow: 0 0 0 rgba(96, 163, 77, 0); 
-    min-height: 48px; 
-    box-sizing: border-box; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-}
+.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
 .primary-btn { background-color: var(--green); color: white; }
-.secondary-btn { background-color: transparent; color: var(--green); border-color: var(--glass-border); }
+.secondary-btn { background-color: transparent; color: var(--green); }
 .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
 #lava-container {
 position: fixed;
@@ -524,7 +494,7 @@ width: 100%;
 height: 100%;
 z-index: -1;
 }
-#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.5; mix-blend-mode: color-dodge; filter: blur(150px); }
+#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
 #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
 #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
@@ -532,11 +502,11 @@ z-index: -1;
 #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
 .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--glass-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px 0 var(--glass-shadow); }
+#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
 #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
-.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
 footer {
 position: absolute;
 bottom: 0;
@@ -561,7 +531,7 @@ footer p { margin: 2px 0; }
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
 .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; }
+#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
 .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
 .tab-button.active { color: var(--green); font-weight: bold; }
 .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
@@ -705,11 +675,9 @@ pointer-events: none;
 // UPDATED SCRIPT URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
 const POPUP_DURATION_MS = 2000;
-// 🌟 SERVER BATCH SEND IS 15 SECONDS 🌟
 const BATCH_SEND_INTERVAL_MS = 15000;
-// 🌟 SERVER CORRECTION/SYNC IS 60 SECONDS 🌟
-const DATA_REFRESH_INTERVAL_MS = 60000;
-const VIRTUAL_LIMIT = 10; 
+const DATA_REFRESH_INTERVAL_MS = 60000; // 60 seconds for server correction
+const VIRTUAL_LIMIT = 10; // Explicitly define the limit
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
 /*
@@ -754,7 +722,7 @@ let batchSendTimer = null;
 let dataRefreshTimer = null;
 let locationCountsCache = {}; 
 
-// --- MAP INTERACTION LOGIC (Your exact map code/rules) ---
+// --- MAP INTERACTION LOGIC ---
 const mapWrapper = document.getElementById('map-wrapper');
 
 function positionMarkers() {
@@ -1039,7 +1007,7 @@ async function onScanSuccess(decodedText) {
     
     const points = duckInfo.points || 0;
     
-    // 🌟 OPTIMISTIC UPDATE: Immediate Visual Feedback 🌟
+    // 🌟 OPTIMISTIC UPDATE: Immediate Visual Feedback 🌟
     currentUser.points += points;
     document.getElementById('player-points').textContent = currentUser.points;
     document.getElementById('player-ducks').textContent = parseInt(document.getElementById('player-ducks').textContent) + 1;
@@ -1072,29 +1040,29 @@ async function sendBatchScans() {
         if (batchResult.results) {
             batchResult.results.forEach(result => {
                 const id = result.duckId.trim().toLowerCase();
-                const duckInfo = duckDataCache[id];
-                const points = duckInfo ? duckInfo.points : 0;
+                const duckInfo = duckDataCache[id];
+                const points = duckInfo ? duckInfo.points : 0;
                 
                 if (result.status === "success") {
                     claimedDucksCache.add(id); 
                 } else {
                     // 🌟 REVERT OPTIMISTIC UPDATE if the server failed the scan 🌟
-                    currentUser.points = Math.max(0, currentUser.points - points);
-                    document.getElementById('player-points').textContent = currentUser.points;
-                    document.getElementById('player-ducks').textContent = Math.max(0, parseInt(document.getElementById('player-ducks').textContent) - 1);
+                    currentUser.points = Math.max(0, currentUser.points - points);
+                    document.getElementById('player-points').textContent = currentUser.points;
+                    document.getElementById('player-ducks').textContent = Math.max(0, parseInt(document.getElementById('player-ducks').textContent) - 1);
 
                     displayRevertPopup(result.message || "A duck was claimed just before you!");
                 }
             });
         }
-        // Sync counts from the batch result immediately to reduce the gap until the 60s sync
-        if (batchResult.updatedUser) {
+        // Sync counts from the batch result immediately to reduce the gap until the 60s sync
+        if (batchResult.updatedUser) {
             currentUser.points = batchResult.updatedUser.points;
             document.getElementById('player-points').textContent = currentUser.points;
-            if (batchResult.updatedUser.duckCount !== undefined) {
+            if (batchResult.updatedUser.duckCount !== undefined) {
                 document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
             }
-        }
+        }
     } else {
         displayRevertPopup(batchResult.message || "A server error occurred.");
         // Re-queue the failed scans to be retried
@@ -1130,19 +1098,16 @@ if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
 }
 }
 
-// --- APP INITIALIZATION & LOGIN (Sequential Data Load Restored) ---
+// --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     
     // 1. Load CRITICAL Data (Duck Map & Claimed Status) - MUST COMPLETE BEFORE UI IS SHOWN
     try {
-        // Fetch ALL CRITICAL data sequentially here to prevent a split-second blank screen
-        const [duckResult, claimedDucksResult, historyResult, infoResult] = await Promise.all([
-            postToAction('getDuckData'), // Critical for scanning
-            postToAction('getClaimedDucks'), // Critical for scanning
-            postToAction('getScanHistory', { studentId: currentUser.studentId }), // Needed for local V-duck check/initial display
-            postToAction('getInfoData') // Needed for initial ribbon
+        const [duckResult, claimedDucksResult] = await Promise.all([
+            postToAction('getDuckData'),
+            postToAction('getClaimedDucks')
         ]);
         
         if (duckResult.status === "success") {
@@ -1152,24 +1117,11 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
             claimedDucksCache = new Set(claimedDucksResult.claimed);
         }
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            // Populate local V-duck list for immediate check
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
-        if (infoResult.status === 'success') {
-            updateRibbon(infoResult.ribbonText);
-            infoDataCache = infoResult.infoItems || [];
-            infoDataFetchTime = new Date();
-        }
-
     } catch (e) {
         console.error("Failed to load critical game data:", e);
         alert("Could not load critical game data. Please try again.");
         
+        // Ensure buttons are functional if critical load fails
         if (loginButtonEl) {
             loginButtonEl.innerHTML = loginButtonContent;
             loginButtonEl.disabled = false;
@@ -1177,7 +1129,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         return; 
     }
 
-    // 🛑 Reset the login button immediately after critical data loads, 
+    // 🛑 FIX: Reset the login button immediately after critical data loads, 
+    // but before the UI transition. This eliminates the flicker.
     if (loginButtonEl) {
         loginButtonEl.innerHTML = loginButtonContent;
         loginButtonEl.disabled = false;
@@ -1187,11 +1140,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
     
-    // Initialize points/ducks from 'user' object and locally loaded history
-    document.getElementById('player-points').textContent = currentUser.points || 0;
-    document.getElementById('player-ducks').textContent = scanHistoryCache.length; // Use locally calculated count for immediate display
-
-    // Set up timers (15s batch send, 60s server sync)
+    // Set up timers
     if (batchSendTimer) clearInterval(batchSendTimer);
     batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
@@ -1206,7 +1155,35 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         initialDuckId = null;
     }
 
-    // Final update to set the welcome message and rank (which involves one last fetch)
+    // 3. Load AUXILIARY Data (Asynchronously, in the background)
+    try {
+        const [historyResult, infoResult] = await Promise.all([
+            postToAction('getScanHistory', { studentId: currentUser.studentId }),
+            postToAction('getInfoData')
+        ]);
+        
+        if (Array.isArray(historyResult)) {
+            scanHistoryCache = historyResult;
+            document.getElementById('player-ducks').textContent = historyResult.length; 
+            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+            localVirtualScanTimestamps = historyResult
+                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                .map(scan => new Date(scan.timestamp).getTime());
+        }
+        
+        if (infoResult.status === 'success') {
+            updateRibbon(result.ribbonText);
+            infoDataCache = infoResult.infoItems || [];
+            infoDataFetchTime = new Date();
+            if (document.getElementById('info-page').classList.contains('active')) {
+                renderInfoCards(infoDataCache);
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load auxiliary data in background:", e);
+    }
+    
+    // Final update to set the welcome message and rank
     await updateUserDashboard();
 }
 
@@ -1218,11 +1195,10 @@ async function signIn(studentId) {
     signinBtn.innerHTML = '<div class="spinner"></div>';
     signinBtn.disabled = true;
 
-    // Fetch ONLY user data first
     const result = await postToAction('getUser', { studentId });
     
     if (result.status === "success") {
-        // SUCCESS: Proceed to showApp with the user data
+        // SUCCESS: Pass button state to showApp
         showApp(result.user, 'hunt-page', signinBtn, originalContent); 
     } else {
         // FAILURE: Reset button state
@@ -1309,7 +1285,6 @@ setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 async function updateUserDashboard(shouldUpdatePoints = true) {
 if (!currentUser) return;
 try {
-    // 1. Set up concurrent fetches (Leaderboard, History, and optionally User Points)
     const fetches = [
         postToAction('getLeaderboard'),
         postToAction('getScanHistory', { studentId: currentUser.studentId })
@@ -1321,23 +1296,20 @@ try {
 
     let userResult, leaderboardData, historyResult;
         
-    // Check if there are scans waiting to be sent; if so, rely on local counts until a server sync confirms them
     const hasPendingScans = scanQueue.length > 0;
         
     if (shouldUpdatePoints) {
         userResult = responses.shift();
         if (userResult.status === "success") {
-            // 🌟 Server Correction/Sync 🌟
             currentUser.points = userResult.user.points;
             document.getElementById('player-points').textContent = currentUser.points;
-            if (userResult.user.duckCount !== undefined) {
-                currentUser.duckCount = userResult.user.duckCount;
-                document.getElementById('player-ducks').textContent = currentUser.duckCount;
-            }
+            if (userResult.user.duckCount !== undefined) {
+                currentUser.duckCount = userResult.user.duckCount;
+                document.getElementById('player-ducks').textContent = currentUser.duckCount;
+            }
         }
     } 
 
-    // Adjust indices based on whether userResult was shifted
     const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
     const historyIndex = shouldUpdatePoints ? 1 : 1; 
 
@@ -1357,8 +1329,7 @@ try {
 
     if (Array.isArray(historyResult)) {
         scanHistoryCache = historyResult;
-        // Only update ducks from history if not updated by server (i.e., on first load)
-        if (!shouldUpdatePoints && !currentUser.duckCount) {
+        if (!hasPendingScans) {
             document.getElementById('player-ducks').textContent = historyResult.length;
         }
     }
