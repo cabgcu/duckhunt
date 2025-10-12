@@ -175,14 +175,6 @@ flex-shrink: 0;
 }
 #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 300px; }
 #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
-/* START: QR Code Scanner Overlay Positioning Adjustments */
-#qr-reader div:nth-child(2) {
-    /* Targets the div containing the QR box overlay, typically the second child */
-    /* Moves the entire overlay down to center it below the banner */
-    margin-top: 25%; /* Adjust this value to fine-tune vertical centering below the stats banner */
-    transform: translateY(-50%); /* Counters the default center alignment */
-}
-/* END: QR Code Scanner Overlay Positioning Adjustments */
 #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
 @keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); } 50% { box-shadow: var(--glass-shadow), 0 0 25px rgba(255, 0, 0, 0.9); } }
 .point-pop {
@@ -255,103 +247,103 @@ font-weight: bold;
 
 /* --- MAP STYLES --- */
 #map-page {
-    padding-top: var(--safe-padding);
-    justify-content: flex-start;
+    padding-top: var(--safe-padding);
+    justify-content: flex-start;
 }
 #map-card-container {
-    width: 100%;
-    max-width: 450px;
-    height: 65vh;
-    overflow: scroll;
-    padding: 0;
-    border-radius: 20px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
+    max-width: 450px;
+    height: 65vh;
+    overflow: scroll;
+    padding: 0;
+    border-radius: 20px;
+    margin-left: auto;
+    margin-right: auto;
 }
 #map-wrapper {
-    position: relative;
-    width: 250vw;
-    height: auto;
+    position: relative;
+    width: 250vw;
+    height: auto;
 }
 #campus-map-img {
-    width: 100%;
-    height: auto;
-    display: block;
+    width: 100%;
+    height: auto;
+    display: block;
 }
 #map-markers-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 .map-label {
-    position: absolute;
-    z-index: 10;
-    transform: translate(-50%, -50%);
-    cursor: pointer; /* Change cursor to indicate it's clickable */
-    pointer-events: auto;
-    background: rgba(30, 30, 30, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    padding: 3px 6px; /* Smaller padding */
-    min-width: 90px; /* Adjusted min-width */
-    text-align: center;
-    white-space: normal;
-    line-height: 1.2; /* Adjusted line height */
-    transition: transform 0.2s ease-out, z-index 0s 0.2s;
+    position: absolute;
+    z-index: 10;
+    transform: translate(-50%, -50%);
+    cursor: pointer; /* Change cursor to indicate it's clickable */
+    pointer-events: auto;
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 3px 6px; /* Smaller padding */
+    min-width: 90px; /* Adjusted min-width */
+    text-align: center;
+    white-space: normal;
+    line-height: 1.2; /* Adjusted line height */
+    transition: transform 0.2s ease-out, z-index 0s 0.2s;
 }
 .map-label.on-top {
-    z-index: 20;
-    transform: translate(-50%, -50%) scale(1.1);
-    transition: transform 0.2s ease-out, z-index 0s;
+    z-index: 20;
+    transform: translate(-50%, -50%) scale(1.1);
+    transition: transform 0.2s ease-out, z-index 0s;
 }
 .map-label h4 {
-    margin: 0;
-    font-size: 12px; /* Smaller font size */
-    font-weight: bold;
-    color: white;
+    margin: 0;
+    font-size: 12px; /* Smaller font size */
+    font-weight: bold;
+    color: white;
 }
 .map-label p {
-    margin: 0;
-    padding-top: 2px; /* Smaller padding */
-    font-size: 10px; /* Smaller font size */
-    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    padding-top: 2px; /* Smaller padding */
+    font-size: 10px; /* Smaller font size */
+    color: rgba(255, 255, 255, 0.9);
 }
 .map-label.cleared {
-    border-color: #ff4d4d;
-    background-color: rgba(50, 50, 50, 0.85);
-    opacity: 0.8;
+    border-color: #ff4d4d;
+    background-color: rgba(50, 50, 50, 0.85);
+    opacity: 0.8;
 }
 /* --- End Map Styles --- */
 
 #log-container, #leaderboard-container, #info-container {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-    padding: var(--safe-padding) 0;
-    background: none;
-    border: none;
-    box-shadow: none;
-    gap: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 450px;
-    margin: 0 auto;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: var(--safe-padding) 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
 }
 
 #leaderboard-list, #log-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 #info-modal-backdrop {
@@ -446,36 +438,36 @@ color: var(--green);
 
 /* === LAVA CONTAINER STYLES === */
 #lava-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
 }
 #lava-container::before, #lava-container::after {
-    content: '';
-    position: absolute;
-    width: 70vmax;
-    height: 70vmax;
-    border-radius: 50%;
-    opacity: 0.8;
-    mix-blend-mode: lighten;
-    filter: blur(120px);
+    content: '';
+    position: absolute;
+    width: 70vmax;
+    height: 70vmax;
+    border-radius: 50%;
+    opacity: 0.8;
+    mix-blend-mode: lighten;
+    filter: blur(120px);
 }
 #lava-container::before {
-    background-color: var(--pink);
-    top: -35vmax;
-    left: -35vmax;
-    animation: move-pink 14s infinite linear;
+    background-color: var(--pink);
+    top: -35vmax;
+    left: -35vmax;
+    animation: move-pink 14s infinite linear;
 }
 #lava-container::after {
-    background-color: var(--green);
-    bottom: -35vmax;
-    right: -35vmax;
-    animation: move-green 12s infinite linear;
-    animation-delay: -8s;
+    background-color: var(--green);
+    bottom: -35vmax;
+    right: -35vmax;
+    animation: move-green 12s infinite linear;
+    animation-delay: -8s;
 }
 /* === END LAVA STYLES === */
 
@@ -514,28 +506,28 @@ footer p { margin: 2px 0; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
 .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; transition: all 0.3s ease; }
 .stat p.pending-update {
-    animation: pulse-green 1.5s infinite;
+    animation: pulse-green 1.5s infinite;
 }
 @keyframes pulse-green {
-    0% { color: white; text-shadow: none; }
-    50% { color: var(--green); text-shadow: 0 0 8px var(--green); }
-    100% { color: white; text-shadow: none; }
+    0% { color: white; text-shadow: none; }
+    50% { color: var(--green); text-shadow: 0 0 8px var(--green); }
+    100% { color: white; text-shadow: none; }
 }
-#tab-bar { 
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    z-index: 150; 
-    background: rgba(30, 30, 30, 0.5); 
-    backdrop-filter: blur(25px); 
-    -webkit-backdrop-filter: blur(25px); 
-    border-top: 1px solid var(--glass-border-top); 
-    display: flex; 
-    justify-content: space-around;
-    height: calc(var(--tab-bar-height) + var(--safe-area-bottom));
-    padding-bottom: var(--safe-area-bottom);
-    box-sizing: content-box;
+#tab-bar { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    z-index: 150; 
+    background: rgba(30, 30, 30, 0.5); 
+    backdrop-filter: blur(25px); 
+    -webkit-backdrop-filter: blur(25px); 
+    border-top: 1px solid var(--glass-border-top); 
+    display: flex; 
+    justify-content: space-around;
+    height: calc(var(--tab-bar-height) + var(--safe-area-bottom));
+    padding-bottom: var(--safe-area-bottom);
+    box-sizing: content-box;
 }
 .tab-button {
 background: none;
@@ -554,17 +546,17 @@ transition: color 0.3s ease;
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
 
 /* === BACKGROUND KEYFRAMES === */
-@keyframes move-pink { 
-    0%, 100% { transform: translate(0, 0); } 
-    25% { transform: translate(calc(100vw - 70vmax), 0); } 
-    50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 
-    75% { transform: translate(0, calc(100vh - 70vmax)); } 
+@keyframes move-pink { 
+    0%, 100% { transform: translate(0, 0); } 
+    25% { transform: translate(calc(100vw - 70vmax), 0); } 
+    50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 
+    75% { transform: translate(0, calc(100vh - 70vmax)); } 
 }
-@keyframes move-green { 
-    0%, 100% { transform: translate(0, 0); } 
-    25% { transform: translate(calc(-100vw + 70vmax), 0); } 
-    50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 
-    75% { transform: translate(0, calc(-100vh + 70vmax)); } 
+@keyframes move-green { 
+    0%, 100% { transform: translate(0, 0); } 
+    25% { transform: translate(calc(-100vw + 70vmax), 0); } 
+    50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 
+    75% { transform: translate(0, calc(-100vh + 70vmax)); } 
 }
 /* === END KEYFRAMES === */
 
@@ -598,31 +590,65 @@ pointer-events: none;
 }
 
 @media (max-width: 480px) {
-    .map-label {
-        min-width: 90px;
-        padding: 4px 8px;
-    }
-    .map-label h4 {
-        font-size: 12px;
-    }
-    .map-label p {
-        font-size: 10px;
-        padding-top: 2px;
-    }
+    .map-label {
+        min-width: 90px;
+        padding: 4px 8px;
+    }
+    .map-label h4 {
+        font-size: 12px;
+    }
+    .map-label p {
+        font-size: 10px;
+        padding-top: 2px;
+    }
 }
 
-/* --- NEW STYLES FOR LOGOUT --- */
+/* --- NEW STYLES FOR TORCH AND LOGOUT --- */
+#torch-toggle-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: background-color 0.2s, transform 0.2s;
+}
+#torch-toggle-btn:hover {
+    transform: scale(1.1);
+}
+#torch-toggle-btn.torch-on {
+    background-color: rgba(255, 255, 255, 0.85);
+}
+#torch-toggle-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+    transition: fill 0.2s;
+}
+#torch-toggle-btn.torch-on svg {
+    fill: #000;
+}
+
 #logout-btn {
-    background-color: rgba(255, 100, 100, 0.1);
-    border-color: rgba(255, 100, 100, 0.2);
-    color: rgba(255, 150, 150, 1);
-    margin: 1.5rem 0;
+    background-color: rgba(255, 100, 100, 0.1);
+    border-color: rgba(255, 100, 100, 0.2);
+    color: rgba(255, 150, 150, 1);
+    margin: 1.5rem 0;
 }
 #logout-btn:hover {
-    background-color: rgba(255, 100, 100, 0.2);
-    border-color: rgba(255, 100, 100, 0.4);
-    box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
-    transform: translateY(-2px);
+    background-color: rgba(255, 100, 100, 0.2);
+    border-color: rgba(255, 100, 100, 0.4);
+    box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
+    transform: translateY(-2px);
 }
 </style>
 </head>
@@ -676,6 +702,11 @@ pointer-events: none;
 <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
 </div>
 <div id="qr-reader"></div>
+<button id="torch-toggle-btn" class="hidden">
+    <svg viewBox="0 0 24 24" width="24" height="24">
+        <path fill="currentColor" d="M9,2A1,1 0 0,0 8,3V4A1,1 0 0,0 9,5H15A1,1 0 0,0 16,4V3A1,1 0 0,0 15,2H9M9,6A1,1 0 0,0 8,7V8A1,1 0 0,0 9,9H15A1,1 0 0,0 16,8V7A1,1 0 0,0 15,6H9M8,10V20A2,2 0 0,0 10,22H14A2,2 0 0,0 16,20V10H8Z"></path>
+    </svg>
+</button>
 </div>
 <div id="scanner-footer-details">
 <a id="scan-history-link" href="#" data-page="log-page">Scan History</a>
@@ -687,12 +718,12 @@ pointer-events: none;
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <div id="map-card-container">
-    <div id="map-wrapper">
-        <img id="campus-map-img"
-        src="https://i.imgur.com/1aQCsPk.jpeg"
-        alt="Interactive Campus Map">
-        <div id="map-markers-overlay"></div>
-    </div>
+    <div id="map-wrapper">
+        <img id="campus-map-img"
+        src="https://i.imgur.com/1aQCsPk.jpeg"
+        alt="Interactive Campus Map">
+        <div id="map-markers-overlay"></div>
+    </div>
 </div>
 </section>
 
@@ -737,13 +768,13 @@ const VIRTUAL_LIMIT = 10;
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 const MAP_SPOTS = [
 { name: 'The Grove', dataKey: 'The Grove', coords: '1295,758,1311,774' },
-{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, 
+{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, 
 { name: 'Main Campus', dataKey: 'Main Campus', coords: '1763,2398,1779,2414' },
 { name: 'North Campus', dataKey: 'North Campus', coords: '2738,1116,2754,1132' },
 { name: 'East Campus', dataKey: 'East Campus', coords: '3882,2468,3898,2484' },
 { name: 'The Rivers', dataKey: 'The Rivers', coords: '4757,1136,4773,1152' },
-{ name: 'Riverbed Virtual', dataKey: 'Riverbed', coords: '5125,817,5141,833' }, 
-{ name: 'Commuter Lounge Virtual', dataKey: 'Commuter Lounge', coords: '1355,1900,1371,1916' }, 
+{ name: 'Riverbed Virtual', dataKey: 'Riverbed', coords: '5125,817,5141,833' }, 
+{ name: 'Commuter Lounge Virtual', dataKey: 'Commuter Lounge', coords: '1355,1900,1371,1916' }, 
 { name: 'Thunderground Virtual', dataKey: 'Thunderground', coords: '1514,1680,1530,1696' },
 ];
 
@@ -772,7 +803,7 @@ let scanHistoryCache = [];
 let scanQueue = [];
 let batchSendTimer = null;
 let dataRefreshTimer = null;
-let locationCountsCache = {}; 
+let locationCountsCache = {}; 
 let pendingPoints = 0;
 let pendingDucks = 0;
 
@@ -781,128 +812,128 @@ const mapCardContainer = document.getElementById('map-card-container');
 let isPanning = false;
 
 function updateLabelSizeOnPan() {
-    if (!isPanning) return;
+    if (!isPanning) return;
 
-    const viewportCenterX = mapCardContainer.scrollLeft + mapCardContainer.clientWidth / 2;
-    const viewportCenterY = mapCardContainer.scrollTop + mapCardContainer.clientHeight / 2;
-    const maxDistance = Math.sqrt(Math.pow(mapCardContainer.clientWidth / 2, 2) + Math.pow(mapCardContainer.clientHeight / 2, 2));
+    const viewportCenterX = mapCardContainer.scrollLeft + mapCardContainer.clientWidth / 2;
+    const viewportCenterY = mapCardContainer.scrollTop + mapCardContainer.clientHeight / 2;
+    const maxDistance = Math.sqrt(Math.pow(mapCardContainer.clientWidth / 2, 2) + Math.pow(mapCardContainer.clientHeight / 2, 2));
 
-    document.querySelectorAll('.map-label').forEach(label => {
-        const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
-        const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
-        const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
-        let scale = 1.15 - (distance / maxDistance) * 0.25;
-        
-        // Prevent scaling down if it's the 'on-top' label
-        if (label.classList.contains('on-top')) {
-            scale = 1.1; // Keep it scaled up
-        } else {
-            scale = Math.max(0.9, Math.min(scale, 1.15));
-        }
+    document.querySelectorAll('.map-label').forEach(label => {
+        const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
+        const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
+        const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
+        let scale = 1.15 - (distance / maxDistance) * 0.25;
+        
+        // Prevent scaling down if it's the 'on-top' label
+        if (label.classList.contains('on-top')) {
+            scale = 1.1; // Keep it scaled up
+        } else {
+            scale = Math.max(0.9, Math.min(scale, 1.15));
+        }
 
-        label.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    });
+        label.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    });
 
-    isPanning = false;
+    isPanning = false;
 }
 
 function positionMarkers() {
-    const overlay = document.getElementById('map-markers-overlay');
-    if (!overlay || !mapImageElement || !mapImageElement.naturalWidth) return;
+    const overlay = document.getElementById('map-markers-overlay');
+    if (!overlay || !mapImageElement || !mapImageElement.naturalWidth) return;
 
-    overlay.innerHTML = ''; 
-    const locationData = locationCountsCache;
+    overlay.innerHTML = ''; 
+    const locationData = locationCountsCache;
 
-    MAP_SPOTS.forEach(spot => {
-        const marker = document.createElement('div');
-        marker.className = 'map-label';
+    MAP_SPOTS.forEach(spot => {
+        const marker = document.createElement('div');
+        marker.className = 'map-label';
 
-        const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
-        const centerX = (x1 + x2) / 2;
-        const centerY = (y1 + y2) / 2;
+        const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
+        const centerX = (x1 + x2) / 2;
+        const centerY = (y1 + y2) / 2;
 
-        marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
-        marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
+        marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
+        marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
 
-        const dataKey = spot.dataKey;
-        const displayName = spot.name;
+        const dataKey = spot.dataKey;
+        const displayName = spot.name;
 
-        let remainingText;
-        let spotData = locationData[dataKey];
+        let remainingText;
+        let spotData = locationData[dataKey];
 
-        if (!spotData) {
-            remainingText = '<strong>N/A</strong> Codes Left';
-            marker.style.borderColor = 'gray';
-        } else {
-            const remaining = spotData.count;
-            if (remaining > 0) {
-                remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
-                marker.style.borderColor = 'var(--green)';
-            } else {
-                remainingText = `❌ <strong>CLEARED</strong>`;
-                marker.classList.add('cleared');
-            }
-        }
-        marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
-        
-        marker.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent event from bubbling up
-            document.querySelectorAll('.map-label.on-top').forEach(lbl => {
-                lbl.classList.remove('on-top');
-            });
-            marker.classList.add('on-top');
-        });
-        
-        overlay.appendChild(marker);
-    });
-    isPanning = true;
-    updateLabelSizeOnPan();
+        if (!spotData) {
+            remainingText = '<strong>N/A</strong> Codes Left';
+            marker.style.borderColor = 'gray';
+        } else {
+            const remaining = spotData.count;
+            if (remaining > 0) {
+                remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
+                marker.style.borderColor = 'var(--green)';
+            } else {
+                remainingText = `❌ <strong>CLEARED</strong>`;
+                marker.classList.add('cleared');
+            }
+        }
+        marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
+        
+        marker.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling up
+            document.querySelectorAll('.map-label.on-top').forEach(lbl => {
+                lbl.classList.remove('on-top');
+            });
+            marker.classList.add('on-top');
+        });
+        
+        overlay.appendChild(marker);
+    });
+    isPanning = true;
+    updateLabelSizeOnPan();
 }
 
 
 async function updateDuckMapData() {
-    const result = await postToAction('getDuckCounts');
-    if (result.status === 'success' && result.locations) {
-        locationCountsCache = {};
-        Object.keys(result.locations).forEach(name => {
-            locationCountsCache[name] = { count: result.locations[name] };
-        });
-    }
+    const result = await postToAction('getDuckCounts');
+    if (result.status === 'success' && result.locations) {
+        locationCountsCache = {};
+        Object.keys(result.locations).forEach(name => {
+            locationCountsCache[name] = { count: result.locations[name] };
+        });
+    }
 }
 
 function initializeMap() {
-    if (mapResizeObserver) {
-        mapResizeObserver.disconnect();
-        mapResizeObserver = null;
-    }
+    if (mapResizeObserver) {
+        mapResizeObserver.disconnect();
+        mapResizeObserver = null;
+    }
 
-    mapCardContainer.addEventListener('scroll', () => {
-        if (!isPanning) {
-            isPanning = true;
-            window.requestAnimationFrame(updateLabelSizeOnPan);
-        }
-    });
+    mapCardContainer.addEventListener('scroll', () => {
+        if (!isPanning) {
+            isPanning = true;
+            window.requestAnimationFrame(updateLabelSizeOnPan);
+        }
+    });
 
-    const imageLoadPromise = new Promise(resolve => {
-        if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
-            resolve();
-        } else {
-            mapImageElement.onload = resolve;
-            mapImageElement.onerror = resolve; 
-        }
-    });
+    const imageLoadPromise = new Promise(resolve => {
+        if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
+            resolve();
+        } else {
+            mapImageElement.onload = resolve;
+            mapImageElement.onerror = resolve; 
+        }
+    });
 
-    Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
-        if (mapImageElement.naturalWidth > 0) {
-            positionMarkers();
-            if (!mapResizeObserver) {
-                mapResizeObserver = new ResizeObserver(positionMarkers);
-                mapResizeObserver.observe(mapImageElement);
-            }
-        } else {
-            console.error("Map image failed to load or has zero dimensions.");
-        }
-    });
+    Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
+        if (mapImageElement.naturalWidth > 0) {
+            positionMarkers();
+            if (!mapResizeObserver) {
+                mapResizeObserver = new ResizeObserver(positionMarkers);
+                mapResizeObserver.observe(mapImageElement);
+            }
+        } else {
+            console.error("Map image failed to load or has zero dimensions.");
+        }
+    });
 }
 // --- END MAP INTERACTION LOGIC ---
 
@@ -1043,124 +1074,125 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 function updateOptimisticDisplay() {
-    if (!currentUser) return;
-    const pointsEl = document.getElementById('player-points');
-    const ducksEl = document.getElementById('player-ducks');
+    if (!currentUser) return;
+    const pointsEl = document.getElementById('player-points');
+    const ducksEl = document.getElementById('player-ducks');
 
-    const totalPoints = (currentUser.points || 0) + pendingPoints;
-    const totalDucks = (currentUser.duckCount || 0) + pendingDucks;
+    const totalPoints = (currentUser.points || 0) + pendingPoints;
+    const totalDucks = (currentUser.duckCount || 0) + pendingDucks;
 
-    pointsEl.textContent = totalPoints;
-    ducksEl.textContent = totalDucks;
+    pointsEl.textContent = totalPoints;
+    ducksEl.textContent = totalDucks;
 
-    if (pendingPoints > 0 || pendingDucks > 0) {
-        pointsEl.classList.add('pending-update');
-        ducksEl.classList.add('pending-update');
-    } else {
-        pointsEl.classList.remove('pending-update');
-        ducksEl.classList.remove('pending-update');
-    }
+    if (pendingPoints > 0 || pendingDucks > 0) {
+        pointsEl.classList.add('pending-update');
+        ducksEl.classList.add('pending-update');
+    } else {
+        pointsEl.classList.remove('pending-update');
+        ducksEl.classList.remove('pending-update');
+    }
 }
 
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    const triggerVisualError = () => {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-    };
+    if (!currentUser) return;
+    
+    const triggerVisualError = () => {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+    };
 
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
 
-    if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
-        triggerVisualError(); 
-        return;
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        triggerVisualError();
-        return;
-    }
+    if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
+        triggerVisualError(); 
+        return;
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        triggerVisualError();
+        return;
+    }
 
-    processingDucks.add(lookupId); 
-    
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            triggerVisualError(); 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
-            processingDucks.delete(lookupId);
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
+    processingDucks.add(lookupId); 
+    
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            triggerVisualError(); 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId);
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
 
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    
-    const points = duckInfo.points || 0;
-    pendingPoints += points;
-    pendingDucks += 1;
-    updateOptimisticDisplay();
-    
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    displaySuccessPopup(`+${points}`, isGoldenDuck); 
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    
+    const points = duckInfo.points || 0;
+    pendingPoints += points;
+    pendingDucks += 1;
+    updateOptimisticDisplay();
+    
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    displaySuccessPopup(`+${points}`, isGoldenDuck); 
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
 async function sendBatchScans() {
-    if (scanQueue.length === 0) return;
-    
-    const scansToSend = [...scanQueue];
-    scanQueue = [];
-    
-    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
+    if (scanQueue.length === 0) return;
+    
+    const scansToSend = [...scanQueue];
+    scanQueue = [];
+    
+    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
 
-    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-    
-    sentDuckIds.forEach(id => processingDucks.delete(id));
+    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+    
+    sentDuckIds.forEach(id => processingDucks.delete(id));
 
-    if (batchResult.status === "success") {
-        if (batchResult.updatedUser) {
-            currentUser.points = batchResult.updatedUser.points;
-            currentUser.duckCount = batchResult.updatedUser.duckCount;
-            pendingPoints = 0;
-            pendingDucks = 0;
-            updateOptimisticDisplay();
-        }
-        
-        if (batchResult.results) {
-            batchResult.results.forEach(result => {
-                const id = result.duckId.trim().toLowerCase();
-                
-                if (result.status === "success") {
-                    claimedDucksCache.add(id); 
-                } else {
-                    displayRevertPopup(result.message || "A duck was claimed just before you!");
-                }
-            });
-        }
-    } else {
-        displayRevertPopup(batchResult.message || "A server error occurred.");
-        scanQueue = [...scansToSend, ...scanQueue];
-    }
+    if (batchResult.status === "success") {
+        if (batchResult.updatedUser) {
+            currentUser.points = batchResult.updatedUser.points;
+            currentUser.duckCount = batchResult.updatedUser.duckCount;
+            pendingPoints = 0;
+            pendingDucks = 0;
+            updateOptimisticDisplay();
+        }
+        
+        if (batchResult.results) {
+            batchResult.results.forEach(result => {
+                const id = result.duckId.trim().toLowerCase();
+                
+                if (result.status === "success") {
+                    claimedDucksCache.add(id); 
+                } else {
+                    displayRevertPopup(result.message || "A duck was claimed just before you!");
+                }
+            });
+        }
+    } else {
+        displayRevertPopup(batchResult.message || "A server error occurred.");
+        scanQueue = [...scansToSend, ...scanQueue];
+    }
 }
 
 function periodicDataRefresh() {
 if (!currentUser) return;
-updateUserDashboard(true); 
+updateUserDashboard(true); 
 
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
@@ -1169,160 +1201,160 @@ claimedDucksCache = new Set(result.claimed);
 });
 const fiveMinutes = 5 * 60 * 1000;
 if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
-    postToAction('getInfoData').then(result => {
-        if (result.status === 'success') {
-            updateRibbon(result.ribbonText);
-            infoDataCache = result.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        } else {
-            updateRibbon('');
-        }
-    });
+    postToAction('getInfoData').then(result => {
+        if (result.status === 'success') {
+            updateRibbon(result.ribbonText);
+            infoDataCache = result.infoItems || [];
+            infoDataFetchTime = new Date();
+            if (document.getElementById('info-page').classList.contains('active')) {
+                renderInfoCards(infoDataCache);
+            }
+        } else {
+            updateRibbon('');
+        }
+    });
 }
 }
 
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
-    currentUser = user;
-    currentUser.duckCount = user.duckCount || 0; 
-    sessionStorage.setItem('currentUserStudentId', user.studentId);
-    
-    try {
-        const [duckResult, claimedDucksResult] = await Promise.all([
-            postToAction('getDuckData'),
-            postToAction('getClaimedDucks')
-        ]);
-        
-        if (duckResult.status === "success") {
-            duckDataCache = duckResult.ducks;
-        } else { throw new Error("Failed to load duck data."); }
-        
-        if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
-            claimedDucksCache = new Set(claimedDucksResult.claimed);
-        }
-    } catch (e) {
-        console.error("Failed to load critical game data:", e);
-        alert("Could not load critical game data. Please try again.");
-        
-        if (loginButtonEl) {
-            loginButtonEl.innerHTML = loginButtonContent;
-            loginButtonEl.disabled = false;
-        }
-        return; 
-    }
+    currentUser = user;
+    currentUser.duckCount = user.duckCount || 0; 
+    sessionStorage.setItem('currentUserStudentId', user.studentId);
+    
+    try {
+        const [duckResult, claimedDucksResult] = await Promise.all([
+            postToAction('getDuckData'),
+            postToAction('getClaimedDucks')
+        ]);
+        
+        if (duckResult.status === "success") {
+            duckDataCache = duckResult.ducks;
+        } else { throw new Error("Failed to load duck data."); }
+        
+        if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
+            claimedDucksCache = new Set(claimedDucksResult.claimed);
+        }
+    } catch (e) {
+        console.error("Failed to load critical game data:", e);
+        alert("Could not load critical game data. Please try again.");
+        
+        if (loginButtonEl) {
+            loginButtonEl.innerHTML = loginButtonContent;
+            loginButtonEl.disabled = false;
+        }
+        return; 
+    }
 
-    if (loginButtonEl) {
-        loginButtonEl.innerHTML = loginButtonContent;
-        loginButtonEl.disabled = false;
-    }
-    
-    loginScreen.classList.remove('visible');
-    appWrapper.classList.add('visible');
-    
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-    
-    switchPage(initialPageId); 
-    
-    if (initialDuckId) {
-        onScanSuccess(initialDuckId);
-        initialDuckId = null;
-    }
+    if (loginButtonEl) {
+        loginButtonEl.innerHTML = loginButtonContent;
+        loginButtonEl.disabled = false;
+    }
+    
+    loginScreen.classList.remove('visible');
+    appWrapper.classList.add('visible');
+    
+    if (batchSendTimer) clearInterval(batchSendTimer);
+    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+    
+    switchPage(initialPageId); 
+    
+    if (initialDuckId) {
+        onScanSuccess(initialDuckId);
+        initialDuckId = null;
+    }
 
-    try {
-        const [historyResult, infoResult] = await Promise.all([
-            postToAction('getScanHistory', { studentId: currentUser.studentId }),
-            postToAction('getInfoData')
-        ]);
-        
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            currentUser.duckCount = historyResult.length;
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
-        
-        if (infoResult.status === 'success') {
-            updateRibbon(infoResult.ribbonText);
-            infoDataCache = infoResult.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load auxiliary data in background:", e);
-    }
-    
-    await updateUserDashboard();
+    try {
+        const [historyResult, infoResult] = await Promise.all([
+            postToAction('getScanHistory', { studentId: currentUser.studentId }),
+            postToAction('getInfoData')
+        ]);
+        
+        if (Array.isArray(historyResult)) {
+            scanHistoryCache = historyResult;
+            currentUser.duckCount = historyResult.length;
+            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+            localVirtualScanTimestamps = historyResult
+                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                .map(scan => new Date(scan.timestamp).getTime());
+        }
+        
+        if (infoResult.status === 'success') {
+            updateRibbon(infoResult.ribbonText);
+            infoDataCache = infoResult.infoItems || [];
+            infoDataFetchTime = new Date();
+            if (document.getElementById('info-page').classList.contains('active')) {
+                renderInfoCards(infoDataCache);
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load auxiliary data in background:", e);
+    }
+    
+    await updateUserDashboard();
 }
 
 async function signIn(studentId) {
-    const signinBtn = document.getElementById('signin-btn');
-    const originalContent = signinBtn.innerHTML;
-    
-    signinBtn.innerHTML = '<div class="spinner"></div>';
-    signinBtn.disabled = true;
+    const signinBtn = document.getElementById('signin-btn');
+    const originalContent = signinBtn.innerHTML;
+    
+    signinBtn.innerHTML = '<div class="spinner"></div>';
+    signinBtn.disabled = true;
 
-    const result = await postToAction('getUser', { studentId });
-    
-    if (result.status === "success") {
-        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
-    } else {
-        signinBtn.innerHTML = originalContent;
-        signinBtn.disabled = false;
-        alert("User not found! Please register before signing in.");
-    }
+    const result = await postToAction('getUser', { studentId });
+    
+    if (result.status === "success") {
+        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
+    } else {
+        signinBtn.innerHTML = originalContent;
+        signinBtn.disabled = false;
+        alert("User not found! Please register before signing in.");
+    }
 }
 
 async function registerUser() {
-    const submitBtn = document.getElementById('submit-btn');
-    const originalContent = submitBtn.innerHTML;
+    const submitBtn = document.getElementById('submit-btn');
+    const originalContent = submitBtn.innerHTML;
 
-    const payload = {
-        firstName: document.getElementById('reg-firstname').value.trim(),
-        lastName: document.getElementById('reg-lastname').value.trim(),
-        studentId: document.getElementById('reg-studentid').value.trim(),
-        email: document.getElementById('reg-email').value.trim()
-    };
-    
-    if (!payload.firstName || !payload.studentId) {
-        return alert("First Name and Student ID are required.");
-    }
-    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
-        return alert("Registration requires an @my.gcu.edu email address.");
-    }
-    
-    submitBtn.innerHTML = '<div class="spinner"></div>';
-    submitBtn.disabled = true;
+    const payload = {
+        firstName: document.getElementById('reg-firstname').value.trim(),
+        lastName: document.getElementById('reg-lastname').value.trim(),
+        studentId: document.getElementById('reg-studentid').value.trim(),
+        email: document.getElementById('reg-email').value.trim()
+    };
+    
+    if (!payload.firstName || !payload.studentId) {
+        return alert("First Name and Student ID are required.");
+    }
+    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+        return alert("Registration requires an @my.gcu.edu email address.");
+    }
+    
+    submitBtn.innerHTML = '<div class="spinner"></div>';
+    submitBtn.disabled = true;
 
-    try {
-        const result = await postToAction('registerUser', payload);
-        
-        if (result.status === "success") {
-            const userResult = await postToAction('getUser', { studentId: payload.studentId });
-            if (userResult.status === "success") {
-                showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
-            } else {
-                throw new Error("Auto sign-in failed after registration.");
-            }
-        } else {
-            submitBtn.innerHTML = originalContent;
-            submitBtn.disabled = false;
-            alert(result.message);
-        }
-    } catch (error) {
-        submitBtn.innerHTML = originalContent;
-        submitBtn.disabled = false;
-        alert("Error registering. Please check your Student ID and try again.");
-    }
+    try {
+        const result = await postToAction('registerUser', payload);
+        
+        if (result.status === "success") {
+            const userResult = await postToAction('getUser', { studentId: payload.studentId });
+            if (userResult.status === "success") {
+                showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
+            } else {
+                throw new Error("Auto sign-in failed after registration.");
+            }
+        } else {
+            submitBtn.innerHTML = originalContent;
+            submitBtn.disabled = false;
+            alert(result.message);
+        }
+    } catch (error) {
+        submitBtn.innerHTML = originalContent;
+        submitBtn.disabled = false;
+        alert("Error registering. Please check your Student ID and try again.");
+    }
 }
 // --- UI & DATA DISPLAY FUNCTIONS ---
 function displaySuccessPopup(message, isGolden = false) {
@@ -1354,57 +1386,57 @@ setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 async function updateUserDashboard(shouldUpdatePoints = true) {
 if (!currentUser) return;
 try {
-    const fetches = [
-        postToAction('getLeaderboard'),
-        postToAction('getScanHistory', { studentId: currentUser.studentId })
-    ];
-    if (shouldUpdatePoints) {
-        fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
-    }
-    const responses = await Promise.all(fetches);
+    const fetches = [
+        postToAction('getLeaderboard'),
+        postToAction('getScanHistory', { studentId: currentUser.studentId })
+    ];
+    if (shouldUpdatePoints) {
+        fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
+    }
+    const responses = await Promise.all(fetches);
 
-    let userResult, leaderboardData, historyResult;
-        
-    const hasPendingScans = scanQueue.length > 0;
-            
-    if (shouldUpdatePoints && !hasPendingScans) {
-        userResult = responses.shift();
-        if (userResult.status === "success") {
-            currentUser.points = userResult.user.points;
-            currentUser.duckCount = userResult.user.duckCount;
-        }
-    } else if (shouldUpdatePoints) {
-        responses.shift(); 
-    }
-    updateOptimisticDisplay();
+    let userResult, leaderboardData, historyResult;
+        
+    const hasPendingScans = scanQueue.length > 0;
+            
+    if (shouldUpdatePoints && !hasPendingScans) {
+        userResult = responses.shift();
+        if (userResult.status === "success") {
+            currentUser.points = userResult.user.points;
+            currentUser.duckCount = userResult.user.duckCount;
+        }
+    } else if (shouldUpdatePoints) {
+        responses.shift(); 
+    }
+    updateOptimisticDisplay();
 
-    const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
-    const historyIndex = shouldUpdatePoints ? 1 : 1; 
+    const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
+    const historyIndex = shouldUpdatePoints ? 1 : 1; 
 
-    leaderboardData = responses[leaderboardIndex];
-    historyResult = responses[historyIndex];
+    leaderboardData = responses[leaderboardIndex];
+    historyResult = responses[historyIndex];
 
-    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-    if (Array.isArray(leaderboardData)) {
-        const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
-        let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
-        if (myRank === 1) rankText = '🥇 Rank 1';
-        else if (myRank === 2) rankText = '🥈 Rank 2';
-        else if (myRank === 3) rankText = '🥉 Rank 3';
-        document.getElementById('player-rank-display').textContent = rankText;
-    }
+    if (Array.isArray(leaderboardData)) {
+        const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
+        let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
+        if (myRank === 1) rankText = '🥇 Rank 1';
+        else if (myRank === 2) rankText = '🥈 Rank 2';
+        else if (myRank === 3) rankText = '🥉 Rank 3';
+        document.getElementById('player-rank-display').textContent = rankText;
+    }
 
-    if (Array.isArray(historyResult)) {
-        scanHistoryCache = historyResult;
-        if (!hasPendingScans) {
-            currentUser.duckCount = historyResult.length;
-            updateOptimisticDisplay();
-        }
-    }
-        
+    if (Array.isArray(historyResult)) {
+        scanHistoryCache = historyResult;
+        if (!hasPendingScans) {
+            currentUser.duckCount = historyResult.length;
+            updateOptimisticDisplay();
+        }
+    }
+        
 } catch (e) {
-    console.error("Failed to update dashboard", e);
+    console.error("Failed to update dashboard", e);
 }
 }
 async function updateLeaderboard() {
@@ -1412,7 +1444,7 @@ const listElement = document.getElementById('leaderboard-list');
 if (listElement.innerHTML === '') {
 listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
 }
-const leaderboardData = await postToAction('getLeaderboard'); 
+const leaderboardData = await postToAction('getLeaderboard'); 
 if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
 listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet!</li>';
 return;
@@ -1431,12 +1463,12 @@ function updateScanHistory() {
 const listElement = document.getElementById('log-list');
 const scanData = scanHistoryCache;
 if (!scanData || scanData.length === 0) {
-    if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
-        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>';
-    } else {
-        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
-    }
-    return;
+    if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
+        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>';
+    } else {
+        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
+    }
+    return;
 }
 let html = '';
 scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(scan => {
@@ -1520,53 +1552,73 @@ container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7)
 }
 // --- UTILITY & NAVIGATION ---
 function startScanner() {
-    if (document.getElementById('hunt-page')?.classList.contains('active')) {
-        html5QrCode = new Html5Qrcode("qr-reader");
-        /* UPDATED: Adjust qrbox to move the scanner guide lower */
-        const qrBoxSize = 220; // Original size
-        const config = { 
-            fps: 10, 
-            qrbox: { width: qrBoxSize, height: qrBoxSize }, 
-            aspectRatio: 1.0,
-            // Setting the experimental `overlay-offset` to move the box lower
-            videoConstraints: {
-                facingMode: "environment",
-                // This setting is experimental and may not work on all devices/browsers.
-                // The CSS adjustment handles the visual positioning.
-            }
-        };
-        console.log("QR SCANNER LOG: Attempting to start scanner...");
-        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
-            .then(() => {
-                console.log("QR SCANNER LOG: Scanner started successfully.");
-            })
-            .catch(err => {
-                console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
-            });
-    }
+    if (document.getElementById('hunt-page')?.classList.contains('active')) {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
+        const torchButton = document.getElementById('torch-toggle-btn');
+
+        console.log("QR SCANNER LOG: Attempting to start scanner...");
+        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
+            .then(() => {
+                console.log("QR SCANNER LOG: Scanner started successfully. Waiting to check for torch...");
+                setTimeout(() => {
+                    try {
+                        console.log("QR SCANNER LOG: Attempting to get camera track...");
+                        cameraTrack = html5QrCode.getRunningTrack();
+                        console.log("QR SCANNER LOG: Camera track obtained:", cameraTrack);
+                        if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
+                            const capabilities = cameraTrack.getCapabilities();
+                            console.log("QR SCANNER LOG: Track capabilities:", capabilities);
+                            if (capabilities && capabilities.torch) {
+                                console.log("QR SCANNER LOG: Torch supported! Showing button.");
+                                torchButton.classList.remove('hidden');
+                            } else {
+                                console.log("QR SCANNER LOG: Torch NOT supported by this camera track.");
+                            }
+                        } else {
+                            console.log("QR SCANNER LOG: Camera track or getCapabilities() is not available.");
+                        }
+                    } catch (e) {
+                        console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
+                        torchButton.classList.add('hidden');
+                    }
+                }, 500); // Wait 500ms for the camera to stabilize
+            })
+            .catch(err => {
+                console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
+            });
+    }
 }
 
 
 function stopScanner() {
-    // Torch removal: Removed all torch-related stopping logic.
-    if (cameraTrack && cameraTrack.readyState === 'live') {
-        cameraTrack.stop();
-    }
-    cameraTrack = null;
-    isTorchOn = false;
-    
-    if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().catch(err => {});
-    }
+    const torchButton = document.getElementById('torch-toggle-btn');
+    if (cameraTrack && cameraTrack.readyState === 'live') {
+        if (isTorchOn) {
+            cameraTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(()=>{});
+        }
+        cameraTrack.stop();
+    }
+    cameraTrack = null;
+    isTorchOn = false;
+    
+    if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(err => {});
+    }
+    
+    if (torchButton) {
+        torchButton.classList.add('hidden');
+        torchButton.classList.remove('torch-on');
+    }
 }
 
 function logout() {
-    sessionStorage.removeItem('currentUserStudentId');
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    stopScanner();
-    currentUser = null;
-    location.reload();
+    sessionStorage.removeItem('currentUserStudentId');
+    if (batchSendTimer) clearInterval(batchSendTimer);
+    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+    stopScanner();
+    currentUser = null;
+    location.reload();
 }
 
 function switchPage(pageId) {
@@ -1591,7 +1643,7 @@ updateLeaderboard();
 } else if (pageId === 'log-page') {
 updateScanHistory();
 } else if (pageId === 'map-page') {
-initializeMap(); 
+initializeMap(); 
 } else if (pageId === 'info-page') {
 fetchAndRenderInfoData();
 }
@@ -1656,7 +1708,21 @@ switchPage(e.target.dataset.page);
 });
 document.getElementById('logout-btn').addEventListener('click', logout);
 
-// Torch event listener removed per request
+document.getElementById('torch-toggle-btn').addEventListener('click', () => {
+    if (cameraTrack) {
+        try {
+            const desiredState = !isTorchOn;
+            cameraTrack.applyConstraints({
+                advanced: [{ torch: desiredState }]
+            });
+            isTorchOn = desiredState;
+            document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
+        } catch(e) {
+            console.error("Failed to toggle torch:", e);
+            alert("Sorry, the flashlight could not be controlled.");
+        }
+    }
+});
 
 const modalBackdrop = document.getElementById('info-modal-backdrop');
 if (modalBackdrop) {
