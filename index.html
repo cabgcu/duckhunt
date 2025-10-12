@@ -19,7 +19,8 @@
 --glass-blur: 24px;
 --glass-border-top: rgba(255, 255, 255, 0.25);
 --glass-border-bottom: rgba(255, 255, 255, 0.05);
---glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.25); /* SOFTER SHADOW */
+/* SOLUTION: Tighter, less diffuse shadow to prevent blending */
+--glass-shadow: none; /* Shadow removed */
 --inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
 --highlight-color: #ffffff;
 --glow-color: rgba(96, 163, 77, 0.8);
@@ -58,7 +59,7 @@ backdrop-filter: blur(var(--glass-blur));
 border: 1px solid var(--glass-border-bottom);
 border-top-color: var(--glass-border-top);
 border-radius: 20px;
-box-shadow: var(--glass-shadow);
+box-shadow: var(--glass-shadow); /* Shadow removed here */
 padding: 1.5rem;
 }
 
@@ -274,24 +275,24 @@ font-weight: bold;
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
-    padding: 5px 10px;
-    min-width: 110px;
+    padding: 3px 6px; /* Smaller padding */
+    min-width: 90px; /* Adjusted min-width */
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    /* Removed box-shadow here */
     white-space: normal;
-    line-height: 1.3;
+    line-height: 1.2; /* Adjusted line height */
     transition: transform 0.2s ease-out;
 }
 .map-label h4 {
     margin: 0;
-    font-size: 14px;
+    font-size: 12px; /* Smaller font size */
     font-weight: bold;
     color: white;
 }
 .map-label p {
     margin: 0;
-    padding-top: 4px;
-    font-size: 11px;
+    padding-top: 2px; /* Smaller padding */
+    font-size: 10px; /* Smaller font size */
     color: rgba(255, 255, 255, 0.9);
 }
 .map-label.cleared {
@@ -568,6 +569,54 @@ pointer-events: none;
         padding-top: 2px;
     }
 }
+
+/* --- NEW STYLES FOR TORCH AND LOGOUT --- */
+#torch-toggle-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: background-color 0.2s, transform 0.2s;
+}
+#torch-toggle-btn:hover {
+    transform: scale(1.1);
+}
+#torch-toggle-btn.torch-on {
+    background-color: rgba(255, 255, 255, 0.85);
+}
+#torch-toggle-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+    transition: fill 0.2s;
+}
+#torch-toggle-btn.torch-on svg {
+    fill: #000;
+}
+
+#logout-btn {
+    background-color: rgba(255, 100, 100, 0.1);
+    border-color: rgba(255, 100, 100, 0.2);
+    color: rgba(255, 150, 150, 1);
+    margin: 1.5rem 0;
+}
+#logout-btn:hover {
+    background-color: rgba(255, 100, 100, 0.2);
+    border-color: rgba(255, 100, 100, 0.4);
+    box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
+    transform: translateY(-2px);
+}
 </style>
 </head>
 <body>
@@ -620,6 +669,11 @@ pointer-events: none;
 <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
 </div>
 <div id="qr-reader"></div>
+<button id="torch-toggle-btn" class="hidden">
+    <svg viewBox="0 0 24 24" width="24" height="24">
+        <path fill="currentColor" d="M9,2A1,1 0 0,0 8,3V4A1,1 0 0,0 9,5H15A1,1 0 0,0 16,4V3A1,1 0 0,0 15,2H9M9,6A1,1 0 0,0 8,7V8A1,1 0 0,0 9,9H15A1,1 0 0,0 16,8V7A1,1 0 0,0 15,6H9M8,10V20A2,2 0 0,0 10,22H14A2,2 0 0,0 16,20V10H8Z"></path>
+    </svg>
+</button>
 </div>
 <div id="scanner-footer-details">
 <a id="scan-history-link" href="#" data-page="log-page">Scan History</a>
@@ -654,6 +708,7 @@ pointer-events: none;
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
 <div id="info-container"></div>
+<button id="logout-btn" class="full-width-btn">Logout</button>
 </section>
 </main>
 <nav id="tab-bar">
@@ -817,7 +872,7 @@ function initializeMap() {
         } else {
             mapImageElement.onload = null;
             mapImageElement.onerror = null; 
-           
+            
             mapImageElement.onload = resolve;
             mapImageElement.onerror = resolve; 
         }
@@ -826,7 +881,7 @@ function initializeMap() {
     Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
         if (mapImageElement.naturalWidth > 0) {
             positionMarkers();
-           
+            
             if (!mapResizeObserver) {
                 mapResizeObserver = new ResizeObserver(positionMarkers);
                 mapResizeObserver.observe(mapImageElement);
@@ -1453,16 +1508,41 @@ container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7)
 }
 // --- UTILITY & NAVIGATION ---
 function startScanner() {
-if (document.getElementById('hunt-page')?.classList.contains('active')) {
-html5QrCode = new Html5Qrcode("qr-reader");
-const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
-html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}).catch(err => {});
-}
+    if (document.getElementById('hunt-page')?.classList.contains('active')) {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
+        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
+            .then(() => {
+                const torchButton = document.getElementById('torch-toggle-btn');
+                try {
+                    const capabilities = html5QrCode.getRunningTrackCapabilities();
+                    if (capabilities.torch) {
+                        torchButton.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    console.warn("Could not check for torch capabilities:", e);
+                }
+            })
+            .catch(err => {});
+    }
 }
 function stopScanner() {
-if (html5QrCode && html5QrCode.isScanning) {
-html5QrCode.stop().catch(err => {});
+    if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(err => {});
+    }
+    const torchButton = document.getElementById('torch-toggle-btn');
+    if (torchButton) {
+        torchButton.classList.add('hidden');
+        torchButton.classList.remove('torch-on');
+    }
 }
+function logout() {
+    sessionStorage.removeItem('currentUserStudentId');
+    if (batchSendTimer) clearInterval(batchSendTimer);
+    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+    stopScanner();
+    currentUser = null;
+    location.reload();
 }
 function switchPage(pageId) {
 stopScanner();
@@ -1549,16 +1629,26 @@ document.getElementById('scan-history-link').addEventListener('click', (e) => {
 e.preventDefault();
 switchPage(e.target.dataset.page);
 });
+document.getElementById('logout-btn').addEventListener('click', logout);
+document.getElementById('torch-toggle-btn').addEventListener('click', () => {
+    if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.toggleTorch()
+            .then(() => {
+                document.getElementById('torch-toggle-btn').classList.toggle('torch-on');
+            })
+            .catch(err => console.error("Error toggling torch:", err));
+    }
+});
 const modalBackdrop = document.getElementById('info-modal-backdrop');
 if (modalBackdrop) {
 document.getElementById('modal-close-btn').addEventListener('click', () => {
 modalBackdrop.style.display = 'none';
-document.body.style.overflow = 'auto';
+document.body.style.overflow = 'hidden';
 });
 modalBackdrop.addEventListener('click', (e) => {
 if (e.target.id === 'info-modal-backdrop') {
 modalBackdrop.style.display = 'none';
-document.body.style.overflow = 'auto';
+document.body.style.overflow = 'hidden';
 }
 }
 );
