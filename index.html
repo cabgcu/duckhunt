@@ -604,7 +604,7 @@ z-index: -1;
 .reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
 .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
 
-#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
+#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateZ(1px); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
 #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
@@ -816,8 +816,10 @@ pointer-events: none;
 // UPDATED SCRIPT URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
 const POPUP_DURATION_MS = 2000;
-const BATCH_SEND_INTERVAL_MS = 15000;
-const DATA_REFRESH_INTERVAL_MS = 30000; // FIX: Sync every 30 seconds for stable points
+// 🌟 CHANGE 1: QR CODE BATCH SEND IS NOW 15 SECONDS 🌟
+const BATCH_SEND_INTERVAL_MS = 15000; 
+// 🌟 CHANGE 2: DASHBOARD SYNCHRONIZATION/CORRECTION IS NOW 1 MINUTE 🌟
+const DATA_REFRESH_INTERVAL_MS = 60000; 
 const VIRTUAL_LIMIT = 10; // Explicitly define the limit
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
@@ -855,7 +857,7 @@ const mapImageElement = document.getElementById('campus-map-img');
 // --- CACHING & STATE ---
 let duckDataCache = {};
 let claimedDucksCache = new Set();
-let processingDucks = new Set(); // CRITICAL FIX: Tracks ducks currently sent to server
+let processingDucks = new Set(); 
 let localVirtualScanTimestamps = [];
 let scanHistoryCache = [];
 let scanQueue = [];
@@ -1148,11 +1150,8 @@ async function onScanSuccess(decodedText) {
     
     const points = duckInfo.points || 0;
     
-    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
-     * The points and duck count will now ONLY update when the 
-     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
-     * This eliminates the visual flicker caused by premature local updates.
-     */
+    // 🌟 CHANGE 3: REMOVED OPTIMISTIC POINT/DUCK UPDATE 🌟
+    // The points and duck count will now ONLY update when the periodicDataRefresh runs.
 
     const isGoldenDuck = duckInfo.type === 'Golden Duck';
     // Still show the points pop-up to indicate the scan was captured.
@@ -1179,30 +1178,23 @@ async function sendBatchScans() {
     sentDuckIds.forEach(id => processingDucks.delete(id));
 
     if (batchResult.status === "success") {
-        if (batchResult.updatedUser) {
-            // Synchronization: Overwrite client totals with authoritative server data
-            currentUser.points = batchResult.updatedUser.points;
-            document.getElementById('player-points').textContent = currentUser.points;
-            if (batchResult.updatedUser.duckCount !== undefined) {
-                document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
-            }
-        }
-        
+        // Note: We don't update points/ducks here directly, but the server has the new values.
+        // The minute-long periodicDataRefresh will pull the authoritative update.
         if (batchResult.results) {
             batchResult.results.forEach(result => {
                 const id = result.duckId.trim().toLowerCase();
                 
                 if (result.status === "success") {
-                    // Permanently lock the duck only on success
                     claimedDucksCache.add(id); 
                 } else {
-                    // Revert the local optimistic point count (if applicable) and pop-up error
+                    // Duck failed to claim (already claimed by someone else, etc.)
+                    // We don't revert local points (because we didn't add them), just alert the user.
                     displayRevertPopup(result.message || "A duck was claimed just before you!");
                 }
             });
         }
     } else {
-        displayRevertPopup(batchResult.message || "A server error occurred.");
+        displayRevertPopup(batchResult.message || "A server error occurred. Retrying scan.");
         // Re-queue the failed scans to be retried
         scanQueue = [...scansToSend, ...scanQueue];
     }
@@ -1210,7 +1202,8 @@ async function sendBatchScans() {
 
 function periodicDataRefresh() {
 if (!currentUser) return;
-// Update dashboard, relies on server data since we removed optimistic updates
+// 🌟 CHANGE 4: This is the ONLY place points and ducks are updated from the server. 🌟
+// This ensures the display is authoritative and corrected every 60 seconds.
 updateUserDashboard(true); 
 
 postToAction('getClaimedDucks').then(result => {
@@ -1272,6 +1265,7 @@ async function initializeAppData(initialPageId) {
         }
 
         // 2. Update dashboard and trigger map initialization after data is received
+        // Note: The points were set during sign-in, this updates the duck count, rank, and map data
         await updateUserDashboard(false, leaderboardResult);
 
         // 3. Process initial duck from URL
@@ -1291,10 +1285,10 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     
-    // 1. Set the initial welcome message with minimal delay
+    // 1. Set the initial dashboard data with minimal delay and set loading state for ducks/rank
     document.getElementById('player-points').textContent = currentUser.points;
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
-    document.getElementById('player-ducks').textContent = '...'; // Show loading placeholder
+    document.getElementById('player-ducks').textContent = '...'; 
     document.getElementById('player-rank-display').textContent = 'Loading Rank...';
 
     // 🛑 Reset the login button immediately
@@ -1307,7 +1301,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
     
-    // Set up timers (they will run *while* data is loading in the background)
+    // Set up timers
     if (batchSendTimer) clearInterval(batchSendTimer);
     batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
@@ -1413,50 +1407,50 @@ function displayRevertPopup(message) {
 const revertPop = document.createElement('div');
 revertPop.className = 'point-pop';
 revertPop.style.background = '#f0ad4e';
-revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</small>`;
+revertPop.innerHTML = `<strong>Scan Failed</strong><br><small>${message}</small>`; // Changed text since points aren't added/reverted locally
 document.getElementById('qr-reader-container').appendChild(revertPop);
 setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 }
+
+// 🌟 CHANGE 5: Updated to be the sole source of dashboard updates, using data from a single periodic server fetch. 🌟
 async function updateUserDashboard(shouldUpdatePoints = true, optionalLeaderboardData = null) {
 if (!currentUser) return;
 
 try {
-    let leaderboardData;
-    let historyResult;
-
-    // Use optional data if provided by the initial fetch
-    if (optionalLeaderboardData) {
-        leaderboardData = optionalLeaderboardData;
-    } else {
-        // Fetch only if not provided (i.e., during periodic refresh)
-        const fetches = [];
-        if (shouldUpdatePoints) {
-            fetches.push(postToAction('getUser', { studentId: currentUser.studentId }));
-        }
-        fetches.push(postToAction('getLeaderboard'));
-        fetches.push(postToAction('getScanHistory', { studentId: currentUser.studentId }));
+    let userResult, leaderboardData, historyResult;
+    
+    if (shouldUpdatePoints) {
+        // Fetch fresh user data (points & ducks count) from the server
+        userResult = await postToAction('getUser', { studentId: currentUser.studentId });
         
-        const responses = await Promise.all(fetches);
-
-        let userResult;
-        let index = 0;
-
-        if (shouldUpdatePoints) {
-            userResult = responses[index++];
-            if (userResult.status === "success") {
-                currentUser.points = userResult.user.points;
-                document.getElementById('player-points').textContent = currentUser.points;
-            }
+        if (userResult.status === "success") {
+            currentUser.points = userResult.user.points;
+            currentUser.duckCount = userResult.user.duckCount; // Ensure we grab the new duck count too
+            
+            document.getElementById('player-points').textContent = currentUser.points;
+            document.getElementById('player-ducks').textContent = currentUser.duckCount;
+        } else {
+            console.error("Failed to fetch authoritative user data.");
+            // Keep existing display if fetch fails
         }
+    }
 
-        leaderboardData = responses[index++];
-        historyResult = responses[index++];
+    // Always ensure we have the latest leaderboard/map data available on the minute refresh
+    leaderboardData = optionalLeaderboardData || await postToAction('getLeaderboard');
+    historyResult = await postToAction('getScanHistory', { studentId: currentUser.studentId });
+    
+    // Update local caches and display elements that rely on these data sets
+    if (Array.isArray(historyResult)) {
+        scanHistoryCache = historyResult;
+        // Re-calculate virtual timestamps based on server history to ensure accuracy
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = historyResult
+            .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+            .map(scan => new Date(scan.timestamp).getTime());
 
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            if (scanQueue.length === 0) {
-                document.getElementById('player-ducks').textContent = historyResult.length;
-            }
+        if (!shouldUpdatePoints) {
+            // Update duck count based on history if it wasn't updated via getUser (initial load)
+            document.getElementById('player-ducks').textContent = historyResult.length;
         }
     }
 
