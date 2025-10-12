@@ -7,64 +7,33 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 :root {
-/* REFINED COLORS FOR LIQUID GLASS EFFECT */
 --green: #60A34D;
 --pink: #ff69b4;
---card-bg: rgba(255, 255, 255, 0.05); /* Lighter, more transparent white base */
---border-color: rgba(96, 163, 77, 0.4); /* Slightly more visible border */
+--card-bg: rgba(0, 0, 0, 0.45);
+--border-color: rgba(96, 163, 77, 0.2);
 --glow-color: rgba(96, 163, 77, 0.7);
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
---frosted-black: rgba(10, 10, 10, 0.75); /* Darker, but still frosted */
+--frosted-black: rgba(0, 0, 0, 0.85);
 --gold: #FFD700;
---glass-highlight: rgba(255, 255, 255, 0.15); /* New subtle white highlight */
 }
 body {
 margin: 0;
-/* Darker, textured background to contrast with glass */
-background-color: #0d1117;
-background-image: radial-gradient(circle at top left, #303030 0%, transparent 50%), 
-                  radial-gradient(circle at bottom right, #1a1a1a 0%, transparent 50%);
-overflow-x: hidden; /* FIX: Prevent global overflow-x: auto from blocking touch/click events */
-min-height: 100vh;
-min-height: 100svh;
+background-color: #000;
+overflow-x: auto; /* ALLOW HORIZONTAL SCROLLING for map zoom */
+min-height: 100vh; /* Fallback */
+min-height: 100svh; /* FIX: Smallest Viewport Height for mobile */
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 color: white;
 text-align: center;
-/* Subtle text shadow for better readability over frosted glass */
-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 .hidden { display: none !important; }
 /* Spinner styles */
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-
-/* 🌟 ENHANCED LIQUID GLASS CARD STYLE 🌟 */
-.glass-card { 
-    background: var(--card-bg); 
-    backdrop-filter: blur(15px); 
-    -webkit-backdrop-filter: blur(15px); 
-    border: 1px solid var(--border-color); 
-    border-radius: 20px; 
-    box-shadow: 
-        0 4px 30px rgba(0, 0, 0, 0.4), 
-        inset 0 0 0 1px var(--glass-highlight), 
-        0 0 15px rgba(96, 163, 77, 0.15); 
-    padding: 1.5rem; 
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
-    z-index: 10; /* Ensure cards are above the duck feet background */
-    position: relative;
-}
-.glass-card:hover {
-    box-shadow: 
-      0 6px 35px rgba(0, 0, 0, 0.5), 
-      inset 0 0 0 1px rgba(255, 255, 255, 0.25), 
-      0 0 20px var(--glow-color);
-    transform: translateY(-2px); 
-}
-
+.glass-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 1.5rem; }
 .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
 #app-wrapper {
 position: fixed;
@@ -87,9 +56,9 @@ left: 0;
 width: 100%;
 height: var(--ribbon-height);
 background-color: var(--frosted-black);
-backdrop-filter: blur(10px); 
--webkit-backdrop-filter: blur(10px);
-border-bottom: 1px solid var(--border-color); 
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 font-weight: bold;
 font-size: 0.85rem;
 display: flex;
@@ -128,8 +97,7 @@ to { transform: translateX(var(--marquee-distance)); }
 #app-container {
 flex: 1;
 overflow-y: auto;
-/* Adjusted height to account for the floating tab bar's bottom margin */
-height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height) - var(--safe-padding));
+height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height));
 padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height));
 }
 .app-page {
@@ -147,13 +115,12 @@ align-items: center;
 .app-page .header-image-top {
 width: 70%;
 max-width: 250px;
-margin: 0.2rem auto 0.2rem auto; 
+margin: 0.2rem auto 0.2rem auto; /* SHRUNK: Reduced vertical margin */
 display: block;
 flex-shrink: 0;
 }
 #hunt-page { justify-content: flex-start; padding-top: 0; }
 #info-page, #map-page, #leaderboard-page, #log-page { justify-content: flex-start; padding-top: 0; }
-
 #hunt-content-wrapper {
 position: relative;
 width: 100%;
@@ -236,41 +203,50 @@ margin-top: 0;
 font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
-
-/* 🛠️ Map Specific Styles (REVERTED TO ORIGINAL SPEC) 🛠️ */
+/* Map Specific Styles */
 #map-page {
-    padding-top: var(--safe-padding); 
-    justify-content: flex-start;
+    /* New: Allows map card to scroll vertically relative to the page */
+    padding-top: var(--safe-padding); 
+    justify-content: flex-start;
 }
 
 #map-card-container {
-    flex: 1; 
-    width: 100%;
-    max-width: 450px; 
-    height: 60vh;
-    padding: 0; 
-    overflow-x: scroll; 
-    overflow-y: hidden; 
+    /* Card container properties */
+    flex: 1; 
+    width: 100%;
+    max-width: 450px; 
+    
+    /* CRITICAL: Set a fixed height and enable internal scrolling */
+    height: 60vh; /* Adjust height as needed for mobile screen visibility */
+    padding: 0; 
+    overflow-x: scroll; /* Enables horizontal scrolling within this card */
+    overflow-y: hidden; /* Disables vertical scrolling if map is wider than tall */
 }
 
 #map-wrapper {
-    width: 250vw; 
-    max-width: none; 
-    height: 100%; 
-    position: relative;
-    margin: 0; 
-    line-height: 0;
+    /* We still need a very large width to allow the image to scale beyond the screen */
+    width: 250vw; 
+    max-width: none; 
+    
+    /* CRITICAL: Make wrapper match the height of #map-card-container */
+    height: 100%; 
+    
+    position: relative;
+    margin: 0; 
+    line-height: 0;
 }
 #campus-map-img {
-    width: 100%;
-    height: 100%; 
-    object-fit: contain;
-    object-position: center;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
+    width: 100%;
+    /* CRITICAL: Allow image to scale its height proportionally based on the 100% width, 
+       but clip the bottom if it exceeds the 60vh height of the card. */
+    height: 100%; 
+    object-fit: contain; /* Ensures the whole image is visible within the 100% height/width */
+    object-position: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 #map-markers-overlay {
 position: absolute;
@@ -278,16 +254,16 @@ top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-pointer-events: none; 
+pointer-events: none; /* Allows clicks to pass through to markers */
 }
 
 /* --- NEW MAP LABEL STYLES --- */
 .map-label {
 position: absolute;
 z-index: 10;
-transform: translate(-50%, -50%); 
+transform: translate(-50%, -50%); /* Center based on position */
 cursor: default; 
-pointer-events: auto; 
+pointer-events: auto; /* Ensure the box is interactable/visible */
 
 /* Frosted Card Look */
 background: var(--frosted-black);
@@ -306,14 +282,14 @@ line-height: 1.3;
 
 .map-label h4 {
 margin: 0;
-font-size: 2.2vw; 
+font-size: 2.2vw; /* DYNAMIC FONT SIZE */
 font-weight: bold;
-color: white; 
+color: white; /* Ensure text is visible */
 }
 .map-label p {
 margin: 0;
-padding-top: 0.3vw; 
-font-size: 1.8vw; 
+padding-top: 0.3vw; /* DYNAMIC SPACING */
+font-size: 1.8vw; /* DYNAMIC FONT SIZE */
 color: rgba(255, 255, 255, 0.9);
 }
 
@@ -348,7 +324,6 @@ gap: 0.5rem;
 width: 100%;
 max-width: 450px;
 margin: 0 auto;
-padding-top: 0; /* Align with header */
 }
 #info-modal-backdrop {
 position: fixed;
@@ -411,14 +386,13 @@ padding: 1rem 1.5rem;
 width: 100%;
 text-align: center;
 cursor: pointer;
-transition: all 0.3s ease, box-shadow 0.3s ease;
+transition: background-color 0.3s ease, box-shadow 0.3s ease;
 margin-bottom: 0.75rem;
 box-sizing: border-box;
 }
 .info-card-button:hover {
 background-color: rgba(96, 163, 77, 0.3);
 box-shadow: 0 0 10px var(--glow-color);
-transform: translateY(-1px);
 }
 .info-card-button h4 {
 margin: 0;
@@ -463,51 +437,11 @@ color: var(--green);
 #log-list .list-item > div:first-child { display: flex; flex-direction: column; align-items: flex-start; }
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
-
-/* 🌟 ENHANCED BUTTONS (Glass Molded) 🌟 */
 .button-group { display: flex; gap: 0.5rem; }
-.button-group button, .full-width-btn { 
-    flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; 
-    cursor: pointer; border: 2px solid var(--green); 
-    transition: all 0.3s ease; 
-    box-shadow: 0 0 0 rgba(96, 163, 77, 0); 
-    min-height: 48px; box-sizing: border-box; 
-    display: flex; justify-content: center; align-items: center; 
-    background-color: rgba(255, 255, 255, 0.05);
-}
-.primary-btn { 
-    background-color: var(--green); 
-    color: white; 
-    box-shadow: 0 0 10px rgba(96, 163, 77, 0.3);
-}
-.secondary-btn { 
-    background-color: transparent; 
-    color: var(--green); 
-}
-.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { 
-    box-shadow: 0 0 15px var(--glow-color); 
-    background-color: rgba(96, 163, 77, 0.15); 
-    transform: translateY(-1px);
-}
-
-/* Logout Button (Full width but subtle red) */
-#logout-btn {
-    /* Style for the button when it's the last element in the info list */
-    width: 100%;
-    margin-top: 1.5rem;
-    padding: 12px 15px;
-    font-size: 1.1rem;
-    background-color: rgba(255, 0, 0, 0.15);
-    border-color: #ff4d4d;
-    color: #ff4d4d;
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
-}
-#logout-btn:hover {
-    box-shadow: 0 0 15px #ff4d4d !important; 
-    background-color: rgba(255, 0, 0, 0.4) !important;
-    transform: translateY(-1px);
-}
-
+.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+.primary-btn { background-color: var(--green); color: white; }
+.secondary-btn { background-color: transparent; color: var(--green); }
+.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
 #lava-container {
 position: fixed;
 top: 0;
@@ -516,29 +450,19 @@ width: 100%;
 height: 100%;
 z-index: -1;
 }
-/* Enhanced lava glow for liquid glass background */
-#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.6; mix-blend-mode: lighten; filter: blur(150px); }
+#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.8; mix-blend-mode: lighten; filter: blur(120px); }
 #lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
 #lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
-#login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; z-index: 5; } /* Set Z-index higher for interaction */
-/* 🌟 ENHANCED INPUTS (Frosted Look) 🌟 */
-.reg-input, #login-studentid { 
-    background: rgba(255, 255, 255, 0.05); 
-    border: 1px solid rgba(255, 255, 255, 0.2); 
-    border-radius: 10px; padding: 12px 15px; font-size: 1rem; 
-    color: white; text-align: center; 
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5); 
-}
-.reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 5px var(--glow-color), inset 0 1px 3px rgba(0, 0, 0, 0.5); }
-.reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color), inset 0 1px 3px rgba(0, 0, 0, 0.5); }
-
-#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-#header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; z-index: 10; }
+#login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
+.reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
+#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
+#header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
+.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
 footer {
 position: absolute;
 bottom: 0;
@@ -551,7 +475,6 @@ display: flex;
 flex-direction: column;
 justify-content: center;
 align-items: center;
-z-index: 10;
 }
 .footer-logo {
 height: 50px;
@@ -564,91 +487,42 @@ footer p { margin: 2px 0; }
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
 .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-
-/* 🌟 TRANSFORMED: FLOATING GLASS DOCK 🌟 */
-#tab-bar { 
-    position: fixed;
-    bottom: var(--safe-padding); 
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%; 
-    max-width: 450px;
-    height: var(--tab-bar-height);
-    z-index: 150; 
-    
-    /* GLASS EFFECT */
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(25px); 
-    -webkit-backdrop-filter: blur(25px); 
-    border-radius: 30px; 
-    
-    /* DEPTH */
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    box-shadow: 
-        0 4px 15px rgba(0, 0, 0, 0.3), 
-        0 0 10px rgba(96, 163, 77, 0.2), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    
-    display: flex; 
-    justify-content: space-around; 
-    padding: 0 10px; 
-}
-
-.tab-button { 
-    background: none; border: none; 
-    color: rgba(255,255,255,0.6); 
-    font-size: 0.9rem; 
-    cursor: pointer; 
-    flex-grow: 1; 
-    font-weight: 600; 
-    transition: all 0.2s ease; 
-    height: 100%; 
-    margin: 0;
-}
-.tab-button.active { 
-    color: var(--green); 
-    font-weight: bold; 
-    border-bottom: 2px solid var(--green);
-    text-shadow: 0 0 5px rgba(96, 163, 77, 0.8);
-}
-.tab-button:hover {
-    color: white; 
-    background-color: rgba(255, 255, 255, 0.05); 
-    border-radius: 20px;
-}
-
-/* --- DUCK ANIMATION STYLES --- */
-.duck-animation { 
-    position: absolute; top: 50%; left: -50px; font-size: 50px; 
-    animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; 
-}
-/* 🐾 RESTORED DUCK FEET CSS 🐾 */
-.duck-feet-fade {
-    position: absolute;
-    width: 60px; 
-    height: 60px;
-    background-image: url('https://i.imgur.com/S23b6Wc.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    opacity: 0;
-    pointer-events: none;
-    animation: fade-in-out ease-in-out infinite;
-    z-index: 1; /* Below the login cards */
-}
+#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; }
+.tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
+.tab-button.active { color: var(--green); font-weight: bold; }
+.duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
 .frost-animation { position: absolute; top: -20px; font-size: 1.5rem; color: white; pointer-events: none; z-index: 999; animation: fall-and-fade linear forwards; }
-
 @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
-/* 🐾 RESTORED DUCK FEET KEYFRAMES 🐾 */
-@keyframes fade-in-out {
-    0% { opacity: 0; transform: scale(0.8) rotate(var(--random-rotation)); }
-    15% { opacity: 0.3; transform: scale(1) rotate(var(--random-rotation)); } 
-    85% { opacity: 0.3; transform: scale(1) rotate(var(--random-rotation)); } 
-    100% { opacity: 0; transform: scale(0.8) rotate(var(--random-rotation)); } 
-}
-
 @keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
 @keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
+#duck-feet-background-container {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 0;
+pointer-events: none;
+overflow: hidden;
+}
+.fading-duck-feet {
+position: absolute;
+width: 50px;
+height: 50px;
+background-image: url('https://i.imgur.com/S23b6Wc.png');
+background-size: contain;
+background-repeat: no-repeat;
+opacity: 0;
+animation: fade-in-out linear forwards;
+pointer-events: none;
+}
+@keyframes fade-in-out {
+0% { opacity: 0; transform: scale(0.8); }
+20% { opacity: 0.6; transform: scale(1); }
+80% { opacity: 0.6; transform: scale(1); }
+100% { opacity: 0; transform: scale(1.2); }
+}
 </style>
 </head>
 <body>
@@ -657,8 +531,8 @@ footer p { margin: 2px 0; }
 <div id="ribbon-content"></div>
 </div>
 <div id="lava-container"></div>
+<div id="duck-feet-background-container"></div>
 <div id="login-screen" class="screen visible">
-    
 <div class="glass-card" id="instructions-card">
 <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
 <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -711,14 +585,14 @@ footer p { margin: 2px 0; }
 
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<h2 class="transparent-heading-box">Campus Map</h2>
+<!-- Removed h2 class="transparent-heading-box">Campus Map</h2> -->
 <div id="map-card-container" class="glass-card">
-    <div id="map-wrapper">
-        <img id="campus-map-img"
-        src="https://i.imgur.com/1aQCsPk.jpeg"
-        alt="Interactive Campus Map">
-        <div id="map-markers-overlay"></div>
-    </div>
+    <div id="map-wrapper">
+        <img id="campus-map-img"
+        src="https://i.imgur.com/1aQCsPk.jpeg"
+        alt="Interactive Campus Map">
+        <div id="map-markers-overlay"></div>
+    </div>
 </div>
 </section>
 
@@ -736,10 +610,6 @@ footer p { margin: 2px 0; }
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
 <div id="info-container">
-    <!-- Info Cards will be rendered here dynamically -->
-    
-    <!-- Logout button is the last card in the list -->
-    <button id="logout-btn" class="full-width-btn">Logout</button>
 </div>
 </section>
 </main>
@@ -763,7 +633,7 @@ footer p { margin: 2px 0; }
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
-const DATA_RELOAD_INTERVAL_MS = 30000; // FIX: Sync every 30 seconds for stable points
+const DATA_REFRESH_INTERVAL_MS = 30000; // FIX: Sync every 30 seconds for stable points
 const VIRTUAL_LIMIT = 10; // Explicitly define the limit
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
@@ -907,13 +777,12 @@ method: 'POST',
 body: JSON.stringify({ action, ...payload })
 });
 if (!response.ok) {
-    // Throw error for network issues
-    throw new Error(`Network response was not ok (Status: ${response.status})`);
+throw new Error(`Network response was not ok: ${response.statusText}`);
 }
 return await response.json();
 } catch (error) {
 console.error(`Fetch error for action "${action}":`, error);
-return { status: "error", message: error.message || "Network error or script failure." };
+return { status: "error", message: "Network error or script failure." };
 }
 }
 // --- RIBBON DISPLAY FUNCTION ---
@@ -954,48 +823,35 @@ ribbonContent.style.animation = 'none';
 }
 }
 // --- ANIMATION FUNCTIONS ---
-
-let duckFeetElements = [];
-
-function startFadingDuckFeet() {
-    if (!loginScreen.classList.contains('visible')) return;
-
-    // Clear any existing duck feet
-    duckFeetElements.forEach(el => el.remove());
-    duckFeetElements = [];
-
-    const numberOfFeet = 8; // How many duck feet instances
-    const baseDuration = 15; // seconds
-    const maxDelay = 8; // seconds
-
-    for (let i = 0; i < numberOfFeet; i++) {
-        const duckFeet = document.createElement('div');
-        duckFeet.className = 'duck-feet-fade';
-
-        // Random position
-        duckFeet.style.left = `${Math.random() * 90}%`;
-        duckFeet.style.top = `${10 + Math.random() * 80}%`; // Avoid header/footer
-
-        // Random animation delay and duration
-        const delay = Math.random() * maxDelay;
-        const duration = baseDuration + Math.random() * 5; // Vary duration slightly
-        duckFeet.style.animationDelay = `${delay}s`;
-        duckFeet.style.animationDuration = `${duration}s`;
-
-        // Random rotation for natural look
-        const rotation = Math.random() * 360;
-        duckFeet.style.setProperty('--random-rotation', `${rotation}deg`);
-
-        loginScreen.appendChild(duckFeet);
-        duckFeetElements.push(duckFeet);
-    }
+function startRandomFadingDuckFeet() {
+const container = document.getElementById('duck-feet-background-container');
+const maxFeetOnScreen = 7;
+const minDelay = 1000;
+const maxDelay = 3000;
+const animationDuration = 6000;
+function createFadingFeet() {
+const currentFeet = container.querySelectorAll('.fading-duck-feet');
+if (currentFeet.length >= maxFeetOnScreen) {
+currentFeet[0].remove();
 }
-
-function stopFadingDuckFeet() {
-    duckFeetElements.forEach(el => el.remove());
-    duckFeetElements = [];
+const feet = document.createElement('div');
+feet.className = 'fading-duck-feet';
+const randomX = Math.random() * (window.innerWidth - 60);
+const randomY = Math.random() * (window.innerHeight - 60);
+feet.style.left = `${randomX}px`;
+feet.style.top = `${randomY}px`;
+const randomScale = 0.7 + Math.random() * 0.6;
+feet.style.transform = `scale(${randomScale}) rotate(${Math.random() * 360}deg)`;
+feet.style.animationDuration = `${animationDuration}ms`;
+container.appendChild(feet);
+setTimeout(() => {
+feet.remove();
+}, animationDuration);
+const nextDelay = Math.random() * (maxDelay - minDelay) + minDelay;
+setTimeout(createFadingFeet, nextDelay);
 }
-
+createFadingFeet();
+}
 function triggerDuckAnimation() {
 const duckCount = Math.floor(Math.random() * 5) + 3;
 for (let i = 0; i < duckCount; i++) {
@@ -1050,78 +906,78 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    // Helper to trigger the visual error ring
-    const triggerVisualError = () => {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-    };
+    if (!currentUser) return;
+    
+    // Helper to trigger the visual error ring
+    const triggerVisualError = () => {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+    };
 
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
 
-    // 1. Check if already permanently claimed
-    if (claimedDucksCache.has(lookupId)) {
-        triggerVisualError(); 
-        return; // No message pop-up on duplicate claim
-    }
-    
-    // 2. Check if currently being processed (local lock)
-    if (processingDucks.has(lookupId)) {
-        triggerVisualError(); 
-        return; // No message pop-up on scanning too fast
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        // FIX: Use the visual error ring for invalid codes, no message pop-up.
-        triggerVisualError();
-        return;
-    }
+    // 1. Check if already permanently claimed
+    if (claimedDucksCache.has(lookupId)) {
+        triggerVisualError(); 
+        return; // No message pop-up on duplicate claim
+    }
+    
+    // 2. Check if currently being processed (local lock)
+    if (processingDucks.has(lookupId)) {
+        triggerVisualError(); 
+        return; // No message pop-up on scanning too fast
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        // FIX: Use the visual error ring for invalid codes, no message pop-up.
+        triggerVisualError();
+        return;
+    }
 
-    // --- LOCK THE DUCK ID NOW ---
-    processingDucks.add(lookupId); 
-    
-    // --- Virtual Duck Limit Check ---
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            triggerVisualError(); 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId); // Unlock immediately if failed local check
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
+    // --- LOCK THE DUCK ID NOW ---
+    processingDucks.add(lookupId); 
+    
+    // --- Virtual Duck Limit Check ---
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            triggerVisualError(); 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId); // Unlock immediately if failed local check
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
 
-    // Perform Optimistic Update... 
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    
-    const points = duckInfo.points || 0;
-    
-    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
-     * The points and duck count will now ONLY update when the 
-     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
-     * This eliminates the visual flicker caused by premature local updates.
-     */
+    // Perform Optimistic Update... 
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    
+    const points = duckInfo.points || 0;
+    
+    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
+     * The points and duck count will now ONLY update when the 
+     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
+     * This eliminates the visual flicker caused by premature local updates.
+     */
 
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    // Still show the points pop-up to indicate the scan was captured.
-    displaySuccessPopup(`+${points}`, isGoldenDuck); 
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    // Still show the points pop-up to indicate the scan was captured.
+    displaySuccessPopup(`+${points}`, isGoldenDuck); 
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
 async function sendBatchScans() {
@@ -1199,7 +1055,6 @@ if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
-    stopFadingDuckFeet(); // Stop fading duck feet immediately on sign-in
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     
     // 1. Load CRITICAL Data (Duck Map & Claimed Status) - MUST COMPLETE BEFORE UI IS SHOWN
@@ -1228,7 +1083,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         return; 
     }
 
-    // 🛑 FIX: Reset the login button immediately after critical data loads, 
+    // 🛑 FIX: Reset the login button immediately after critical data loads, 
     // but before the UI transition. This eliminates the flicker.
     if (loginButtonEl) {
         loginButtonEl.innerHTML = loginButtonContent;
@@ -1243,7 +1098,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     if (batchSendTimer) clearInterval(batchSendTimer);
     batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_RELOAD_INTERVAL_MS);
+    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
     
     // Start scanner and switch to initial page
     switchPage(initialPageId); 
@@ -1271,7 +1126,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         }
         
         if (infoResult.status === 'success') {
-            updateRibbon(result.ribbonText);
+            updateRibbon(infoResult.ribbonText);
             infoDataCache = infoResult.infoItems || [];
             infoDataFetchTime = new Date();
             if (document.getElementById('info-page').classList.contains('active')) {
@@ -1294,25 +1149,17 @@ async function signIn(studentId) {
     signinBtn.innerHTML = '<div class="spinner"></div>';
     signinBtn.disabled = true;
 
-    try {
-        const result = await postToAction('getUser', { studentId });
-
-        if (result.status === "success" && result.user) {
-            // SUCCESS: Pass button state to showApp
-            showApp(result.user, 'hunt-page', signinBtn, originalContent); 
-        } else {
-            // FAILURE from script logic or empty/bad data
-            // Provide specific feedback
-            alert(result.message || "User not found. Please verify Student ID or register.");
-        }
-    } catch (error) {
-        // CATCH FAILURE: Handle network issues or uncaught errors
-        alert("A critical network or script error occurred during sign-in. Please ensure the Google App Script URL is correct and active.");
-    } finally {
-        // CRITICAL FIX: Ensure the button is always reset regardless of success/failure path
-        signinBtn.innerHTML = originalContent;
-        signinBtn.disabled = false;
-    }
+    const result = await postToAction('getUser', { studentId });
+    
+    if (result.status === "success") {
+        // SUCCESS: Pass button state to showApp
+        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
+    } else {
+        // FAILURE: Reset button state
+        signinBtn.innerHTML = originalContent;
+        signinBtn.disabled = false;
+        alert("User not found! Please register before signing in.");
+    }
 }
 
 async function registerUser() {
@@ -1347,20 +1194,20 @@ async function registerUser() {
                 // SUCCESS: Pass button state to showApp
                 showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
             } else {
-                // Registration succeeded but sign-in failed (shouldn't happen, but handle)
-                alert("Registration succeeded, but auto sign-in failed. Please try signing in.");
+                throw new Error("Auto sign-in failed after registration.");
             }
         } else {
             // FAILURE: Reset button state
-            alert(result.message || "Error registering. Please check your details and try again.");
+            submitBtn.innerHTML = originalContent;
+            submitBtn.disabled = false;
+            alert(result.message);
         }
     } catch (error) {
         // CATCH FAILURE: Reset button state
-        alert("A critical network or script error occurred during registration.");
-    } finally {
-        submitBtn.innerHTML = originalContent;
+        submitBtn.innerHTML = originalContent;
         submitBtn.disabled = false;
-    }
+        alert("Error registering. Please check your Student ID and try again.");
+    }
 }
 // --- UI & DATA DISPLAY FUNCTIONS ---
 function displaySuccessPopup(message, isGolden = false) {
@@ -1407,7 +1254,7 @@ try {
         
     if (shouldUpdatePoints && !hasPendingScans) {
         userResult = responses.shift();
-        if (userResult && userResult.status === "success") {
+        if (userResult.status === "success") {
             currentUser.points = userResult.user.points;
             document.getElementById('player-points').textContent = currentUser.points;
         }
@@ -1503,39 +1350,31 @@ document.body.style.overflow = 'hidden';
 }
 
 function renderInfoCards(infoItems) {
-    const container = document.getElementById('info-container');
-    const logoutButton = document.getElementById('logout-btn');
+const container = document.getElementById('info-container');
+if (!infoItems || infoItems.length === 0) {
+container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>No information is available at this time.</h4>";
+return;
+}
 
-    // Remove the logout button temporarily to clear the card list content
-    if (logoutButton) container.removeChild(logoutButton);
-    container.innerHTML = '';
-    
-    if (!infoItems || infoItems.length === 0) {
-        container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>No information is available at this time.</h4>";
-    } else {
-        let html = '';
-        infoItems.forEach((item, index) => {
-        html += `
-        <div class="info-card-button" data-info-index="${index}">
-        <h4>${item.title || 'Untitled'}</h4>
-        </div>
-        `;
-        });
-        container.innerHTML = html;
-        
-        document.querySelectorAll('.info-card-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-        const index = e.currentTarget.dataset.infoIndex;
-        const infoItem = infoDataCache[index];
-        if (infoItem) {
-        showInfoModal(infoItem.title, infoItem.content);
-        }
-        });
-        });
-    }
+let html = '';
+infoItems.forEach((item, index) => {
+html += `
+<div class="info-card-button" data-info-index="${index}">
+<h4>${item.title || 'Untitled'}</h4>
+</div>
+`;
+});
+container.innerHTML = html;
 
-    // Re-add the logout button as the very last element
-    if (logoutButton) container.appendChild(logoutButton);
+document.querySelectorAll('.info-card-button').forEach(button => {
+button.addEventListener('click', (e) => {
+const index = e.currentTarget.dataset.infoIndex;
+const infoItem = infoDataCache[index];
+if (infoItem) {
+showInfoModal(infoItem.title, infoItem.content);
+}
+});
+});
 }
 
 async function fetchAndRenderInfoData() {
@@ -1543,11 +1382,7 @@ const container = document.getElementById('info-container');
 const fiveMinutes = 5 * 60 * 1000;
 
 if (!infoDataCache || infoDataCache.length === 0) {
-    // Show spinner below the existing header/logo
-    const logoutButton = document.getElementById('logout-btn');
-    if (logoutButton) container.removeChild(logoutButton); 
-    container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
-    if (logoutButton) container.appendChild(logoutButton);
+container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
 }
 
 // Use cached data if it's recent (less than 5 minutes old)
@@ -1566,19 +1401,6 @@ renderInfoCards(infoDataCache);
 updateRibbon('');
 container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>Could not load information. Please try again later.</h4>";
 }
-}
-// NEW: Logout handler
-function handleLogout() {
-    // 1. Clear user session data
-    sessionStorage.removeItem('currentUserStudentId');
-    currentUser = null;
-    
-    // 2. Stop any timers/animations
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    
-    // 3. Simple page reload to show the login screen
-    window.location.reload();
 }
 // --- UTILITY & NAVIGATION ---
 function startScanner() {
@@ -1647,7 +1469,7 @@ setTimeout(() => el.remove(), 500);
 }
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
-startFadingDuckFeet();
+startRandomFadingDuckFeet();
 checkForInitialDuck();
 const savedStudentId = sessionStorage.getItem('currentUserStudentId');
 if (savedStudentId) {
@@ -1678,8 +1500,6 @@ document.getElementById('scan-history-link').addEventListener('click', (e) => {
 e.preventDefault();
 switchPage(e.target.dataset.page);
 });
-document.getElementById('logout-btn').addEventListener('click', handleLogout);
-
 const modalBackdrop = document.getElementById('info-modal-backdrop');
 if (modalBackdrop) {
 document.getElementById('modal-close-btn').addEventListener('click', () => {
