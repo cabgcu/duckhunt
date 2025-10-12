@@ -12,14 +12,14 @@
 --pink: #ff69b4;
 --gold: #FFD700;
 
-/* NEW: iOS 26 Inspired UI Kit */
+/* UPDATED: iOS 26 Inspired UI Kit with softer shadow */
 --background-start: #1c0f29;
 --background-end: #0c0a15;
 --glass-bg: rgba(255, 255, 255, 0.08);
 --glass-blur: 24px;
 --glass-border-top: rgba(255, 255, 255, 0.25);
 --glass-border-bottom: rgba(255, 255, 255, 0.05);
---glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+--glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.25); /* SOFTER SHADOW */
 --inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
 --highlight-color: #ffffff;
 --glow-color: rgba(96, 163, 77, 0.8);
@@ -34,14 +34,14 @@
 
 body {
 margin: 0;
-background-color: var(--background-end);
-background-image: radial-gradient(circle at 10% 10%, var(--background-start) 0%, transparent 50%), radial-gradient(circle at 90% 90%, var(--pink) 0%, transparent 40%);
+background-color: #000;
 overflow-x: hidden;
 min-height: 100vh;
 min-height: 100svh;
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 color: white;
 text-align: center;
+position: relative;
 }
 .hidden { display: none !important; }
 
@@ -50,8 +50,7 @@ text-align: center;
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
 
-
-/* UPDATED: New iOS 26 Glass Card Style */
+/* iOS 26 Glass Card Style */
 .glass-card {
 background: var(--glass-bg);
 backdrop-filter: blur(var(--glass-blur));
@@ -241,9 +240,10 @@ font-weight: bold;
 #map-card-container {
     width: 100%;
     max-width: 450px;
-    height: 75vh;
+    height: 65vh;
     overflow: scroll;
     padding: 0;
+    border-radius: 20px;
 }
 #map-wrapper {
     position: relative;
@@ -312,12 +312,22 @@ background: none;
 border-radius: 0;
 box-shadow: none;
 border: none;
-gap: 0.75rem; /* INCREASED SPACING: was 0.5rem */
+gap: 0.75rem;
 display: flex;
 flex-direction: column;
 width: 100%;
 max-width: 450px;
-margin: 0 auto; /* ENSURE CENTERING */
+margin: 0 auto;
+}
+
+#leaderboard-list, #log-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 #info-modal-backdrop {
@@ -390,11 +400,11 @@ justify-content: space-between;
 padding: 1rem;
 border-radius: 12px;
 }
-#leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
+/* UPDATED: Increased gap between rank and name */
+#leaderboard-list .list-item > div:first-child { display: flex; align-items: center; gap: 0.75rem; }
 .list-item .rank-text {
 font-weight: bold;
 font-size: 1.2rem;
-margin-left: 0.5rem;
 white-space: nowrap;
 }
 #leaderboard-list .list-item span {
@@ -411,38 +421,47 @@ color: var(--green);
 .secondary-btn { background-color: rgba(255, 255, 255, 0.1); color: white; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
 .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); border-color: var(--green); transform: translateY(-2px); }
 
-/* REVERTED: Original lava container styles */
+/* === UPDATED LAVA CONTAINER STYLES === */
 #lava-container {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-z-index: -1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
 }
-#lava-container::before, #lava-container::after {
-content: '';
-position: absolute;
-width: 70vmax;
-height: 70vmax;
-border-radius: 50%;
-opacity: 0.8;
-mix-blend-mode: lighten;
-filter: blur(120px);
+#lava-container::before, #lava-container::after, #lava-blob-purple {
+    content: '';
+    position: absolute;
+    width: 70vmax;
+    height: 70vmax;
+    border-radius: 50%;
+    opacity: 0.8;
+    mix-blend-mode: lighten;
+    filter: blur(120px);
 }
 #lava-container::before {
-background-color: var(--pink);
-top: -35vmax;
-left: -35vmax;
-animation: move-pink 18s infinite linear; /* FASTER: Was 25s */
+    background-color: var(--pink);
+    top: -35vmax;
+    left: -35vmax;
+    animation: move-pink 14s infinite linear; /* Faster */
 }
 #lava-container::after {
-background-color: var(--green);
-bottom: -35vmax;
-right: -35vmax;
-animation: move-green 15s infinite linear; /* FASTER: Was 20s */
-animation-delay: -10s;
+    background-color: var(--green);
+    bottom: -35vmax;
+    right: -35vmax;
+    animation: move-green 12s infinite linear; /* Faster */
+    animation-delay: -8s;
 }
+#lava-blob-purple {
+    background-color: #6f42c1;
+    top: 20vh;
+    right: -30vmax;
+    animation: move-purple 16s infinite linear;
+    animation-delay: -4s;
+}
+/* === END UPDATED LAVA STYLES === */
 
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
@@ -495,9 +514,26 @@ transition: color 0.3s ease;
 @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
 
-/* Original background keyframes */
-@keyframes move-pink { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(100vw - 70vmax), 0); } 50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 75% { transform: translate(0, calc(100vh - 70vmax)); } }
-@keyframes move-green { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(calc(-100vw + 70vmax), 0); } 50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 75% { transform: translate(0, calc(-100vh + 70vmax)); } }
+/* === UPDATED BACKGROUND KEYFRAMES === */
+@keyframes move-pink { 
+    0%, 100% { transform: translate(0, 0); } 
+    25% { transform: translate(calc(100vw - 70vmax), 0); } 
+    50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 
+    75% { transform: translate(0, calc(100vh - 70vmax)); } 
+}
+@keyframes move-green { 
+    0%, 100% { transform: translate(0, 0); } 
+    25% { transform: translate(calc(-100vw + 70vmax), 0); } 
+    50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 
+    75% { transform: translate(0, calc(-100vh + 70vmax)); } 
+}
+@keyframes move-purple {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(calc(-80vw + 40vmax), 40vh) scale(0.8); }
+    50% { transform: translate(calc(-20vw + 20vmax), calc(-50vh + 20vmax)) scale(1.2); }
+    75% { transform: translate(calc(-100vw + 50vmax), 10vh) scale(1); }
+}
+/* === END UPDATED KEYFRAMES === */
 
 #duck-feet-background-container {
 position: fixed;
@@ -534,7 +570,9 @@ pointer-events: none;
 <div id="ribbon-message">
 <div id="ribbon-content"></div>
 </div>
-<div id="lava-container"></div>
+<div id="lava-container">
+    <div id="lava-blob-purple"></div>
+</div>
 <div id="duck-feet-background-container"></div>
 <div id="login-screen" class="screen visible">
 <div class="glass-card" id="instructions-card">
@@ -589,13 +627,13 @@ pointer-events: none;
 
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
-<div id="map-card-container" class="glass-card">
-    <div id="map-wrapper">
-        <img id="campus-map-img"
-        src="https://i.imgur.com/1aQCsPk.jpeg"
-        alt="Interactive Campus Map">
-        <div id="map-markers-overlay"></div>
-    </div>
+<div id="map-card-container">
+    <div id="map-wrapper">
+        <img id="campus-map-img"
+        src="https://i.imgur.com/1aQCsPk.jpeg"
+        alt="Interactive Campus Map">
+        <div id="map-markers-overlay"></div>
+    </div>
 </div>
 </section>
 
@@ -650,13 +688,13 @@ const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 */
 const MAP_SPOTS = [
 { name: 'The Grove', dataKey: 'The Grove', coords: '1295,758,1311,774' },
-{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, 
+{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, 
 { name: 'Main Campus', dataKey: 'Main Campus', coords: '1763,2398,1779,2414' },
 { name: 'North Campus', dataKey: 'North Campus', coords: '2738,1116,2754,1132' },
 { name: 'East Campus', dataKey: 'East Campus', coords: '3882,2468,3898,2484' },
 { name: 'The Rivers', dataKey: 'The Rivers', coords: '4757,1136,4773,1152' },
-{ name: 'Riverbed Virtual', dataKey: 'Riverbed', coords: '5125,817,5141,833' }, 
-{ name: 'Commuter Lounge Virtual', dataKey: 'Commuter Lounge', coords: '1355,1900,1371,1916' }, 
+{ name: 'Riverbed Virtual', dataKey: 'Riverbed', coords: '5125,817,5141,833' }, 
+{ name: 'Commuter Lounge Virtual', dataKey: 'Commuter Lounge', coords: '1355,1900,1371,1916' }, 
 { name: 'Thunderground Virtual', dataKey: 'Thunderground', coords: '1514,1680,1530,1696' },
 ];
 
@@ -683,7 +721,7 @@ let scanHistoryCache = [];
 let scanQueue = [];
 let batchSendTimer = null;
 let dataRefreshTimer = null;
-let locationCountsCache = {}; 
+let locationCountsCache = {}; 
 
 // --- MAP INTERACTION LOGIC ---
 const mapCardContainer = document.getElementById('map-card-container');
@@ -714,12 +752,12 @@ function positionMarkers() {
 const overlay = document.getElementById('map-markers-overlay');
 if (!overlay || !mapImageElement || mapImageElement.naturalWidth === 0) return;
 
-overlay.innerHTML = ''; 
-const locationData = locationCountsCache; 
+overlay.innerHTML = ''; 
+const locationData = locationCountsCache; 
 
 MAP_SPOTS.forEach(spot => {
 const marker = document.createElement('div');
-marker.className = 'map-label'; 
+marker.className = 'map-label'; 
 
 const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
 const centerX = (x1 + x2) / 2;
@@ -728,15 +766,15 @@ const centerY = (y1 + y2) / 2;
 marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
 marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
 
-const dataKey = spot.dataKey; 
-const displayName = spot.name; 
+const dataKey = spot.dataKey; 
+const displayName = spot.name; 
 
 let remainingText;
-let spotData = locationData[dataKey]; 
+let spotData = locationData[dataKey]; 
 
 if (!spotData) {
 remainingText = '<strong>N/A</strong> Codes Left';
-marker.style.borderColor = 'gray'; 
+marker.style.borderColor = 'gray'; 
 } else {
 const remaining = spotData.count;
 if (remaining > 0) {
@@ -756,21 +794,21 @@ updateLabelSizeOnPan();
 }
 
 async function updateDuckMapData() {
-    const result = await postToAction('getDuckCounts');
+    const result = await postToAction('getDuckCounts');
 
-    if (result.status === 'success' && result.locations) {
-        locationCountsCache = {};
-        Object.keys(result.locations).forEach(name => {
-            locationCountsCache[name] = { count: result.locations[name] };
-        });
-    }
+    if (result.status === 'success' && result.locations) {
+        locationCountsCache = {};
+        Object.keys(result.locations).forEach(name => {
+            locationCountsCache[name] = { count: result.locations[name] };
+        });
+    }
 }
 
 function initializeMap() {
-    if (mapResizeObserver) {
-        mapResizeObserver.disconnect();
-        mapResizeObserver = null;
-    }
+    if (mapResizeObserver) {
+        mapResizeObserver.disconnect();
+        mapResizeObserver = null;
+    }
 
     mapCardContainer.addEventListener('scroll', () => {
         if (!isPanning) {
@@ -779,30 +817,30 @@ function initializeMap() {
         }
     });
 
-    const imageLoadPromise = new Promise(resolve => {
-        if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
-            resolve();
-        } else {
-            mapImageElement.onload = null;
-            mapImageElement.onerror = null; 
-            
-            mapImageElement.onload = resolve;
-            mapImageElement.onerror = resolve; 
-        }
-    });
+    const imageLoadPromise = new Promise(resolve => {
+        if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
+            resolve();
+        } else {
+            mapImageElement.onload = null;
+            mapImageElement.onerror = null; 
+            
+            mapImageElement.onload = resolve;
+            mapImageElement.onerror = resolve; 
+        }
+    });
 
-    Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
-        if (mapImageElement.naturalWidth > 0) {
-            positionMarkers();
-            
-            if (!mapResizeObserver) {
-                mapResizeObserver = new ResizeObserver(positionMarkers);
-                mapResizeObserver.observe(mapImageElement);
-            }
-        } else {
-            console.error("Map image failed to load or has zero dimensions.");
-        }
-    });
+    Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
+        if (mapImageElement.naturalWidth > 0) {
+            positionMarkers();
+            
+            if (!mapResizeObserver) {
+                mapResizeObserver = new ResizeObserver(positionMarkers);
+                mapResizeObserver.observe(mapImageElement);
+            }
+        } else {
+            console.error("Map image failed to load or has zero dimensions.");
+        }
+    });
 }
 // --- END MAP INTERACTION LOGIC ---
 
@@ -943,107 +981,107 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    const triggerVisualError = () => {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-    };
+    if (!currentUser) return;
+    
+    const triggerVisualError = () => {
+        const qrContainer = document.getElementById('qr-reader-container');
+        qrContainer.classList.add('error-flash');
+        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+    };
 
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
+    let finalDuckId = decodedText;
+    try {
+        const url = new URL(decodedText);
+        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+    } catch (e) {}
+    const lookupId = finalDuckId.trim().toLowerCase();
 
-    if (claimedDucksCache.has(lookupId)) {
-        triggerVisualError(); 
-        return;
-    }
-    
-    if (processingDucks.has(lookupId)) {
-        triggerVisualError(); 
-        return;
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        triggerVisualError();
-        return;
-    }
+    if (claimedDucksCache.has(lookupId)) {
+        triggerVisualError(); 
+        return;
+    }
+    
+    if (processingDucks.has(lookupId)) {
+        triggerVisualError(); 
+        return;
+    }
+    
+    const duckInfo = duckDataCache[lookupId];
+    if (!duckInfo) {
+        triggerVisualError();
+        return;
+    }
 
-    processingDucks.add(lookupId); 
-    
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            triggerVisualError(); 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId);
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
+    processingDucks.add(lookupId); 
+    
+    if (duckInfo.type === 'Virtual Duck') {
+        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+        
+        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
+            triggerVisualError(); 
+            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+            triggerFrostAnimation();
+            processingDucks.delete(lookupId);
+            return;
+        }
+        localVirtualScanTimestamps.push(new Date().getTime());
+    }
 
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    
-    const points = duckInfo.points || 0;
-    
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    displaySuccessPopup(`+${points}`, isGoldenDuck); 
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+    
+    const points = duckInfo.points || 0;
+    
+    const isGoldenDuck = duckInfo.type === 'Golden Duck';
+    displaySuccessPopup(`+${points}`, isGoldenDuck); 
+    if (isGoldenDuck) {
+        triggerGoldenDuckAnimation();
+    } else {
+        triggerDuckAnimation();
+    }
 }
 
 async function sendBatchScans() {
-    if (scanQueue.length === 0) return;
-    
-    const scansToSend = [...scanQueue];
-    scanQueue = [];
-    
-    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
+    if (scanQueue.length === 0) return;
+    
+    const scansToSend = [...scanQueue];
+    scanQueue = [];
+    
+    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
 
-    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-    
-    sentDuckIds.forEach(id => processingDucks.delete(id));
+    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+    
+    sentDuckIds.forEach(id => processingDucks.delete(id));
 
-    if (batchResult.status === "success") {
-        if (batchResult.updatedUser) {
-            currentUser.points = batchResult.updatedUser.points;
-            document.getElementById('player-points').textContent = currentUser.points;
-            if (batchResult.updatedUser.duckCount !== undefined) {
-                document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
-            }
-        }
-        
-        if (batchResult.results) {
-            batchResult.results.forEach(result => {
-                const id = result.duckId.trim().toLowerCase();
-                
-                if (result.status === "success") {
-                    claimedDucksCache.add(id); 
-                } else {
-                    displayRevertPopup(result.message || "A duck was claimed just before you!");
-                }
-            });
-        }
-    } else {
-        displayRevertPopup(batchResult.message || "A server error occurred.");
-        scanQueue = [...scansToSend, ...scanQueue];
-    }
+    if (batchResult.status === "success") {
+        if (batchResult.updatedUser) {
+            currentUser.points = batchResult.updatedUser.points;
+            document.getElementById('player-points').textContent = currentUser.points;
+            if (batchResult.updatedUser.duckCount !== undefined) {
+                document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
+            }
+        }
+        
+        if (batchResult.results) {
+            batchResult.results.forEach(result => {
+                const id = result.duckId.trim().toLowerCase();
+                
+                if (result.status === "success") {
+                    claimedDucksCache.add(id); 
+                } else {
+                    displayRevertPopup(result.message || "A duck was claimed just before you!");
+                }
+            });
+        }
+    } else {
+        displayRevertPopup(batchResult.message || "A server error occurred.");
+        scanQueue = [...scansToSend, ...scanQueue];
+    }
 }
 
 function periodicDataRefresh() {
 if (!currentUser) return;
-updateUserDashboard(true); 
+updateUserDashboard(true); 
 
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
@@ -1052,159 +1090,159 @@ claimedDucksCache = new Set(result.claimed);
 });
 const fiveMinutes = 5 * 60 * 1000;
 if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
-    postToAction('getInfoData').then(result => {
-        if (result.status === 'success') {
-            updateRibbon(result.ribbonText);
-            infoDataCache = result.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        } else {
-            updateRibbon('');
-        }
-    });
+    postToAction('getInfoData').then(result => {
+        if (result.status === 'success') {
+            updateRibbon(result.ribbonText);
+            infoDataCache = result.infoItems || [];
+            infoDataFetchTime = new Date();
+            if (document.getElementById('info-page').classList.contains('active')) {
+                renderInfoCards(infoDataCache);
+            }
+        } else {
+            updateRibbon('');
+        }
+    });
 }
 }
 
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
-    currentUser = user;
-    sessionStorage.setItem('currentUserStudentId', user.studentId);
-    
-    try {
-        const [duckResult, claimedDucksResult] = await Promise.all([
-            postToAction('getDuckData'),
-            postToAction('getClaimedDucks')
-        ]);
-        
-        if (duckResult.status === "success") {
-            duckDataCache = duckResult.ducks;
-        } else { throw new Error("Failed to load duck data."); }
-        
-        if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
-            claimedDucksCache = new Set(claimedDucksResult.claimed);
-        }
-    } catch (e) {
-        console.error("Failed to load critical game data:", e);
-        alert("Could not load critical game data. Please try again.");
-        
-        if (loginButtonEl) {
-            loginButtonEl.innerHTML = loginButtonContent;
-            loginButtonEl.disabled = false;
-        }
-        return; 
-    }
+    currentUser = user;
+    sessionStorage.setItem('currentUserStudentId', user.studentId);
+    
+    try {
+        const [duckResult, claimedDucksResult] = await Promise.all([
+            postToAction('getDuckData'),
+            postToAction('getClaimedDucks')
+        ]);
+        
+        if (duckResult.status === "success") {
+            duckDataCache = duckResult.ducks;
+        } else { throw new Error("Failed to load duck data."); }
+        
+        if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
+            claimedDucksCache = new Set(claimedDucksResult.claimed);
+        }
+    } catch (e) {
+        console.error("Failed to load critical game data:", e);
+        alert("Could not load critical game data. Please try again.");
+        
+        if (loginButtonEl) {
+            loginButtonEl.innerHTML = loginButtonContent;
+            loginButtonEl.disabled = false;
+        }
+        return; 
+    }
 
-    if (loginButtonEl) {
-        loginButtonEl.innerHTML = loginButtonContent;
-        loginButtonEl.disabled = false;
-    }
-    
-    loginScreen.classList.remove('visible');
-    appWrapper.classList.add('visible');
-    
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-    
-    switchPage(initialPageId); 
-    
-    if (initialDuckId) {
-        onScanSuccess(initialDuckId);
-        initialDuckId = null;
-    }
+    if (loginButtonEl) {
+        loginButtonEl.innerHTML = loginButtonContent;
+        loginButtonEl.disabled = false;
+    }
+    
+    loginScreen.classList.remove('visible');
+    appWrapper.classList.add('visible');
+    
+    if (batchSendTimer) clearInterval(batchSendTimer);
+    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+    
+    switchPage(initialPageId); 
+    
+    if (initialDuckId) {
+        onScanSuccess(initialDuckId);
+        initialDuckId = null;
+    }
 
-    try {
-        const [historyResult, infoResult] = await Promise.all([
-            postToAction('getScanHistory', { studentId: currentUser.studentId }),
-            postToAction('getInfoData')
-        ]);
-        
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            document.getElementById('player-ducks').textContent = historyResult.length; 
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
-        
-        if (infoResult.status === 'success') {
-            updateRibbon(infoResult.ribbonText);
-            infoDataCache = infoResult.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load auxiliary data in background:", e);
-    }
-    
-    await updateUserDashboard();
+    try {
+        const [historyResult, infoResult] = await Promise.all([
+            postToAction('getScanHistory', { studentId: currentUser.studentId }),
+            postToAction('getInfoData')
+        ]);
+        
+        if (Array.isArray(historyResult)) {
+            scanHistoryCache = historyResult;
+            document.getElementById('player-ducks').textContent = historyResult.length; 
+            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+            localVirtualScanTimestamps = historyResult
+                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                .map(scan => new Date(scan.timestamp).getTime());
+        }
+        
+        if (infoResult.status === 'success') {
+            updateRibbon(infoResult.ribbonText);
+            infoDataCache = infoResult.infoItems || [];
+            infoDataFetchTime = new Date();
+            if (document.getElementById('info-page').classList.contains('active')) {
+                renderInfoCards(infoDataCache);
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load auxiliary data in background:", e);
+    }
+    
+    await updateUserDashboard();
 }
 
 async function signIn(studentId) {
-    const signinBtn = document.getElementById('signin-btn');
-    const originalContent = signinBtn.innerHTML;
-    
-    signinBtn.innerHTML = '<div class="spinner"></div>';
-    signinBtn.disabled = true;
+    const signinBtn = document.getElementById('signin-btn');
+    const originalContent = signinBtn.innerHTML;
+    
+    signinBtn.innerHTML = '<div class="spinner"></div>';
+    signinBtn.disabled = true;
 
-    const result = await postToAction('getUser', { studentId });
-    
-    if (result.status === "success") {
-        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
-    } else {
-        signinBtn.innerHTML = originalContent;
-        signinBtn.disabled = false;
-        alert("User not found! Please register before signing in.");
-    }
+    const result = await postToAction('getUser', { studentId });
+    
+    if (result.status === "success") {
+        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
+    } else {
+        signinBtn.innerHTML = originalContent;
+        signinBtn.disabled = false;
+        alert("User not found! Please register before signing in.");
+    }
 }
 
 async function registerUser() {
-    const submitBtn = document.getElementById('submit-btn');
-    const originalContent = submitBtn.innerHTML;
+    const submitBtn = document.getElementById('submit-btn');
+    const originalContent = submitBtn.innerHTML;
 
-    const payload = {
-        firstName: document.getElementById('reg-firstname').value.trim(),
-        lastName: document.getElementById('reg-lastname').value.trim(),
-        studentId: document.getElementById('reg-studentid').value.trim(),
-        email: document.getElementById('reg-email').value.trim()
-    };
-    
-    if (!payload.firstName || !payload.studentId) {
-        return alert("First Name and Student ID are required.");
-    }
-    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
-        return alert("Registration requires an @my.gcu.edu email address.");
-    }
-    
-    submitBtn.innerHTML = '<div class="spinner"></div>';
-    submitBtn.disabled = true;
+    const payload = {
+        firstName: document.getElementById('reg-firstname').value.trim(),
+        lastName: document.getElementById('reg-lastname').value.trim(),
+        studentId: document.getElementById('reg-studentid').value.trim(),
+        email: document.getElementById('reg-email').value.trim()
+    };
+    
+    if (!payload.firstName || !payload.studentId) {
+        return alert("First Name and Student ID are required.");
+    }
+    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+        return alert("Registration requires an @my.gcu.edu email address.");
+    }
+    
+    submitBtn.innerHTML = '<div class="spinner"></div>';
+    submitBtn.disabled = true;
 
-    try {
-        const result = await postToAction('registerUser', payload);
-        
-        if (result.status === "success") {
-            const userResult = await postToAction('getUser', { studentId: payload.studentId });
-            if (userResult.status === "success") {
-                showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
-            } else {
-                throw new Error("Auto sign-in failed after registration.");
-            }
-        } else {
-            submitBtn.innerHTML = originalContent;
-            submitBtn.disabled = false;
-            alert(result.message);
-        }
-    } catch (error) {
-        submitBtn.innerHTML = originalContent;
-        submitBtn.disabled = false;
-        alert("Error registering. Please check your Student ID and try again.");
-    }
+    try {
+        const result = await postToAction('registerUser', payload);
+        
+        if (result.status === "success") {
+            const userResult = await postToAction('getUser', { studentId: payload.studentId });
+            if (userResult.status === "success") {
+                showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
+            } else {
+                throw new Error("Auto sign-in failed after registration.");
+            }
+        } else {
+            submitBtn.innerHTML = originalContent;
+            submitBtn.disabled = false;
+            alert(result.message);
+        }
+    } catch (error) {
+        submitBtn.innerHTML = originalContent;
+        submitBtn.disabled = false;
+        alert("Error registering. Please check your Student ID and try again.");
+    }
 }
 // --- UI & DATA DISPLAY FUNCTIONS ---
 function displaySuccessPopup(message, isGolden = false) {
@@ -1236,55 +1274,55 @@ setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 async function updateUserDashboard(shouldUpdatePoints = true) {
 if (!currentUser) return;
 try {
-    const fetches = [
-        postToAction('getLeaderboard'),
-        postToAction('getScanHistory', { studentId: currentUser.studentId })
-    ];
-    if (shouldUpdatePoints) {
-        fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
-    }
-    const responses = await Promise.all(fetches);
+    const fetches = [
+        postToAction('getLeaderboard'),
+        postToAction('getScanHistory', { studentId: currentUser.studentId })
+    ];
+    if (shouldUpdatePoints) {
+        fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
+    }
+    const responses = await Promise.all(fetches);
 
-    let userResult, leaderboardData, historyResult;
-        
-    const hasPendingScans = scanQueue.length > 0;
-        
-    if (shouldUpdatePoints && !hasPendingScans) {
-        userResult = responses.shift();
-        if (userResult.status === "success") {
-            currentUser.points = userResult.user.points;
-            document.getElementById('player-points').textContent = currentUser.points;
-        }
-    } else if (shouldUpdatePoints) {
-        responses.shift(); 
-    }
+    let userResult, leaderboardData, historyResult;
+        
+    const hasPendingScans = scanQueue.length > 0;
+        
+    if (shouldUpdatePoints && !hasPendingScans) {
+        userResult = responses.shift();
+        if (userResult.status === "success") {
+            currentUser.points = userResult.user.points;
+            document.getElementById('player-points').textContent = currentUser.points;
+        }
+    } else if (shouldUpdatePoints) {
+        responses.shift(); 
+    }
 
-    const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
-    const historyIndex = shouldUpdatePoints ? 1 : 1; 
+    const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
+    const historyIndex = shouldUpdatePoints ? 1 : 1; 
 
-    leaderboardData = responses[leaderboardIndex];
-    historyResult = responses[historyIndex];
+    leaderboardData = responses[leaderboardIndex];
+    historyResult = responses[historyIndex];
 
-    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-    if (Array.isArray(leaderboardData)) {
-        const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
-        let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
-        if (myRank === 1) rankText = '🥇 Rank 1';
-        else if (myRank === 2) rankText = '🥈 Rank 2';
-        else if (myRank === 3) rankText = '🥉 Rank 3';
-        document.getElementById('player-rank-display').textContent = rankText;
-    }
+    if (Array.isArray(leaderboardData)) {
+        const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
+        let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
+        if (myRank === 1) rankText = '🥇 Rank 1';
+        else if (myRank === 2) rankText = '🥈 Rank 2';
+        else if (myRank === 3) rankText = '🥉 Rank 3';
+        document.getElementById('player-rank-display').textContent = rankText;
+    }
 
-    if (Array.isArray(historyResult)) {
-        scanHistoryCache = historyResult;
-        if (!hasPendingScans) {
-            document.getElementById('player-ducks').textContent = historyResult.length;
-        }
-    }
-        
+    if (Array.isArray(historyResult)) {
+        scanHistoryCache = historyResult;
+        if (!hasPendingScans) {
+            document.getElementById('player-ducks').textContent = historyResult.length;
+        }
+    }
+        
 } catch (e) {
-    console.error("Failed to update dashboard", e);
+    console.error("Failed to update dashboard", e);
 }
 }
 async function updateLeaderboard() {
@@ -1292,7 +1330,7 @@ const listElement = document.getElementById('leaderboard-list');
 if (listElement.innerHTML === '') {
 listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
 }
-const leaderboardData = await postToAction('getLeaderboard'); 
+const leaderboardData = await postToAction('getLeaderboard'); 
 if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
 listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet!</li>';
 return;
@@ -1311,12 +1349,12 @@ function updateScanHistory() {
 const listElement = document.getElementById('log-list');
 const scanData = scanHistoryCache;
 if (!scanData || scanData.length === 0) {
-    if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
-        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>';
-    } else {
-        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
-    }
-    return;
+    if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
+        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>';
+    } else {
+        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
+    }
+    return;
 }
 let html = '';
 scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(scan => {
@@ -1433,7 +1471,7 @@ updateLeaderboard();
 } else if (pageId === 'log-page') {
 updateScanHistory();
 } else if (pageId === 'map-page') {
-initializeMap(); 
+initializeMap(); 
 } else if (pageId === 'info-page') {
 fetchAndRenderInfoData();
 }
@@ -1481,7 +1519,7 @@ loginView.classList.add('hidden');
 registrationView.classList.remove('hidden');
 });
 document.getElementById('back-btn').addEventListener('click', () => {
-registrationView.classList.add('hidden');
+registrationView.classList.remove('hidden');
 loginView.classList.remove('hidden');
 });
 document.getElementById('close-instructions').addEventListener('click', () => {
