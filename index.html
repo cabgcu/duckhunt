@@ -282,7 +282,7 @@ font-weight: bold;
     position: absolute;
     z-index: 10;
     transform: translate(-50%, -50%);
-    cursor: default;
+    cursor: pointer; /* Change cursor to indicate it's clickable */
     pointer-events: auto;
     background: rgba(30, 30, 30, 0.6);
     backdrop-filter: blur(10px);
@@ -294,7 +294,12 @@ font-weight: bold;
     text-align: center;
     white-space: normal;
     line-height: 1.2; /* Adjusted line height */
-    transition: transform 0.2s ease-out;
+    transition: transform 0.2s ease-out, z-index 0s 0.2s;
+}
+.map-label.on-top {
+    z-index: 20;
+    transform: translate(-50%, -50%) scale(1.1);
+    transition: transform 0.2s ease-out, z-index 0s;
 }
 .map-label h4 {
     margin: 0;
@@ -816,12 +821,17 @@ function updateLabelSizeOnPan() {
     document.querySelectorAll('.map-label').forEach(label => {
         const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
         const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
-
         const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
+        let scale = 1.15 - (distance / maxDistance) * 0.25;
+        
+        // Prevent scaling down if it's the 'on-top' label
+        if (label.classList.contains('on-top')) {
+            scale = 1.1; // Keep it scaled up
+        } else {
+            scale = Math.max(0.9, Math.min(scale, 1.15));
+        }
 
-        const scale = 1.15 - (distance / maxDistance) * 0.25;
-
-        label.style.transform = `translate(-50%, -50%) scale(${Math.max(0.9, Math.min(scale, 1.15))})`;
+        label.style.transform = `translate(-50%, -50%) scale(${scale})`;
     });
 
     isPanning = false;
@@ -829,20 +839,25 @@ function updateLabelSizeOnPan() {
 
 function positionMarkers() {
     const overlay = document.getElementById('map-markers-overlay');
-    if (!overlay || !mapImageElement || mapImageElement.naturalWidth === 0) return;
+    if (!overlay || !mapImageElement || !mapImageElement.naturalWidth) return;
 
-    overlay.innerHTML = '';
+    overlay.innerHTML = ''; 
     const locationData = locationCountsCache;
-    const placedLabelsBounds = [];
-    const verticalOffset = 5;
-    const labelMargin = 4;
 
     MAP_SPOTS.forEach(spot => {
         const marker = document.createElement('div');
         marker.className = 'map-label';
 
+        const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
+        const centerX = (x1 + x2) / 2;
+        const centerY = (y1 + y2) / 2;
+
+        marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
+        marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
+
         const dataKey = spot.dataKey;
         const displayName = spot.name;
+
         let remainingText;
         let spotData = locationData[dataKey];
 
@@ -861,58 +876,23 @@ function positionMarkers() {
         }
         marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
         
-        overlay.appendChild(marker);
-        const markerWidth = marker.offsetWidth + (2 * labelMargin);
-        const markerHeight = marker.offsetHeight + (2 * labelMargin);
-        
-        const [x1, y1] = spot.coords.split(',').map(Number);
-        let targetX = (x1 / mapImageElement.naturalWidth) * overlay.offsetWidth;
-        let targetY = (y1 / mapImageElement.naturalHeight) * overlay.offsetHeight;
-
-        let attempts = 0;
-        let collisionDetected = true;
-        while (collisionDetected && attempts < 20) {
-            collisionDetected = false;
-            let currentBounds = {
-                left: targetX - (markerWidth / 2),
-                top: targetY - (markerHeight / 2),
-                right: targetX + (markerWidth / 2),
-                bottom: targetY + (markerHeight / 2)
-            };
-
-            for (const placed of placedLabelsBounds) {
-                const isOverlapping = !(currentBounds.right < placed.left ||
-                                        currentBounds.left > placed.right ||
-                                        currentBounds.bottom < placed.top ||
-                                        currentBounds.top > placed.bottom);
-
-                if (isOverlapping) {
-                    targetY += verticalOffset;
-                    collisionDetected = true;
-                    break;
-                }
-            }
-            attempts++;
-        }
-
-        marker.style.left = `${targetX}px`;
-        marker.style.top = `${targetY}px`;
-
-        placedLabelsBounds.push({
-            left: targetX - (markerWidth / 2),
-            top: targetY - (markerHeight / 2),
-            right: targetX + (markerWidth / 2),
-            bottom: targetY + (markerHeight / 2)
+        marker.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling up
+            document.querySelectorAll('.map-label.on-top').forEach(lbl => {
+                lbl.classList.remove('on-top');
+            });
+            marker.classList.add('on-top');
         });
+        
+        overlay.appendChild(marker);
     });
-
     isPanning = true;
     updateLabelSizeOnPan();
 }
 
+
 async function updateDuckMapData() {
     const result = await postToAction('getDuckCounts');
-
     if (result.status === 'success' && result.locations) {
         locationCountsCache = {};
         Object.keys(result.locations).forEach(name => {
@@ -938,9 +918,6 @@ function initializeMap() {
         if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
             resolve();
         } else {
-            mapImageElement.onload = null;
-            mapImageElement.onerror = null; 
-            
             mapImageElement.onload = resolve;
             mapImageElement.onerror = resolve; 
         }
@@ -949,7 +926,6 @@ function initializeMap() {
     Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
         if (mapImageElement.naturalWidth > 0) {
             positionMarkers();
-            
             if (!mapResizeObserver) {
                 mapResizeObserver = new ResizeObserver(positionMarkers);
                 mapResizeObserver.observe(mapImageElement);
