@@ -6,33 +6,28 @@
 <title>Duck Hunt 2025</title>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
-/* ----------------------------------------------------------------- */
-/* 🍏 GLASS GLOW UI (Merged Styles) */
-/* ----------------------------------------------------------------- */
 :root {
 --green: #60A34D;
 --pink: #ff69b4;
-
-/* 🌟 GLASS VARIABLES (For General UI Aesthetics) 🌟 */
---glass-bg: rgba(255, 255, 255, 0.1); 
---glass-border: rgba(255, 255, 255, 0.3); 
---glass-shadow: rgba(0, 0, 0, 0.5); 
---glow-color: rgba(96, 163, 77, 0.8); 
-
-/* Base color mapping (Used by the Map Section's original code) */
---card-bg: rgba(0, 0, 0, 0.45); /* Used by Map's glass-card */
---border-color: rgba(96, 163, 77, 0.2); /* Used by Map's borders */
---frosted-black: rgba(0, 0, 0, 0.85); /* Used by Map's label background */
-
+/* Glass/Liquid UI Variables */
+--glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+--glass-border-color: rgba(255, 255, 255, 0.15);
+--glass-blur: 18px;
+--glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+--glow-color: rgba(96, 163, 77, 0.7);
+/* Original variables for map labels */
+--border-color: rgba(96, 163, 77, 0.2);
+/* Sizing and Spacing Variables */
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
+--frosted-black: rgba(0, 0, 0, 0.75);
 --gold: #FFD700;
 }
 body {
 margin: 0;
-background-color: #0d1216; /* Dark background for glow/glass contrast */
-overflow-x: auto;
+background-color: #000;
+overflow-x: hidden; /* CRITICAL FIX: Prevents the entire page from scrolling horizontally */
 min-height: 100vh;
 min-height: 100svh;
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -44,26 +39,16 @@ text-align: center;
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-
-/* 🌟 CORE GLASS EFFECT (Using New Variables for Glow/Contrast) 🌟 */
-.glass-card { 
-    position: relative;
-    background: var(--glass-bg); 
-    backdrop-filter: blur(15px); 
-    -webkit-backdrop-filter: blur(15px); 
-    border: 1px solid var(--glass-border); 
-    border-radius: 20px; 
-    box-shadow: 0 8px 32px 0 var(--glass-shadow); 
-    padding: 1.5rem; 
-    transition: all 0.3s ease;
+/* Core Glass Card Style */
+.glass-card {
+background: var(--glass-bg);
+backdrop-filter: blur(var(--glass-blur));
+-webkit-backdrop-filter: blur(var(--glass-blur));
+border: 1px solid var(--glass-border-color);
+border-radius: 20px;
+box-shadow: var(--glass-shadow);
+padding: 1.5rem;
 }
-
-/* 🌟 GREEN GLOW ON HOVER 🌟 */
-.glass-card:hover {
-    border-color: var(--green);
-    box-shadow: 0 0 15px var(--glow-color);
-}
-
 .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
 #app-wrapper {
 position: fixed;
@@ -86,9 +71,9 @@ left: 0;
 width: 100%;
 height: var(--ribbon-height);
 background-color: var(--frosted-black);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
-border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 font-weight: bold;
 font-size: 0.85rem;
 display: flex;
@@ -145,7 +130,7 @@ align-items: center;
 .app-page .header-image-top {
 width: 70%;
 max-width: 250px;
-margin: 0.2rem auto 0.2rem auto;
+margin: 0.2rem auto 0.2rem auto; /* SHRUNK: Reduced vertical margin */
 display: block;
 flex-shrink: 0;
 }
@@ -162,10 +147,10 @@ align-items: center;
 margin-top: 0;
 flex-shrink: 0;
 }
-#qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 300px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+#qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; border: 1px solid var(--glass-border-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); max-width: 300px; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
 #qr-reader { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; }
 #qr-reader-container.error-flash { animation: flash-red 0.5s ease; }
-@keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
+@keyframes flash-red { 0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); border-color: var(--glass-border-color); } 50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); border-color: rgba(255, 0, 0, 0.9); } }
 .point-pop {
 position: absolute;
 top: 85%;
@@ -234,111 +219,85 @@ font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
 
-/* ----------------------------------------------------------------- */
-/* 🗺️ MAP SPECIFIC STYLES (EXACTLY AS REQUESTED) 🗺️ */
-/* ----------------------------------------------------------------- */
+/* --- CORRECTED MAP STYLES --- */
 #map-page {
-    /* New: Allows map card to scroll vertically relative to the page */
-    padding-top: var(--safe-padding); 
-    justify-content: flex-start;
+    padding-top: var(--safe-padding);
+    justify-content: flex-start;
 }
-
+/* This is the card that acts as our viewport */
 #map-card-container {
-    /* Card container properties */
-    flex: 1; 
-    width: 100%;
-    max-width: 450px; 
-    
-    /* CRITICAL: Set a fixed height and enable internal scrolling */
-    height: 60vh; /* Adjust height as needed for mobile screen visibility */
-    padding: 0; 
-    overflow-x: scroll; /* Enables horizontal scrolling within this card */
-    overflow-y: hidden; /* Disables vertical scrolling if map is wider than tall */
-}
+    /* Sizing to fit mobile screen */
+    width: 100%;
+    max-width: 450px;
+    height: 75vh; /* A good height for mobile */
 
-#map-wrapper {
-    /* We still need a very large width to allow the image to scale beyond the screen */
-    width: 250vw; 
-    max-width: none; 
-    
-    /* CRITICAL: Make wrapper match the height of #map-card-container */
-    height: 100%; 
-    
-    position: relative;
-    margin: 0; 
-    line-height: 0;
+    /* CRITICAL FIX: Enable scrolling within THIS element */
+    overflow: scroll;
+
+    /* Remove padding so the map image is edge-to-edge inside the card */
+    padding: 0;
 }
+/* This wrapper holds the very large map image */
+#map-wrapper {
+    position: relative;
+    /* Make the content much wider than the screen */
+    width: 250vw;
+    height: 100%; /* Match the card's height */
+}
+/* The actual map image */
 #campus-map-img {
-    width: 100%;
-    /* CRITICAL: Allow image to scale its height proportionally based on the 100% width, 
-       but clip the bottom if it exceeds the 60vh height of the card. */
-    height: 100%; 
-    object-fit: contain; /* Ensures the whole image is visible within the 100% height/width */
-    object-position: center;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
+    width: 100%;
+    height: 100%;
+    /* Use 'cover' to ensure the image fills the wrapper, allowing for panning */
+    object-fit: cover;
+    display: block;
 }
 #map-markers-overlay {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-pointer-events: none; /* Allows clicks to pass through to markers */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
-
-/* --- MAP LABEL STYLES --- */
 .map-label {
-position: absolute;
-z-index: 10;
-transform: translate(-50%, -50%); /* Center based on position */
-cursor: default; 
-pointer-events: auto; /* Ensure the box is interactable/visible */
-
-/* Frosted Card Look */
-background: var(--frosted-black);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
-border: 1px solid var(--green);
-border-radius: 8px;
-/* SIZING WITH VW UNITS for dynamic scaling on mobile zoom */
-padding: 0.7vw 1.2vw; 
-min-width: 15vw; 
-text-align: center;
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-white-space: normal;
-line-height: 1.3;
+    position: absolute;
+    z-index: 10;
+    transform: translate(-50%, -50%);
+    cursor: default;
+    pointer-events: auto;
+    background: var(--frosted-black);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    /* Use px for sizes so they are consistent while scrolling */
+    padding: 8px 12px;
+    min-width: 140px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    white-space: normal;
+    line-height: 1.3;
 }
-.map-label:hover {
-    box-shadow: 0 0 15px var(--glow-color); /* Added glow for consistency */
-}
-
 .map-label h4 {
-margin: 0;
-font-size: 2.2vw; /* DYNAMIC FONT SIZE */
-font-weight: bold;
-color: white; /* Ensure text is visible */
+    margin: 0;
+    font-size: 16px; /* Changed from vw */
+    font-weight: bold;
+    color: white;
 }
 .map-label p {
-margin: 0;
-padding-top: 0.3vw; /* DYNAMIC SPACING */
-font-size: 1.8vw; /* DYNAMIC FONT SIZE */
-color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    padding-top: 4px; /* Changed from vw */
+    font-size: 13px; /* Changed from vw */
+    color: rgba(255, 255, 255, 0.9);
 }
-
 .map-label.cleared {
-border-color: #ff4d4d;
-background-color: rgba(50, 50, 50, 0.85);
-opacity: 0.8;
+    border-color: #ff4d4d;
+    background-color: rgba(50, 50, 50, 0.85);
+    opacity: 0.8;
 }
+/* --- End Map Styles --- */
 
-/* End Map Specific Styles */
-/* ----------------------------------------------------------------- */
-/* 🎨 UI ELEMENTS - MERGED WITH GLASS GLOW STYLING */
-/* ----------------------------------------------------------------- */
 #log-container, #leaderboard-container, #info-container {
 flex: 1;
 overflow-y: auto;
@@ -370,8 +329,8 @@ top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-background: rgba(0, 0, 0, 0.8);
-backdrop-filter: blur(5px);
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(10px);
 z-index: 200;
 display: none;
 align-items: center;
@@ -381,12 +340,12 @@ justify-content: center;
 position: relative;
 width: 90%;
 max-width: 400px;
-background: var(--frosted-black);
-backdrop-filter: blur(10px);
-border: 1px solid rgba(255, 255, 255, 0.1);
+background: var(--glass-bg);
+backdrop-filter: blur(var(--glass-blur));
+border: 1px solid var(--glass-border-color);
 border-radius: 20px;
 padding: 1.5rem;
-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+box-shadow: var(--glass-shadow);
 max-height: 80vh;
 overflow-y: auto;
 text-align: left;
@@ -418,8 +377,10 @@ padding-left: 25px;
 margin-bottom: 0.5rem;
 }
 .info-card-button {
-background: var(--glass-bg); /* Use glass style */
-border: 1px solid var(--glass-border);
+background: var(--glass-bg);
+border: 1px solid var(--glass-border-color);
+backdrop-filter: blur(4px);
+-webkit-backdrop-filter: blur(4px);
 border-radius: 12px;
 padding: 1rem 1.5rem;
 width: 100%;
@@ -439,11 +400,7 @@ font-size: 1.2rem;
 font-weight: bold;
 color: white;
 }
-.location-card { background: var(--card-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-.location-card:hover {
-    border-color: var(--green);
-    box-shadow: 0 0 10px var(--glow-color);
-}
+.location-card { background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--glass-border-color); border-radius: 12px; padding: 0.8rem 1.2rem; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
 .location-details { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
 .location-details h4 { margin: 0; font-size: 1rem; font-weight: bold; }
 .location-details span { font-size: 1rem; color: white; font-weight: bold; margin-top: 0.25rem; }
@@ -453,21 +410,17 @@ display: flex;
 align-items: center;
 justify-content: space-between;
 padding: 1rem;
-background: var(--card-bg);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
+background: var(--glass-bg);
+backdrop-filter: blur(4px);
+-webkit-backdrop-filter: blur(4px);
 border-radius: 8px;
-border: 1px solid var(--border-color);
-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-}
-.list-item:hover {
-    border-color: var(--green);
-    box-shadow: 0 0 10px var(--glow-color);
+border: 1px solid var(--glass-border-color);
+box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
 }
 #leaderboard-list .list-item {
-background: var(--card-bg);
-border: 1px solid var(--border-color);
-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+background: var(--glass-bg);
+border: 1px solid var(--glass-border-color);
+box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
 }
 #leaderboard-list .list-item > div:first-child { display: flex; align-items: center; }
 .list-item .rank-text {
@@ -485,10 +438,10 @@ color: var(--green);
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
 .button-group { display: flex; gap: 0.5rem; }
-.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 2px solid var(--green); transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
-.primary-btn { background-color: var(--green); color: white; }
-.secondary-btn { background-color: transparent; color: var(--green); }
-.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); }
+.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 1px solid transparent; transition: all 0.3s ease; box-shadow: 0 0 0 rgba(96, 163, 77, 0); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+.primary-btn { background-color: var(--green); color: white; border-color: rgba(255, 255, 255, 0.3); }
+.secondary-btn { background-color: rgba(255, 255, 255, 0.1); color: white; border-color: var(--glass-border-color); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: 0 0 10px var(--glow-color); border-color: var(--green); }
 #lava-container {
 position: fixed;
 top: 0;
@@ -497,19 +450,19 @@ width: 100%;
 height: 100%;
 z-index: -1;
 }
-#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.5; mix-blend-mode: color-dodge; filter: blur(150px); }
-#lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 25s infinite linear; }
-#lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 20s infinite linear; animation-delay: -10s; }
+#lava-container::before, #lava-container::after { content: ''; position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: 0.7; mix-blend-mode: screen; filter: blur(120px); }
+#lava-container::before { background-color: var(--pink); top: -35vmax; left: -35vmax; animation: move-pink 35s infinite linear; }
+#lava-container::after { background-color: var(--green); bottom: -35vmax; right: -35vmax; animation: move-green 28s infinite linear; animation-delay: -10s; }
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
 #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .reg-input:hover, #login-studentid:hover { border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-.reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); }
-#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; background: var(--glass-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px 0 var(--glass-shadow); }
+.reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: 0 0 10px var(--glow-color); background-color: rgba(255, 255, 255, 0.15); }
+#instructions-card { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
-.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+.reg-input, #login-studentid { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border-color); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease; }
 footer {
 position: absolute;
 bottom: 0;
@@ -530,11 +483,11 @@ display: block;
 object-fit: contain;
 }
 footer p { margin: 2px 0; }
-#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px 20px 0 0; padding: 0.8rem; display: flex; justify-content: space-around; }
+#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px 20px 0 0; border-bottom: 1px solid var(--glass-border-color); padding: 0.8rem; display: flex; justify-content: space-around; }
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
 .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; }
-#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; }
+#tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-bar-height); z-index: 150; background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-top: 1px solid var(--glass-border-color); display: flex; justify-content: space-around; }
 .tab-button { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; flex-grow: 1; font-weight: 600; }
 .tab-button.active { color: var(--green); font-weight: bold; }
 .duck-animation { position: absolute; top: 50%; left: -50px; font-size: 50px; animation: fly-across 2s linear forwards; pointer-events: none; z-index: 1000; }
@@ -679,13 +632,13 @@ pointer-events: none;
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
-const DATA_REFRESH_INTERVAL_MS = 60000; // 60 seconds for server correction
+const DATA_REFRESH_INTERVAL_MS = 30000; // FIX: Sync every 30 seconds for stable points
 const VIRTUAL_LIMIT = 10; // Explicitly define the limit
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 
 /*
 |=================================================================================|
-| **MAP COORDINATE SETUP (EXACTLY AS PROVIDED IN YOUR SOURCE)**
+| **MAP COORDINATE SETUP (EDIT THESE VALUES)** |
 |=================================================================================|
 */
 const MAP_SPOTS = [
@@ -717,7 +670,7 @@ const mapImageElement = document.getElementById('campus-map-img');
 // --- CACHING & STATE ---
 let duckDataCache = {};
 let claimedDucksCache = new Set();
-let processingDucks = new Set(); 
+let processingDucks = new Set(); // CRITICAL FIX: Tracks ducks currently sent to server
 let localVirtualScanTimestamps = [];
 let scanHistoryCache = [];
 let scanQueue = [];
@@ -743,6 +696,7 @@ const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
 const centerX = (x1 + x2) / 2;
 const centerY = (y1 + y2) / 2;
 
+// Position based on the natural dimensions of the source image
 marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
 marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
 
@@ -1010,11 +964,11 @@ async function onScanSuccess(decodedText) {
     
     const points = duckInfo.points || 0;
     
-    // 🌟 OPTIMISTIC UPDATE: Immediate Visual Feedback 🌟
-    currentUser.points += points;
-    document.getElementById('player-points').textContent = currentUser.points;
-    document.getElementById('player-ducks').textContent = parseInt(document.getElementById('player-ducks').textContent) + 1;
-
+    /* * IMPORTANT: REMOVED OPTIMISTIC POINT/DUCK UPDATE. 
+     * The points and duck count will now ONLY update when the 
+     * periodicDataRefresh (every 30s) or sendBatchScans update runs.
+     * This eliminates the visual flicker caused by premature local updates.
+     */
 
     const isGoldenDuck = duckInfo.type === 'Golden Duck';
     // Still show the points pop-up to indicate the scan was captured.
@@ -1032,6 +986,7 @@ async function sendBatchScans() {
     const scansToSend = [...scanQueue];
     scanQueue = [];
     
+    // Collect IDs that were sent to the server to know which ones to unlock
     const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
 
     const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
@@ -1040,31 +995,27 @@ async function sendBatchScans() {
     sentDuckIds.forEach(id => processingDucks.delete(id));
 
     if (batchResult.status === "success") {
-        if (batchResult.results) {
-            batchResult.results.forEach(result => {
-                const id = result.duckId.trim().toLowerCase();
-                const duckInfo = duckDataCache[id];
-                const points = duckInfo ? duckInfo.points : 0;
-                
-                if (result.status === "success") {
-                    claimedDucksCache.add(id); 
-                } else {
-                    // 🌟 REVERT OPTIMISTIC UPDATE if the server failed the scan 🌟
-                    currentUser.points = Math.max(0, currentUser.points - points);
-                    document.getElementById('player-points').textContent = currentUser.points;
-                    document.getElementById('player-ducks').textContent = Math.max(0, parseInt(document.getElementById('player-ducks').textContent) - 1);
-
-                    displayRevertPopup(result.message || "A duck was claimed just before you!");
-                }
-            });
-        }
-        // Sync counts from the batch result immediately to reduce the gap until the 60s sync
         if (batchResult.updatedUser) {
+            // Synchronization: Overwrite client totals with authoritative server data
             currentUser.points = batchResult.updatedUser.points;
             document.getElementById('player-points').textContent = currentUser.points;
             if (batchResult.updatedUser.duckCount !== undefined) {
                 document.getElementById('player-ducks').textContent = batchResult.updatedUser.duckCount;
             }
+        }
+        
+        if (batchResult.results) {
+            batchResult.results.forEach(result => {
+                const id = result.duckId.trim().toLowerCase();
+                
+                if (result.status === "success") {
+                    // Permanently lock the duck only on success
+                    claimedDucksCache.add(id); 
+                } else {
+                    // Revert the local optimistic point count (if applicable) and pop-up error
+                    displayRevertPopup(result.message || "A duck was claimed just before you!");
+                }
+            });
         }
     } else {
         displayRevertPopup(batchResult.message || "A server error occurred.");
@@ -1175,7 +1126,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         }
         
         if (infoResult.status === 'success') {
-            updateRibbon(result.ribbonText);
+            updateRibbon(infoResult.ribbonText);
             infoDataCache = infoResult.infoItems || [];
             infoDataFetchTime = new Date();
             if (document.getElementById('info-page').classList.contains('active')) {
@@ -1301,17 +1252,15 @@ try {
         
     const hasPendingScans = scanQueue.length > 0;
         
-    if (shouldUpdatePoints) {
+    if (shouldUpdatePoints && !hasPendingScans) {
         userResult = responses.shift();
         if (userResult.status === "success") {
             currentUser.points = userResult.user.points;
             document.getElementById('player-points').textContent = currentUser.points;
-            if (userResult.user.duckCount !== undefined) {
-                currentUser.duckCount = userResult.user.duckCount;
-                document.getElementById('player-ducks').textContent = currentUser.duckCount;
-            }
         }
-    } 
+    } else if (shouldUpdatePoints) {
+        responses.shift(); 
+    }
 
     const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
     const historyIndex = shouldUpdatePoints ? 1 : 1; 
