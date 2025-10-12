@@ -169,6 +169,8 @@ flex-direction: column;
 gap: 0.75rem;
 align-items: center;
 margin-top: 0;
+margin-left: auto;
+margin-right: auto;
 flex-shrink: 0;
 }
 #qr-reader-container { padding: 0; display: flex; position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 300px; }
@@ -255,6 +257,8 @@ font-weight: bold;
     overflow: scroll;
     padding: 0;
     border-radius: 20px;
+    margin-left: auto;
+    margin-right: auto;
 }
 #map-wrapper {
     position: relative;
@@ -1540,31 +1544,41 @@ function startScanner() {
         const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
         const torchButton = document.getElementById('torch-toggle-btn');
 
-        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
-            .then(() => {
-                try {
-                    cameraTrack = html5QrCode.getRunningTrack();
+        html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            onScanSuccess, // On successful QR scan
+            () => {}       // On QR scan error (optional)
+        )
+        .then(() => {
+            // This block executes when the camera stream starts successfully.
+            try {
+                cameraTrack = html5QrCode.getRunningTrack();
+                if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
                     const capabilities = cameraTrack.getCapabilities();
-                    if (capabilities.torch) {
+                    if (capabilities && capabilities.torch) {
                         torchButton.classList.remove('hidden');
                     }
-                } catch (e) {
-                    console.warn("Could not check for torch capabilities:", e);
-                    torchButton.classList.add('hidden');
                 }
-            })
-            .catch(err => {
-                console.error("Failed to start QR scanner:", err);
-            });
+            } catch (e) {
+                console.warn("Could not get torch capabilities:", e);
+                torchButton.classList.add('hidden'); // Keep hidden on error
+            }
+        })
+        .catch(err => {
+            console.error("Failed to start QR scanner:", err);
+            torchButton.classList.add('hidden'); // Ensure button is hidden if camera fails
+        });
     }
 }
+
 
 function stopScanner() {
     const torchButton = document.getElementById('torch-toggle-btn');
     if (cameraTrack && cameraTrack.readyState === 'live') {
         // Turn off the torch before stopping the track
         if (isTorchOn) {
-            cameraTrack.applyConstraints({ advanced: [{ torch: false }] });
+            cameraTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(()=>{});
         }
         cameraTrack.stop();
     }
