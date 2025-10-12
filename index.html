@@ -777,6 +777,8 @@ let initialDuckId = null;
 let infoDataCache = [];
 let infoDataFetchTime = null;
 let mapResizeObserver = null;
+let isTorchOn = false;
+let cameraTrack = null;
 const loginScreen = document.getElementById('login-screen');
 const appWrapper = document.getElementById('app-wrapper');
 const loginView = document.getElementById('login-view');
@@ -1536,31 +1538,49 @@ function startScanner() {
     if (document.getElementById('hunt-page')?.classList.contains('active')) {
         html5QrCode = new Html5Qrcode("qr-reader");
         const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
+        const torchButton = document.getElementById('torch-toggle-btn');
+
         html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
             .then(() => {
-                const torchButton = document.getElementById('torch-toggle-btn');
                 try {
-                    const capabilities = html5QrCode.getRunningTrackCapabilities();
+                    cameraTrack = html5QrCode.getRunningTrack();
+                    const capabilities = cameraTrack.getCapabilities();
                     if (capabilities.torch) {
                         torchButton.classList.remove('hidden');
                     }
                 } catch (e) {
                     console.warn("Could not check for torch capabilities:", e);
+                    torchButton.classList.add('hidden');
                 }
             })
-            .catch(err => {});
+            .catch(err => {
+                console.error("Failed to start QR scanner:", err);
+            });
     }
 }
+
 function stopScanner() {
+    const torchButton = document.getElementById('torch-toggle-btn');
+    if (cameraTrack && cameraTrack.readyState === 'live') {
+        // Turn off the torch before stopping the track
+        if (isTorchOn) {
+            cameraTrack.applyConstraints({ advanced: [{ torch: false }] });
+        }
+        cameraTrack.stop();
+    }
+    cameraTrack = null;
+    isTorchOn = false;
+    
     if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().catch(err => {});
     }
-    const torchButton = document.getElementById('torch-toggle-btn');
+    
     if (torchButton) {
         torchButton.classList.add('hidden');
         torchButton.classList.remove('torch-on');
     }
 }
+
 function logout() {
     sessionStorage.removeItem('currentUserStudentId');
     if (batchSendTimer) clearInterval(batchSendTimer);
@@ -1569,6 +1589,7 @@ function logout() {
     currentUser = null;
     location.reload();
 }
+
 function switchPage(pageId) {
 stopScanner();
 if (mapResizeObserver) {
@@ -1655,15 +1676,23 @@ e.preventDefault();
 switchPage(e.target.dataset.page);
 });
 document.getElementById('logout-btn').addEventListener('click', logout);
+
 document.getElementById('torch-toggle-btn').addEventListener('click', () => {
-    if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.toggleTorch()
-            .then(() => {
-                document.getElementById('torch-toggle-btn').classList.toggle('torch-on');
-            })
-            .catch(err => console.error("Error toggling torch:", err));
+    if (cameraTrack) {
+        try {
+            const desiredState = !isTorchOn;
+            cameraTrack.applyConstraints({
+                advanced: [{ torch: desiredState }]
+            });
+            isTorchOn = desiredState;
+            document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
+        } catch(e) {
+            console.error("Failed to toggle torch:", e);
+            alert("Sorry, the flashlight could not be controlled.");
+        }
     }
 });
+
 const modalBackdrop = document.getElementById('info-modal-backdrop');
 if (modalBackdrop) {
 document.getElementById('modal-close-btn').addEventListener('click', () => {
