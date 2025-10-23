@@ -7,38 +7,29 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 :root {
-/* Core Palette */
 --green: #60A34D;
 --pink: #ff69b4;
 --gold: #FFD700;
-
-/* UPDATED: iOS 26 Inspired UI Kit with softer shadow */
 --background-start: #1c0f29;
 --background-end: #0c0a15;
---glass-bg: rgba(255, 255, 255, 0.08);
+--glass-bg: rgba(0, 0, 0, 0.4); /* Darker Glass */
 --glass-blur: 24px;
---glass-border-top: rgba(255, 255, 255, 0.25);
---glass-border-bottom: rgba(255, 255, 255, 0.05);
-/* SOLUTION: Tighter, less diffuse shadow to prevent blending */
---glass-shadow: none; /* Shadow removed */
---inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+--glass-border-top: rgba(255, 255, 255, 0.15); /* Slightly less visible top border */
+--glass-border-bottom: rgba(255, 255, 255, 0.03); /* Darker bottom border */
+--glass-shadow: none;
+--inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05); /* Darker inset shadow */
 --highlight-color: #ffffff;
 --glow-color: rgba(96, 163, 77, 0.8);
 --active-glow: 0 0 12px rgba(96, 163, 77, 0.9);
-
-/* Sizing and Spacing */
 --tab-bar-height: 65px;
 --safe-padding: 1rem;
 --ribbon-height: 40px;
---frosted-black: rgba(0, 0, 0, 0.75);
-
-/* Safe Area Insets for Edge-to-Edge Display */
+--frosted-black: rgba(0, 0, 0, 0.85); /* Darker Frosted Black */
 --safe-area-top: env(safe-area-inset-top, 0px);
 --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 --safe-area-left: env(safe-area-inset-left, 0px);
 --safe-area-right: env(safe-area-inset-right, 0px);
 }
-
 body {
 margin: 0;
 background-color: #000;
@@ -51,13 +42,9 @@ text-align: center;
 position: relative;
 }
 .hidden { display: none !important; }
-
-/* Classic Spinner */
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .button-group button .spinner { width: 18px; height: 18px; border-width: 3px; }
-
-/* iOS 26 Glass Card Style */
 .glass-card {
 background: var(--glass-bg);
 backdrop-filter: blur(var(--glass-blur));
@@ -65,10 +52,9 @@ backdrop-filter: blur(var(--glass-blur));
 border: 1px solid var(--glass-border-bottom);
 border-top-color: var(--glass-border-top);
 border-radius: 20px;
-box-shadow: var(--glass-shadow); /* Shadow removed here */
+box-shadow: var(--glass-shadow);
 padding: 1.5rem;
 }
-
 .transparent-heading-box { background: none; border: none; border-radius: 10px; padding: 0.75rem 0; margin: 0 auto 1.5rem auto; width: 100%; max-width: 450px; box-sizing: border-box; text-align: center; }
 #app-wrapper {
 position: fixed;
@@ -222,8 +208,8 @@ text-shadow: 0 0 8px #fff !important;
 font-size: 1.8rem !important;
 }
 .footer-logo {
-height: 50px;
-margin: 0 auto 5px auto;
+height: 120px; /* Made larger */
+margin: 0 auto 15px auto; /* Adjusted margin */
 display: block;
 object-fit: contain;
 }
@@ -244,115 +230,111 @@ margin-top: 0;
 font-weight: bold;
 }
 #player-rank-display { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
-
 /* --- MAP STYLES --- */
 #map-page {
-    padding-top: var(--safe-padding);
-    justify-content: flex-start;
+padding-top: var(--safe-padding);
+justify-content: flex-start;
 }
 #map-card-container {
-    width: 100%;
-    max-width: 450px;
-    height: 65vh;
-    overflow: scroll;
-    padding: 0;
-    border-radius: 20px;
-    margin-left: auto;
-    margin-right: auto;
+width: 100%;
+max-width: 450px;
+height: 65vh;
+overflow: scroll;
+padding: 0;
+border-radius: 20px;
+margin-left: auto;
+margin-right: auto;
 }
 #map-wrapper {
-    position: relative;
-    width: 250vw;
-    height: auto;
+position: relative;
+width: 250vw;
+height: auto;
 }
 #campus-map-img {
-    width: 100%;
-    height: auto;
-    display: block;
+width: 100%;
+height: auto;
+display: block;
 }
 #map-markers-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
 }
 .map-label {
-    position: absolute;
-    z-index: 10;
-    transform: translate(-50%, -50%);
-    cursor: pointer; /* Change cursor to indicate it's clickable */
-    pointer-events: auto;
-    background: rgba(30, 30, 30, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    padding: 3px 6px; /* Smaller padding */
-    min-width: 90px; /* Adjusted min-width */
-    text-align: center;
-    white-space: normal;
-    line-height: 1.2; /* Adjusted line height */
-    transition: transform 0.2s ease-out, z-index 0s 0.2s;
+position: absolute;
+z-index: 10;
+transform: translate(-50%, -50%);
+cursor: pointer;
+pointer-events: auto;
+background: var(--frosted-black);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+border: 1px solid rgba(255,255,255,0.1);
+border-radius: 8px;
+padding: 3px 6px;
+min-width: 90px;
+text-align: center;
+white-space: normal;
+line-height: 1.2;
+transition: transform 0.2s ease-out, z-index 0s 0.2s;
 }
 .map-label.on-top {
-    z-index: 20;
-    transform: translate(-50%, -50%) scale(1.1);
-    transition: transform 0.2s ease-out, z-index 0s;
+z-index: 20;
+transform: translate(-50%, -50%) scale(1.1);
+transition: transform 0.2s ease-out, z-index 0s;
 }
 .map-label h4 {
-    margin: 0;
-    font-size: 12px; /* Smaller font size */
-    font-weight: bold;
-    color: white;
+margin: 0;
+font-size: 12px;
+font-weight: bold;
+color: white;
 }
 .map-label p {
-    margin: 0;
-    padding-top: 2px; /* Smaller padding */
-    font-size: 10px; /* Smaller font size */
-    color: rgba(255, 255, 255, 0.9);
+margin: 0;
+padding-top: 2px;
+font-size: 10px;
+color: rgba(255, 255, 255, 0.9);
 }
 .map-label.cleared {
-    border-color: #ff4d4d;
-    background-color: rgba(50, 50, 50, 0.85);
-    opacity: 0.8;
+border-color: #ff4d4d;
+background-color: rgba(50, 50, 50, 0.85);
+opacity: 0.8;
 }
 /* --- End Map Styles --- */
-
 #log-container, #leaderboard-container, #info-container {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-    padding: var(--safe-padding) 0;
-    background: none;
-    border: none;
-    box-shadow: none;
-    gap: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 450px;
-    margin: 0 auto;
+flex: 1;
+overflow-y: auto;
+min-height: 0;
+padding: var(--safe-padding) 0;
+background: none;
+border: none;
+box-shadow: none;
+gap: 0.75rem;
+display: flex;
+flex-direction: column;
+width: 100%;
+max-width: 450px;
+margin: 0 auto;
 }
-
 #leaderboard-list, #log-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+list-style: none;
+padding: 0;
+margin: 0;
+width: 100%;
+display: flex;
+flex-direction: column;
+gap: 0.75rem;
 }
-
 #info-modal-backdrop {
 position: fixed;
 top: 0;
 left: 0;
 width: 100%;
 height: 100%;
-background: rgba(0, 0, 0, 0.5);
+background: rgba(0, 0, 0, 0.7); /* Darker Modal Backdrop */
 backdrop-filter: blur(10px);
 z-index: 200;
 display: none;
@@ -379,17 +361,27 @@ cursor: pointer;
 margin-top: 0;
 border-bottom: 2px solid var(--green);
 padding-bottom: 0.5rem;
+text-align: center !important;
 }
 #modal-content {
-text-align: left;
+text-align: center;
 padding: 0 0.5rem;
+max-height: 70vh;
+overflow-y: auto;
 }
 #modal-content ul {
 list-style-type: disc;
 padding-left: 25px;
+text-align: left;
 }
 #modal-content li {
 margin-bottom: 0.5rem;
+}
+#modal-content p, #modal-content h5, #modal-content h4 {
+text-align: center;
+}
+#modal-content p {
+font-size: 0.95rem;
 }
 .info-card-button {
 padding: 1rem 1.5rem;
@@ -433,54 +425,58 @@ color: var(--green);
 .button-group { display: flex; gap: 0.5rem; }
 .button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); transition: all 0.2s ease; box-shadow: var(--inset-shadow); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
 .primary-btn { background-color: var(--green); color: white; border-color: rgba(255, 255, 255, 0.3); }
-.secondary-btn { background-color: rgba(255, 255, 255, 0.1); color: white; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.secondary-btn { background-color: rgba(0, 0, 0, 0.4); /* Darker Secondary Button */ color: white; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
 .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); border-color: var(--green); transform: translateY(-2px); }
-
 /* === LAVA CONTAINER STYLES === */
 #lava-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    overflow: hidden;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: -1;
+overflow: hidden;
 }
 #lava-container::before, #lava-container::after {
-    content: '';
-    position: absolute;
-    width: 70vmax;
-    height: 70vmax;
-    border-radius: 50%;
-    opacity: 0.8;
-    mix-blend-mode: lighten;
-    filter: blur(120px);
+content: '';
+position: absolute;
+width: 70vmax;
+height: 70vmax;
+border-radius: 50%;
+opacity: 0.8;
+mix-blend-mode: lighten;
+filter: blur(120px);
 }
 #lava-container::before {
-    background-color: var(--pink);
-    top: -35vmax;
-    left: -35vmax;
-    animation: move-pink 14s infinite linear;
+background-color: var(--pink);
+top: -35vmax;
+left: -35vmax;
+animation: move-pink 14s infinite linear;
 }
 #lava-container::after {
-    background-color: var(--green);
-    bottom: -35vmax;
-    right: -35vmax;
-    animation: move-green 12s infinite linear;
-    animation-delay: -8s;
+background-color: var(--green);
+bottom: -35vmax;
+right: -35vmax;
+animation: move-green 12s infinite linear;
+animation-delay: -8s;
 }
 /* === END LAVA STYLES === */
-
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
 #login-screen { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-.reg-input, #login-studentid { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow); }
+.reg-input, #login-studentid { background: rgba(0, 0, 0, 0.3); /* Darker Input Background */ border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow); }
 .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); }
 #instructions-card { position: absolute; top: calc(20px + var(--safe-area-top)); left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
 #header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
-
+.terms-group { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9rem; margin-top: -0.5rem; }
+.terms-group input[type="checkbox"] { width: 18px; height: 18px; }
+.terms-group label a { color: var(--green); text-decoration: underline; cursor: pointer; }
+.login-link-container { margin-top: 1rem; }
+.login-link-container a { color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; cursor: pointer; text-decoration: underline; transition: color 0.2s; }
+.prize-list-small { text-align: center; list-style: none; padding: 0; margin: 0.5rem 0 0 0; font-size: 0.9rem; }
+.prize-list-small li { margin: 3px 0; }
 footer {
 position: absolute;
 bottom: 0;
@@ -495,39 +491,39 @@ justify-content: center;
 align-items: center;
 }
 .footer-logo {
-height: 50px;
-margin: 0 auto 5px auto;
+height: 120px; /* Made larger */
+margin: 0 auto 15px auto; /* Adjusted margin */
 display: block;
 object-fit: contain;
 }
 footer p { margin: 2px 0; }
-#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px 20px 0 0; border-bottom: 1px solid var(--glass-border-top); padding: 0.8rem; display: flex; justify-content: space-around; }
+#scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); /* Darker Overlay Stats Background */ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px 20px 0 0; border-bottom: 1px solid var(--glass-border-top); padding: 0.8rem; display: flex; justify-content: space-around; }
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
 .stat p { margin: 0; font-size: 1.2rem; font-weight: bold; transition: all 0.3s ease; }
 .stat p.pending-update {
-    animation: pulse-green 1.5s infinite;
+animation: pulse-green 1.5s infinite;
 }
 @keyframes pulse-green {
-    0% { color: white; text-shadow: none; }
-    50% { color: var(--green); text-shadow: 0 0 8px var(--green); }
-    100% { color: white; text-shadow: none; }
+0% { color: white; text-shadow: none; }
+50% { color: var(--green); text-shadow: 0 0 8px var(--green); }
+100% { color: white; text-shadow: none; }
 }
-#tab-bar { 
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    z-index: 150; 
-    background: rgba(30, 30, 30, 0.5); 
-    backdrop-filter: blur(25px); 
-    -webkit-backdrop-filter: blur(25px); 
-    border-top: 1px solid var(--glass-border-top); 
-    display: flex; 
-    justify-content: space-around;
-    height: calc(var(--tab-bar-height) + var(--safe-area-bottom));
-    padding-bottom: var(--safe-area-bottom);
-    box-sizing: content-box;
+#tab-bar {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+z-index: 150;
+background: rgba(0, 0, 0, 0.6); /* Darker Tab Bar */
+backdrop-filter: blur(25px);
+-webkit-backdrop-filter: blur(25px);
+border-top: 1px solid var(--glass-border-top);
+display: flex;
+justify-content: space-around;
+height: calc(var(--tab-bar-height) + var(--safe-area-bottom));
+padding-bottom: var(--safe-area-bottom);
+box-sizing: content-box;
 }
 .tab-button {
 background: none;
@@ -544,22 +540,20 @@ transition: color 0.3s ease;
 .frost-animation { position: absolute; top: -20px; font-size: 1.5rem; color: white; pointer-events: none; z-index: 999; animation: fall-and-fade linear forwards; }
 @keyframes fly-across { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 25% { transform: translateX(25vw) translateY(-40px) rotate(15deg); } 50% { transform: translateX(50vw) translateY(0) rotate(0deg); } 75% { transform: translateX(75vw) translateY(-40px) rotate(-15deg); } 100% { transform: translateX(110vw) translateY(0) rotate(0deg); } }
 @keyframes fall-and-fade { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
-
 /* === BACKGROUND KEYFRAMES === */
-@keyframes move-pink { 
-    0%, 100% { transform: translate(0, 0); } 
-    25% { transform: translate(calc(100vw - 70vmax), 0); } 
-    50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); } 
-    75% { transform: translate(0, calc(100vh - 70vmax)); } 
+@keyframes move-pink {
+0%, 100% { transform: translate(0, 0); }
+25% { transform: translate(calc(100vw - 70vmax), 0); }
+50% { transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax)); }
+75% { transform: translate(0, calc(100vh - 70vmax)); }
 }
-@keyframes move-green { 
-    0%, 100% { transform: translate(0, 0); } 
-    25% { transform: translate(calc(-100vw + 70vmax), 0); } 
-    50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); } 
-    75% { transform: translate(0, calc(-100vh + 70vmax)); } 
+@keyframes move-green {
+0%, 100% { transform: translate(0, 0); }
+25% { transform: translate(calc(-100vw + 70vmax), 0); }
+50% { transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax)); }
+75% { transform: translate(0, calc(-100vh + 70vmax)); }
 }
 /* === END KEYFRAMES === */
-
 #duck-feet-background-container {
 position: fixed;
 top: 0;
@@ -588,67 +582,70 @@ pointer-events: none;
 80% { opacity: 0.3; transform: scale(1); }
 100% { opacity: 0; transform: scale(1.2); }
 }
-
 @media (max-width: 480px) {
-    .map-label {
-        min-width: 90px;
-        padding: 4px 8px;
-    }
-    .map-label h4 {
-        font-size: 12px;
-    }
-    .map-label p {
-        font-size: 10px;
-        padding-top: 2px;
-    }
+.map-label {
+min-width: 90px;
+padding: 4px 8px;
 }
-
+.map-label h4 {
+font-size: 12px;
+}
+.map-label p {
+font-size: 10px;
+padding-top: 2px;
+}
+}
 /* --- NEW STYLES FOR TORCH AND LOGOUT --- */
 #torch-toggle-btn {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    width: 45px;
-    height: 45px;
-    background-color: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 15;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    transition: background-color 0.2s, transform 0.2s;
+position: absolute;
+bottom: 15px;
+right: 15px;
+width: 45px;
+height: 45px;
+background-color: rgba(0, 0, 0, 0.6); /* Darker torch background */
+border: 1px solid rgba(255, 255, 255, 0.1); /* Darker torch border */
+border-radius: 50%;
+cursor: pointer;
+z-index: 15;
+display: flex;
+align-items: center;
+justify-content: center;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+transition: background-color 0.2s, transform 0.2s;
 }
 #torch-toggle-btn:hover {
-    transform: scale(1.1);
+transform: scale(1.1);
 }
 #torch-toggle-btn.torch-on {
-    background-color: rgba(255, 255, 255, 0.85);
+background-color: rgba(255, 255, 255, 0.85);
 }
 #torch-toggle-btn svg {
-    width: 24px;
-    height: 24px;
-    fill: white;
-    transition: fill 0.2s;
+width: 24px;
+height: 24px;
+fill: white;
+transition: fill 0.2s;
 }
 #torch-toggle-btn.torch-on svg {
-    fill: #000;
+fill: #000;
 }
-
 #logout-btn {
-    background-color: rgba(255, 100, 100, 0.1);
-    border-color: rgba(255, 100, 100, 0.2);
-    color: rgba(255, 150, 150, 1);
-    margin: 1.5rem 0;
+background-color: rgba(100, 20, 20, 0.4); /* Darker logout button */
+border-color: rgba(255, 100, 100, 0.1); /* Darker logout border */
+color: rgba(255, 150, 150, 1);
+margin: 0.75rem auto;
+border-radius: 12px;
+padding: 1rem 1.5rem; /* Matches info-card padding */
+max-width: 350px;
+width: 100%;
+font-weight: bold;
+font-size: 1.2rem; /* Matches info-card h4 */
 }
 #logout-btn:hover {
-    background-color: rgba(255, 100, 100, 0.2);
-    border-color: rgba(255, 100, 100, 0.4);
-    box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
-    transform: translateY(-2px);
+background-color: rgba(255, 100, 100, 0.2);
+border-color: rgba(255, 100, 100, 0.4);
+box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
+transform: translateY(-2px);
 }
 </style>
 </head>
@@ -668,6 +665,9 @@ pointer-events: none;
 <div id="login-view">
 <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
+<div class="login-link-container">
+<a href="#" id="what-is-duck-hunt-link" data-info-index="4">What is Duck Hunt?</a>
+</div>
 <div class="button-group">
 <button id="signin-btn" class="secondary-btn">Sign In</button>
 <button id="register-btn" class="primary-btn">Register</button>
@@ -679,13 +679,17 @@ pointer-events: none;
 <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name"><input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
 <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID"><input type="email" id="reg-email" class="reg-input" placeholder="Email @my.gcu.edu">
 </div>
+<div class="terms-group">
+<input type="checkbox" id="terms-checkbox">
+<label for="terms-checkbox">I agree to the <a href="#" id="view-terms-link" data-info-index="3">Terms & Conditions</a></label>
+</div>
 <div class="button-group">
 <button id="back-btn" class="secondary-btn">Back</button><button id="submit-btn" class="primary-btn">Submit</button>
 </div>
 </div>
 </div>
 <footer>
-<img src="https://i.imgur.com/p2qZOL5.png" alt="Canyon Activities Board Logo" class="footer-logo">
+<img src="https://i.imgur.com/MyI3lmy.png" alt="Canyon Activities Board Logo" class="footer-logo">
 <p>Follow Us At <b>@CABGCU</b> On Instagram</p>
 <p>Hosted by the Canyon Activities Board at Grand Canyon University</p>
 </footer>
@@ -703,9 +707,9 @@ pointer-events: none;
 </div>
 <div id="qr-reader"></div>
 <button id="torch-toggle-btn" class="hidden">
-    <svg viewBox="0 0 24 24" width="24" height="24">
-        <path fill="currentColor" d="M9,2A1,1 0 0,0 8,3V4A1,1 0 0,0 9,5H15A1,1 0 0,0 16,4V3A1,1 0 0,0 15,2H9M9,6A1,1 0 0,0 8,7V8A1,1 0 0,0 9,9H15A1,1 0 0,0 16,8V7A1,1 0 0,0 15,6H9M8,10V20A2,2 0 0,0 10,22H14A2,2 0 0,0 16,20V10H8Z"></path>
-    </svg>
+<svg viewBox="0 0 24 24" width="24" height="24">
+<path fill="currentColor" d="M9,2A1,1 0 0,0 8,3V4A1,1 0 0,0 9,5H15A1,1 0 0,0 16,4V3A1,1 0 0,0 15,2H9M9,6A1,1 0 0,0 8,7V8A1,1 0 0,0 9,9H15A1,1 0 0,0 16,8V7A1,1 0 0,0 15,6H9M8,10V20A2,2 0 0,0 10,22H14A2,2 0 0,0 16,20V10H8Z"></path>
+</svg>
 </button>
 </div>
 <div id="scanner-footer-details">
@@ -714,19 +718,17 @@ pointer-events: none;
 </div>
 </div>
 </section>
-
 <section id="map-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <div id="map-card-container">
-    <div id="map-wrapper">
-        <img id="campus-map-img"
-        src="https://i.imgur.com/1aQCsPk.jpeg"
-        alt="Interactive Campus Map">
-        <div id="map-markers-overlay"></div>
-    </div>
+<div id="map-wrapper">
+<img id="campus-map-img"
+src="https://i.imgur.com/1aQCsPk.jpeg"
+alt="Interactive Campus Map">
+<div id="map-markers-overlay"></div>
+</div>
 </div>
 </section>
-
 <section id="leaderboard-page" class="app-page">
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Leaderboard</h2>
@@ -741,7 +743,7 @@ pointer-events: none;
 <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
 <div id="info-container"></div>
-<button id="logout-btn" class="full-width-btn">Logout</button>
+<button id="logout-btn" class="info-card-button glass-card full-width-btn">Logout</button>
 </section>
 </main>
 <nav id="tab-bar">
@@ -768,21 +770,19 @@ const VIRTUAL_LIMIT = 10;
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 const MAP_SPOTS = [
 { name: 'The Grove', dataKey: 'The Grove', coords: '1295,758,1311,774' },
-{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, 
+{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' },
 { name: 'Main Campus', dataKey: 'Main Campus', coords: '1763,2398,1779,2414' },
 { name: 'North Campus', dataKey: 'North Campus', coords: '2738,1116,2754,1132' },
 { name: 'East Campus', dataKey: 'East Campus', coords: '3882,2468,3898,2484' },
 { name: 'The Rivers', dataKey: 'The Rivers', coords: '4757,1136,4773,1152' },
-{ name: 'Riverbed Virtual', dataKey: 'Riverbed', coords: '5125,817,5141,833' }, 
-{ name: 'Commuter Lounge Virtual', dataKey: 'Commuter Lounge', coords: '1355,1900,1371,1916' }, 
+{ name: 'Riverbed Virtual', dataKey: 'Riverbed', coords: '5125,817,5141,833' },
+{ name: 'Commuter Lounge Virtual', dataKey: 'Commuter Lounge', coords: '1355,1900,1371,1916' },
 { name: 'Thunderground Virtual', dataKey: 'Thunderground', coords: '1514,1680,1530,1696' },
 ];
-
 // --- GLOBAL STATE & DOM REFERENCES ---
 let html5QrCode = null;
 let currentUser = null;
 let initialDuckId = null;
-let infoDataCache = [];
 let infoDataFetchTime = null;
 let mapResizeObserver = null;
 let isTorchOn = false;
@@ -793,7 +793,99 @@ const loginView = document.getElementById('login-view');
 const registrationView = document.getElementById('registration-view');
 const ribbonMessage = document.getElementById('ribbon-message');
 const mapImageElement = document.getElementById('campus-map-img');
-
+// Pre-populated Info Data (Refactored)
+const infoDataCache = [
+{
+    title: 'How to Play & Duck Types',
+    content: [
+        "**Get Started:** Use the **Scanner** tab to find and scan QR codes hidden around campus. The **Map** shows general areas where ducks are still available.",
+        "**Earn Points:** Each duck grants points depending on its type. Only the **first student** to scan a unique code earns the points; after that, the code is inactive (a 'dead code').",
+        "**Track Progress:** Check the **Leaderboard** for your rank and use **Scan History** to track your finds.",
+        "**Event Dates:** Virtual ducks start the week of **October 27th**. The physical hunt runs from **November 3rd to November 8th**.",
+        "",
+        "**Duck Values:**",
+        "🥇 Golden Duck (3 total): **2,000 pts**",
+        "👑 Student Engagement Duck: **1,000 pts**",
+        "🦆 Physical Ducks (3,000+ total): **100 pts**",
+        "💻 Virtual Ducks (Max " + VIRTUAL_LIMIT + "/day): **25 pts**"
+    ]
+},
+{
+    title: 'Prizes & Eligibility (The Stakes)',
+    content: [
+        "The **TOP THREE POINT EARNERS** on the final leaderboard will win massive prizes to celebrate Lip Sync 2025!",
+        "",
+        "### Grand Prizes:",
+        "🥇 **1st Place: VIP Lip Sync Experience!**",
+        "Get VIP tickets for up to four people.",
+        "🥈 **2nd Place: Stampede Fuel!**",
+        "Enjoy free Stampede for two months.",
+        "🥉 **3rd Place: Lope Shop Shopping Spree!**",
+        "Win a $200 Lope Shop shopping spree with Thunder.",
+        "",
+        "**Eligibility:** You must be a verified GCU student with a valid **@my.gcu.edu** email and only **one account** per student is permitted to claim a prize."
+    ]
+},
+{
+    title: 'Fair Play Rules',
+    content: [
+        "Play fair and respect all other participants and campus property.",
+        "Do **NOT** share duck links, screenshots, or QR codes online.",
+        "Do **NOT** hack, alter, or interfere with the website or QR system.",
+        "Do **NOT** enter restricted, staff-only, or unsafe areas.",
+        "Uphold GCU’s community standards and have fun promoting Lip Sync 2025!"
+    ]
+},
+{
+    title: 'Duck Hunt 2025 – Terms & Conditions',
+    content: [
+        "**1. Purpose**",
+        "Duck Hunt 2025 is a campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) at Grand Canyon University, created to promote and celebrate Lip Sync 2025. The event encourages students to explore campus, connect with others, and show school spirit through a fun, interactive competition. Participants will search for hidden ducks, scan their unique QR codes, and compete to reach the top of the leaderboard for prizes.",
+        "**2. Eligibility**",
+        "Participation is open exclusively to GCU traditional on-ground students and commuter traditional students. All participants must register using their Student ID and @my.gcu.edu email address. Each student may only have one account. Duplicate or shared accounts are not permitted.",
+        "**3. How to Play**",
+        "Visit cabgcuduckhunt.com and log in using your GCU student information. Find QR-coded “ducks” hidden around campus. Scan each duck through the Duck Hunt web app to earn points. Once a duck is scanned by any player, it becomes inactive (“dead code”) and cannot be reused.",
+        "**Duck Types & Point Values:** Golden Ducks (3 total): 2,000 points each. Student Engagement Ducks: 1,000 points each. Physical Ducks (3,000+ hidden): 100 points each. Virtual Ducks (10,000 total): 25 points each. Virtual Ducks can be found at the Commuter Lounge, Thunderground, The Riverbed, and the Multicultural Office, as well as at CAB events and on promotional flyers.",
+        "**4. Special Ducks**",
+        "Each Student Engagement group receives one Special Duck worth 1,000 points. Groups have complete freedom in how they distribute their duck—whether through an event, social media challenge, or creative campus placement. Groups are asked to release their Special Duck no earlier than November 3rd, when the physical hunt begins. The student who finds and scans the Special Duck first automatically earns 1,000 points and keeps the duck as a souvenir.",
+        "**5. Fair Play & Integrity**",
+        "Duck Hunt is meant to be a fun, fair, and community-focused event. The following actions are strictly prohibited: Hacking, altering, or exploiting the website or QR code system. Sharing duck links, screenshots, or QR codes online. Using bots, automation, or fake accounts to collect ducks. Registering under multiple names or providing false information. If cheating or manipulation is detected, the participant’s account and points may be removed.",
+        "**6. Safety & Conduct**",
+        "Participants are expected to play responsibly and respect the GCU campus community. Do not enter restricted, staff-only, or unsafe areas. Avoid disrupting classes, offices, or campus operations. Stay aware of your surroundings while exploring. Be courteous to others and uphold GCU’s community standards. Duck Hunt is designed to celebrate GCU spirit and promote Lip Sync, not to interfere with campus life.",
+        "**7. Prizes**",
+        "The top three players on the final leaderboard will win the following prizes: 🥇 First Place: VIP Lip Sync tickets for up to four people. 🥈 Second Place: Free Stampede for two months. 🥉 Third Place: $200 Lope Shop shopping spree with Thunder. Winners will be contacted through cab@gcu.edu once results are finalized.",
+        "**8. Event Schedule**",
+        "Virtual Duck Launch: Week of October 27, 2025. Physical Hunt: November 3 – November 8, 2025.",
+        "**9. Privacy & Data**",
+        "By registering, participants agree to share limited information (name, Student ID, and GCU email) used only for event participation, leaderboard tracking, and prize notification. Leaderboard names will display as first name + last initial for privacy.",
+        "**10. Agreement**",
+        "By registering and participating in Duck Hunt 2025, you acknowledge that you have read and agree to these Terms & Conditions. Duck Hunt exists to build campus spirit, encourage friendly competition, and promote Lip Sync 2025 in a positive, engaging way."
+    ]
+},
+{
+    title: 'What is Duck Hunt?',
+    content: [
+        "Duck Hunt is the ultimate campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) to celebrate Lip Sync 2025!",
+        "Students find hidden QR-coded ducks, scan them to earn points, and compete for massive prizes at the top of the leaderboard.",
+        "",
+        "**Event Dates:** Virtual Hunt starts **October 27th**. Physical Hunt runs **November 3rd - November 8th**.",
+        "",
+        "### Prizes:",
+        "🥇 **1st Place:** VIP Lip Sync Tickets",
+        "🥈 **2nd Place:** 2 Months Free Stampede",
+        "🥉 **3rd Place:** $200 Lope Shop Spree",
+        "",
+        "### Check out the Lip Sync 2025 Promo Video!",
+        `<iframe width="100%" height="200" src="https://www.youtube.com/embed/6I-lgo3Vu_8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
+        "",
+        "Ready to hunt? Sign in above!"
+    ]
+},
+{
+    title: 'Contact & Support',
+    content: "Duck Hunt is hosted by the Canyon Activities Board (CAB). For questions or support, please contact us on Instagram at @CABGCU."
+}
+];
 // --- CACHING & STATE ---
 let duckDataCache = {};
 let claimedDucksCache = new Set();
@@ -803,140 +895,115 @@ let scanHistoryCache = [];
 let scanQueue = [];
 let batchSendTimer = null;
 let dataRefreshTimer = null;
-let locationCountsCache = {}; 
+let locationCountsCache = {};
 let pendingPoints = 0;
 let pendingDucks = 0;
-
 // --- MAP INTERACTION LOGIC ---
 const mapCardContainer = document.getElementById('map-card-container');
 let isPanning = false;
-
 function updateLabelSizeOnPan() {
-    if (!isPanning) return;
-
-    const viewportCenterX = mapCardContainer.scrollLeft + mapCardContainer.clientWidth / 2;
-    const viewportCenterY = mapCardContainer.scrollTop + mapCardContainer.clientHeight / 2;
-    const maxDistance = Math.sqrt(Math.pow(mapCardContainer.clientWidth / 2, 2) + Math.pow(mapCardContainer.clientHeight / 2, 2));
-
-    document.querySelectorAll('.map-label').forEach(label => {
-        const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
-        const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
-        const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
-        let scale = 1.15 - (distance / maxDistance) * 0.25;
-        
-        // Prevent scaling down if it's the 'on-top' label
-        if (label.classList.contains('on-top')) {
-            scale = 1.1; // Keep it scaled up
-        } else {
-            scale = Math.max(0.9, Math.min(scale, 1.15));
-        }
-
-        label.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    });
-
-    isPanning = false;
+if (!isPanning) return;
+const viewportCenterX = mapCardContainer.scrollLeft + mapCardContainer.clientWidth / 2;
+const viewportCenterY = mapCardContainer.scrollTop + mapCardContainer.clientHeight / 2;
+const maxDistance = Math.sqrt(Math.pow(mapCardContainer.clientWidth / 2, 2) + Math.pow(mapCardContainer.clientHeight / 2, 2));
+document.querySelectorAll('.map-label').forEach(label => {
+const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
+const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
+const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
+let scale = 1.15 - (distance / maxDistance) * 0.25;
+if (label.classList.contains('on-top')) {
+scale = 1.1;
+} else {
+scale = Math.max(0.9, Math.min(scale, 1.15));
 }
-
+label.style.transform = `translate(-50%, -50%) scale(${scale})`;
+});
+isPanning = false;
+}
 function positionMarkers() {
-    const overlay = document.getElementById('map-markers-overlay');
-    if (!overlay || !mapImageElement || !mapImageElement.naturalWidth) return;
-
-    overlay.innerHTML = ''; 
-    const locationData = locationCountsCache;
-
-    MAP_SPOTS.forEach(spot => {
-        const marker = document.createElement('div');
-        marker.className = 'map-label';
-
-        const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
-        const centerX = (x1 + x2) / 2;
-        const centerY = (y1 + y2) / 2;
-
-        marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
-        marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
-
-        const dataKey = spot.dataKey;
-        const displayName = spot.name;
-
-        let remainingText;
-        let spotData = locationData[dataKey];
-
-        if (!spotData) {
-            remainingText = '<strong>N/A</strong> Codes Left';
-            marker.style.borderColor = 'gray';
-        } else {
-            const remaining = spotData.count;
-            if (remaining > 0) {
-                remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
-                marker.style.borderColor = 'var(--green)';
-            } else {
-                remainingText = `❌ <strong>CLEARED</strong>`;
-                marker.classList.add('cleared');
-            }
-        }
-        marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
-        
-        marker.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent event from bubbling up
-            document.querySelectorAll('.map-label.on-top').forEach(lbl => {
-                lbl.classList.remove('on-top');
-            });
-            marker.classList.add('on-top');
-        });
-        
-        overlay.appendChild(marker);
-    });
-    isPanning = true;
-    updateLabelSizeOnPan();
+const overlay = document.getElementById('map-markers-overlay');
+if (!overlay || !mapImageElement || !mapImageElement.naturalWidth) return;
+overlay.innerHTML = '';
+const locationData = locationCountsCache;
+MAP_SPOTS.forEach(spot => {
+const marker = document.createElement('div');
+marker.className = 'map-label';
+const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
+const centerX = (x1 + x2) / 2;
+const centerY = (y1 + y2) / 2;
+marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
+marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
+const dataKey = spot.dataKey;
+const displayName = spot.name;
+let remainingText;
+let spotData = locationData[dataKey];
+if (!spotData) {
+remainingText = '<strong>N/A</strong> Codes Left';
+marker.style.borderColor = 'gray';
+} else {
+const remaining = spotData.count;
+if (remaining > 0) {
+remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
+marker.style.borderColor = 'var(--green)';
+} else {
+remainingText = `❌ <strong>CLEARED</strong>`;
+marker.classList.add('cleared');
 }
-
-
+}
+marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
+marker.addEventListener('click', (e) => {
+e.stopPropagation();
+document.querySelectorAll('.map-label.on-top').forEach(lbl => {
+lbl.classList.remove('on-top');
+});
+marker.classList.add('on-top');
+});
+overlay.appendChild(marker);
+});
+isPanning = true;
+updateLabelSizeOnPan();
+}
 async function updateDuckMapData() {
-    const result = await postToAction('getDuckCounts');
-    if (result.status === 'success' && result.locations) {
-        locationCountsCache = {};
-        Object.keys(result.locations).forEach(name => {
-            locationCountsCache[name] = { count: result.locations[name] };
-        });
-    }
+const result = await postToAction('getDuckCounts');
+if (result.status === 'success' && result.locations) {
+locationCountsCache = {};
+Object.keys(result.locations).forEach(name => {
+locationCountsCache[name] = { count: result.locations[name] };
+});
 }
-
+}
 function initializeMap() {
-    if (mapResizeObserver) {
-        mapResizeObserver.disconnect();
-        mapResizeObserver = null;
-    }
-
-    mapCardContainer.addEventListener('scroll', () => {
-        if (!isPanning) {
-            isPanning = true;
-            window.requestAnimationFrame(updateLabelSizeOnPan);
-        }
-    });
-
-    const imageLoadPromise = new Promise(resolve => {
-        if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
-            resolve();
-        } else {
-            mapImageElement.onload = resolve;
-            mapImageElement.onerror = resolve; 
-        }
-    });
-
-    Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
-        if (mapImageElement.naturalWidth > 0) {
-            positionMarkers();
-            if (!mapResizeObserver) {
-                mapResizeObserver = new ResizeObserver(positionMarkers);
-                mapResizeObserver.observe(mapImageElement);
-            }
-        } else {
-            console.error("Map image failed to load or has zero dimensions.");
-        }
-    });
+if (mapResizeObserver) {
+mapResizeObserver.disconnect();
+mapResizeObserver = null;
+}
+mapCardContainer.addEventListener('scroll', () => {
+if (!isPanning) {
+isPanning = true;
+window.requestAnimationFrame(updateLabelSizeOnPan);
+}
+});
+const imageLoadPromise = new Promise(resolve => {
+if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
+resolve();
+} else {
+mapImageElement.onload = resolve;
+mapImageElement.onerror = resolve;
+}
+});
+Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
+if (mapImageElement.naturalWidth > 0) {
+positionMarkers();
+if (!mapResizeObserver) {
+mapResizeObserver = new ResizeObserver(positionMarkers);
+mapResizeObserver.observe(mapImageElement);
+}
+} else {
+console.error("Map image failed to load or has zero dimensions.");
+}
+});
 }
 // --- END MAP INTERACTION LOGIC ---
-
 // --- FETCH HELPER ---
 async function postToAction(action, payload = {}) {
 try {
@@ -1074,287 +1141,231 @@ setTimeout(() => flake.remove(), 5000);
 }
 // --- CORE SCANNING & SYNC LOGIC ---
 function updateOptimisticDisplay() {
-    if (!currentUser) return;
-    const pointsEl = document.getElementById('player-points');
-    const ducksEl = document.getElementById('player-ducks');
-
-    const totalPoints = (currentUser.points || 0) + pendingPoints;
-    const totalDucks = (currentUser.duckCount || 0) + pendingDucks;
-
-    pointsEl.textContent = totalPoints;
-    ducksEl.textContent = totalDucks;
-
-    if (pendingPoints > 0 || pendingDucks > 0) {
-        pointsEl.classList.add('pending-update');
-        ducksEl.classList.add('pending-update');
-    } else {
-        pointsEl.classList.remove('pending-update');
-        ducksEl.classList.remove('pending-update');
-    }
+if (!currentUser) return;
+const pointsEl = document.getElementById('player-points');
+const ducksEl = document.getElementById('player-ducks');
+const totalPoints = (currentUser.points || 0) + pendingPoints;
+const totalDucks = (currentUser.duckCount || 0) + pendingDucks;
+pointsEl.textContent = totalPoints;
+ducksEl.textContent = totalDucks;
+if (pendingPoints > 0 || pendingDucks > 0) {
+pointsEl.classList.add('pending-update');
+ducksEl.classList.add('pending-update');
+} else {
+pointsEl.classList.remove('pending-update');
+ducksEl.classList.remove('pending-update');
 }
-
+}
 async function onScanSuccess(decodedText) {
-    if (!currentUser) return;
-    
-    const triggerVisualError = () => {
-        const qrContainer = document.getElementById('qr-reader-container');
-        qrContainer.classList.add('error-flash');
-        setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
-    };
-
-    let finalDuckId = decodedText;
-    try {
-        const url = new URL(decodedText);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    const lookupId = finalDuckId.trim().toLowerCase();
-
-    if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
-        triggerVisualError(); 
-        return;
-    }
-    
-    const duckInfo = duckDataCache[lookupId];
-    if (!duckInfo) {
-        triggerVisualError();
-        return;
-    }
-
-    processingDucks.add(lookupId); 
-    
-    if (duckInfo.type === 'Virtual Duck') {
-        const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-        localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
-        
-        if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) { 
-            triggerVisualError(); 
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId);
-            return;
-        }
-        localVirtualScanTimestamps.push(new Date().getTime());
-    }
-
-    scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    
-    const points = duckInfo.points || 0;
-    pendingPoints += points;
-    pendingDucks += 1;
-    updateOptimisticDisplay();
-    
-    const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    displaySuccessPopup(`+${points}`, isGoldenDuck); 
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
+if (!currentUser) return;
+const triggerVisualError = () => {
+const qrContainer = document.getElementById('qr-reader-container');
+qrContainer.classList.add('error-flash');
+setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+};
+let finalDuckId = decodedText;
+try {
+const url = new URL(decodedText);
+if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+} catch (e) {}
+const lookupId = finalDuckId.trim().toLowerCase();
+if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
+triggerVisualError();
+return;
 }
-
+const duckInfo = duckDataCache[lookupId];
+if (!duckInfo) {
+triggerVisualError();
+return;
+}
+processingDucks.add(lookupId);
+if (duckInfo.type === 'Virtual Duck') {
+const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
+if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) {
+triggerVisualError();
+displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+triggerFrostAnimation();
+processingDucks.delete(lookupId);
+return;
+}
+localVirtualScanTimestamps.push(new Date().getTime());
+}
+scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
+const points = duckInfo.points || 0;
+pendingPoints += points;
+pendingDucks += 1;
+updateOptimisticDisplay();
+const isGoldenDuck = duckInfo.type === 'Golden Duck';
+displaySuccessPopup(`+${points}`, isGoldenDuck);
+if (isGoldenDuck) {
+triggerGoldenDuckAnimation();
+} else {
+triggerDuckAnimation();
+}
+}
 async function sendBatchScans() {
-    if (scanQueue.length === 0) return;
-    
-    const scansToSend = [...scanQueue];
-    scanQueue = [];
-    
-    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase())); 
-
-    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-    
-    sentDuckIds.forEach(id => processingDucks.delete(id));
-
-    if (batchResult.status === "success") {
-        if (batchResult.updatedUser) {
-            currentUser.points = batchResult.updatedUser.points;
-            currentUser.duckCount = batchResult.updatedUser.duckCount;
-            pendingPoints = 0;
-            pendingDucks = 0;
-            updateOptimisticDisplay();
-        }
-        
-        if (batchResult.results) {
-            batchResult.results.forEach(result => {
-                const id = result.duckId.trim().toLowerCase();
-                
-                if (result.status === "success") {
-                    claimedDucksCache.add(id); 
-                } else {
-                    displayRevertPopup(result.message || "A duck was claimed just before you!");
-                }
-            });
-        }
-    } else {
-        displayRevertPopup(batchResult.message || "A server error occurred.");
-        scanQueue = [...scansToSend, ...scanQueue];
-    }
+if (scanQueue.length === 0) return;
+const scansToSend = [...scanQueue];
+scanQueue = [];
+const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase()));
+const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+sentDuckIds.forEach(id => processingDucks.delete(id));
+if (batchResult.status === "success") {
+if (batchResult.updatedUser) {
+currentUser.points = batchResult.updatedUser.points;
+currentUser.duckCount = batchResult.updatedUser.duckCount;
+pendingPoints = 0;
+pendingDucks = 0;
+updateOptimisticDisplay();
 }
-
+if (batchResult.results) {
+batchResult.results.forEach(result => {
+const id = result.duckId.trim().toLowerCase();
+if (result.status === "success") {
+claimedDucksCache.add(id);
+} else {
+displayRevertPopup(result.message || "A duck was claimed just before you!");
+}
+});
+}
+} else {
+displayRevertPopup(batchResult.message || "A server error occurred.");
+scanQueue = [...scansToSend, ...scanQueue];
+}
+}
 function periodicDataRefresh() {
 if (!currentUser) return;
-updateUserDashboard(true); 
-
+updateUserDashboard(true);
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
 claimedDucksCache = new Set(result.claimed);
 }
 });
-const fiveMinutes = 5 * 60 * 1000;
-if (!infoDataFetchTime || (new Date() - infoDataFetchTime > fiveMinutes)) {
-    postToAction('getInfoData').then(result => {
-        if (result.status === 'success') {
-            updateRibbon(result.ribbonText);
-            infoDataCache = result.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        } else {
-            updateRibbon('');
-        }
-    });
+postToAction('getInfoData').then(result => {
+if (result.status === 'success') {
+updateRibbon(result.ribbonText);
+} else {
+updateRibbon('');
 }
+});
 }
-
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
-    currentUser = user;
-    currentUser.duckCount = user.duckCount || 0; 
-    sessionStorage.setItem('currentUserStudentId', user.studentId);
-    
-    try {
-        const [duckResult, claimedDucksResult] = await Promise.all([
-            postToAction('getDuckData'),
-            postToAction('getClaimedDucks')
-        ]);
-        
-        if (duckResult.status === "success") {
-            duckDataCache = duckResult.ducks;
-        } else { throw new Error("Failed to load duck data."); }
-        
-        if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
-            claimedDucksCache = new Set(claimedDucksResult.claimed);
-        }
-    } catch (e) {
-        console.error("Failed to load critical game data:", e);
-        alert("Could not load critical game data. Please try again.");
-        
-        if (loginButtonEl) {
-            loginButtonEl.innerHTML = loginButtonContent;
-            loginButtonEl.disabled = false;
-        }
-        return; 
-    }
-
-    if (loginButtonEl) {
-        loginButtonEl.innerHTML = loginButtonContent;
-        loginButtonEl.disabled = false;
-    }
-    
-    loginScreen.classList.remove('visible');
-    appWrapper.classList.add('visible');
-    
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-    
-    switchPage(initialPageId); 
-    
-    if (initialDuckId) {
-        onScanSuccess(initialDuckId);
-        initialDuckId = null;
-    }
-
-    try {
-        const [historyResult, infoResult] = await Promise.all([
-            postToAction('getScanHistory', { studentId: currentUser.studentId }),
-            postToAction('getInfoData')
-        ]);
-        
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            currentUser.duckCount = historyResult.length;
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
-        
-        if (infoResult.status === 'success') {
-            updateRibbon(infoResult.ribbonText);
-            infoDataCache = infoResult.infoItems || [];
-            infoDataFetchTime = new Date();
-            if (document.getElementById('info-page').classList.contains('active')) {
-                renderInfoCards(infoDataCache);
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load auxiliary data in background:", e);
-    }
-    
-    await updateUserDashboard();
+currentUser = user;
+currentUser.duckCount = user.duckCount || 0;
+sessionStorage.setItem('currentUserStudentId', user.studentId);
+try {
+const [duckResult, claimedDucksResult] = await Promise.all([
+postToAction('getDuckData'),
+postToAction('getClaimedDucks')
+]);
+if (duckResult.status === "success") {
+duckDataCache = duckResult.ducks;
+} else { throw new Error("Failed to load duck data."); }
+if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
+claimedDucksCache = new Set(claimedDucksResult.claimed);
 }
-
+} catch (e) {
+console.error("Failed to load critical game data:", e);
+alert("Could not load critical game data. Please try again.");
+if (loginButtonEl) {
+loginButtonEl.innerHTML = loginButtonContent;
+loginButtonEl.disabled = false;
+}
+return;
+}
+if (loginButtonEl) {
+loginButtonEl.innerHTML = loginButtonContent;
+loginButtonEl.disabled = false;
+}
+loginScreen.classList.remove('visible');
+appWrapper.classList.add('visible');
+if (batchSendTimer) clearInterval(batchSendTimer);
+batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+switchPage(initialPageId);
+if (initialDuckId) {
+onScanSuccess(initialDuckId);
+initialDuckId = null;
+}
+try {
+const [historyResult, infoResult] = await Promise.all([
+postToAction('getScanHistory', { studentId: currentUser.studentId }),
+postToAction('getInfoData')
+]);
+if (Array.isArray(historyResult)) {
+scanHistoryCache = historyResult;
+currentUser.duckCount = historyResult.length;
+const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+localVirtualScanTimestamps = historyResult
+.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+.map(scan => new Date(scan.timestamp).getTime());
+}
+if (infoResult.status === 'success') {
+updateRibbon(infoResult.ribbonText);
+infoDataFetchTime = new Date();
+}
+} catch (e) {
+console.error("Failed to load auxiliary data in background:", e);
+}
+await updateUserDashboard();
+}
 async function signIn(studentId) {
-    const signinBtn = document.getElementById('signin-btn');
-    const originalContent = signinBtn.innerHTML;
-    
-    signinBtn.innerHTML = '<div class="spinner"></div>';
-    signinBtn.disabled = true;
-
-    const result = await postToAction('getUser', { studentId });
-    
-    if (result.status === "success") {
-        showApp(result.user, 'hunt-page', signinBtn, originalContent); 
-    } else {
-        signinBtn.innerHTML = originalContent;
-        signinBtn.disabled = false;
-        alert("User not found! Please register before signing in.");
-    }
+const signinBtn = document.getElementById('signin-btn');
+const originalContent = signinBtn.innerHTML;
+signinBtn.innerHTML = '<div class="spinner"></div>';
+signinBtn.disabled = true;
+const result = await postToAction('getUser', { studentId });
+if (result.status === "success") {
+showApp(result.user, 'hunt-page', signinBtn, originalContent);
+} else {
+signinBtn.innerHTML = originalContent;
+signinBtn.disabled = false;
+alert("User not found! Please register before signing in.");
 }
-
+}
 async function registerUser() {
-    const submitBtn = document.getElementById('submit-btn');
-    const originalContent = submitBtn.innerHTML;
-
-    const payload = {
-        firstName: document.getElementById('reg-firstname').value.trim(),
-        lastName: document.getElementById('reg-lastname').value.trim(),
-        studentId: document.getElementById('reg-studentid').value.trim(),
-        email: document.getElementById('reg-email').value.trim()
-    };
-    
-    if (!payload.firstName || !payload.studentId) {
-        return alert("First Name and Student ID are required.");
-    }
-    if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
-        return alert("Registration requires an @my.gcu.edu email address.");
-    }
-    
-    submitBtn.innerHTML = '<div class="spinner"></div>';
-    submitBtn.disabled = true;
-
-    try {
-        const result = await postToAction('registerUser', payload);
-        
-        if (result.status === "success") {
-            const userResult = await postToAction('getUser', { studentId: payload.studentId });
-            if (userResult.status === "success") {
-                showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
-            } else {
-                throw new Error("Auto sign-in failed after registration.");
-            }
-        } else {
-            submitBtn.innerHTML = originalContent;
-            submitBtn.disabled = false;
-            alert(result.message);
-        }
-    } catch (error) {
-        submitBtn.innerHTML = originalContent;
-        submitBtn.disabled = false;
-        alert("Error registering. Please check your Student ID and try again.");
-    }
+const submitBtn = document.getElementById('submit-btn');
+const originalContent = submitBtn.innerHTML;
+const termsCheckbox = document.getElementById('terms-checkbox');
+if (!termsCheckbox.checked) {
+return alert("You must agree to the Terms & Conditions to register.");
+}
+const payload = {
+firstName: document.getElementById('reg-firstname').value.trim(),
+lastName: document.getElementById('reg-lastname').value.trim(),
+studentId: document.getElementById('reg-studentid').value.trim(),
+email: document.getElementById('reg-email').value.trim()
+};
+if (!payload.firstName || !payload.studentId) {
+return alert("First Name and Student ID are required.");
+}
+if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+return alert("Registration requires an @my.gcu.edu email address.");
+}
+submitBtn.innerHTML = '<div class="spinner"></div>';
+submitBtn.disabled = true;
+try {
+const result = await postToAction('registerUser', payload);
+if (result.status === "success") {
+const userResult = await postToAction('getUser', { studentId: payload.studentId });
+if (userResult.status === "success") {
+showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
+} else {
+throw new Error("Auto sign-in failed after registration.");
+}
+} else {
+submitBtn.innerHTML = originalContent;
+submitBtn.disabled = false;
+alert(result.message);
+}
+} catch (error) {
+submitBtn.innerHTML = originalContent;
+submitBtn.disabled = false;
+alert("Error registering. Please check your Student ID and try again.");
+}
 }
 // --- UI & DATA DISPLAY FUNCTIONS ---
 function displaySuccessPopup(message, isGolden = false) {
@@ -1386,57 +1397,48 @@ setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 async function updateUserDashboard(shouldUpdatePoints = true) {
 if (!currentUser) return;
 try {
-    const fetches = [
-        postToAction('getLeaderboard'),
-        postToAction('getScanHistory', { studentId: currentUser.studentId })
-    ];
-    if (shouldUpdatePoints) {
-        fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
-    }
-    const responses = await Promise.all(fetches);
-
-    let userResult, leaderboardData, historyResult;
-        
-    const hasPendingScans = scanQueue.length > 0;
-            
-    if (shouldUpdatePoints && !hasPendingScans) {
-        userResult = responses.shift();
-        if (userResult.status === "success") {
-            currentUser.points = userResult.user.points;
-            currentUser.duckCount = userResult.user.duckCount;
-        }
-    } else if (shouldUpdatePoints) {
-        responses.shift(); 
-    }
-    updateOptimisticDisplay();
-
-    const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
-    const historyIndex = shouldUpdatePoints ? 1 : 1; 
-
-    leaderboardData = responses[leaderboardIndex];
-    historyResult = responses[historyIndex];
-
-    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
-
-    if (Array.isArray(leaderboardData)) {
-        const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
-        let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
-        if (myRank === 1) rankText = '🥇 Rank 1';
-        else if (myRank === 2) rankText = '🥈 Rank 2';
-        else if (myRank === 3) rankText = '🥉 Rank 3';
-        document.getElementById('player-rank-display').textContent = rankText;
-    }
-
-    if (Array.isArray(historyResult)) {
-        scanHistoryCache = historyResult;
-        if (!hasPendingScans) {
-            currentUser.duckCount = historyResult.length;
-            updateOptimisticDisplay();
-        }
-    }
-        
+const fetches = [
+postToAction('getLeaderboard'),
+postToAction('getScanHistory', { studentId: currentUser.studentId })
+];
+if (shouldUpdatePoints) {
+fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
+}
+const responses = await Promise.all(fetches);
+let userResult, leaderboardData, historyResult;
+const hasPendingScans = scanQueue.length > 0;
+if (shouldUpdatePoints && !hasPendingScans) {
+userResult = responses.shift();
+if (userResult.status === "success") {
+currentUser.points = userResult.user.points;
+currentUser.duckCount = userResult.user.duckCount;
+}
+} else if (shouldUpdatePoints) {
+responses.shift();
+}
+updateOptimisticDisplay();
+const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
+const historyIndex = shouldUpdatePoints ? 1 : 1;
+leaderboardData = responses[leaderboardIndex];
+historyResult = responses[historyIndex];
+document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+if (Array.isArray(leaderboardData)) {
+const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
+let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
+if (myRank === 1) rankText = '🥇 Rank 1';
+else if (myRank === 2) rankText = '🥈 Rank 2';
+else if (myRank === 3) rankText = '🥉 Rank 3';
+document.getElementById('player-rank-display').textContent = rankText;
+}
+if (Array.isArray(historyResult)) {
+scanHistoryCache = historyResult;
+if (!hasPendingScans) {
+currentUser.duckCount = historyResult.length;
+updateOptimisticDisplay();
+}
+}
 } catch (e) {
-    console.error("Failed to update dashboard", e);
+console.error("Failed to update dashboard", e);
 }
 }
 async function updateLeaderboard() {
@@ -1444,7 +1446,7 @@ const listElement = document.getElementById('leaderboard-list');
 if (listElement.innerHTML === '') {
 listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
 }
-const leaderboardData = await postToAction('getLeaderboard'); 
+const leaderboardData = await postToAction('getLeaderboard');
 if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
 listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet!</li>';
 return;
@@ -1463,15 +1465,15 @@ function updateScanHistory() {
 const listElement = document.getElementById('log-list');
 const scanData = scanHistoryCache;
 if (!scanData || scanData.length === 0) {
-    if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
-        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>';
-    } else {
-        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
-    }
-    return;
+if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
+listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
+} else {
+listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
+}
+return;
 }
 let html = '';
-scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(scan => {
+scanData.sort((a, b) => new Date(b.timestamp) - new Date(b.timestamp)).forEach(scan => {
 const scanDate = new Date(scan.timestamp);
 const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const duckTypeDisplay = scan.duckType === 'Golden Duck' ? '🥇 Golden Duck' : scan.duckType || 'Duck';
@@ -1483,30 +1485,52 @@ listElement.innerHTML = html;
 function showInfoModal(title, content) {
 document.getElementById('modal-title').textContent = title || "Information Detail";
 const contentEl = document.getElementById('modal-content');
-
 let html = '';
 if (typeof content === 'string') {
+// This is for the simple Contact & Support page
 html = content.split('\n').map(p => `<p>${p}</p>`).join('');
 } else if (Array.isArray(content)) {
-html = '<ul>' + content.map(item => `<li>${item}</li>`).join('') + '</ul>';
+html = content.map(item => {
+// Handle Markdown Bolding for bolded text
+item = item.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+// Handle HTML Headings used for prizes
+if (item.startsWith('###')) {
+return `<h4 style="margin-top:1rem; margin-bottom: 0.5rem; color: var(--gold);">${item.substring(3).trim()}</h4>`;
+}
+// Handle numbered section headers in T&C
+if (item.includes(':')) {
+const parts = item.split(':');
+if (parts.length > 1 && parts[0].match(/^\d+\./)) {
+return `<h5 style="margin-top:1rem; margin-bottom: 0.25rem;">${parts[0].trim()}:</h5><p style="margin-top: 0;">${parts.slice(1).join(':').trim()}</p>`;
+}
+}
+// Handle YouTube iframe
+if (item.includes('<iframe')) {
+return item;
+}
+if (item.trim() === '') return '<p></p>';
+// Use a list item for regular bulleted items, otherwise a paragraph.
+return item.includes('•') ? `<li style="text-align:left; list-style-position: inside;">${item.replace('•', '').trim()}</li>` : `<p>${item}</p>`;
+}).join('');
+// Clean up any stray opening tags
+if (html.startsWith('<p></p>')) html = html.substring(3);
 } else {
 html = "<p>No content available.</p>";
 }
 contentEl.innerHTML = html;
-
 document.getElementById('info-modal-backdrop').style.display = 'flex';
 document.body.style.overflow = 'hidden';
 }
-
 function renderInfoCards(infoItems) {
 const container = document.getElementById('info-container');
 if (!infoItems || infoItems.length === 0) {
 container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>No information is available at this time.</h4>";
 return;
 }
-
 let html = '';
 infoItems.forEach((item, index) => {
+// Skip the long T&C and the login promo from the main Info menu for a cleaner look
+if (item.title === 'Duck Hunt 2025 – Terms & Conditions' || item.title === 'What is Duck Hunt?') return;
 html += `
 <div class="info-card-button glass-card" data-info-index="${index}">
 <h4>${item.title || 'Untitled'}</h4>
@@ -1514,113 +1538,88 @@ html += `
 `;
 });
 container.innerHTML = html;
-
 document.querySelectorAll('.info-card-button').forEach(button => {
 button.addEventListener('click', (e) => {
-const index = e.currentTarget.dataset.infoIndex;
-const infoItem = infoDataCache[index];
+const infoItem = infoDataCache.find(item => item.title === e.currentTarget.querySelector('h4').textContent);
 if (infoItem) {
 showInfoModal(infoItem.title, infoItem.content);
 }
 });
 });
 }
-
 async function fetchAndRenderInfoData() {
-const container = document.getElementById('info-container');
-const fiveMinutes = 5 * 60 * 1000;
-
-if (!infoDataCache || infoDataCache.length === 0) {
-container.innerHTML = '<div class="spinner" style="margin-top: 2rem;"></div>';
-}
-
-if (infoDataCache.length > 0 && infoDataFetchTime && (new Date() - infoDataFetchTime < fiveMinutes)) {
 renderInfoCards(infoDataCache);
-return;
-}
-
 const result = await postToAction('getInfoData');
 if (result.status === 'success') {
 updateRibbon(result.ribbonText);
-infoDataCache = result.infoItems || [];
-infoDataFetchTime = new Date();
-renderInfoCards(infoDataCache);
 } else {
 updateRibbon('');
-container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>Could not load information. Please try again later.</h4>";
 }
 }
 // --- UTILITY & NAVIGATION ---
 function startScanner() {
-    if (document.getElementById('hunt-page')?.classList.contains('active')) {
-        html5QrCode = new Html5Qrcode("qr-reader");
-        const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
-        const torchButton = document.getElementById('torch-toggle-btn');
-
-        console.log("QR SCANNER LOG: Attempting to start scanner...");
-        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
-            .then(() => {
-                console.log("QR SCANNER LOG: Scanner started successfully. Waiting to check for torch...");
-                setTimeout(() => {
-                    try {
-                        console.log("QR SCANNER LOG: Attempting to get camera track...");
-                        cameraTrack = html5QrCode.getRunningTrack();
-                        console.log("QR SCANNER LOG: Camera track obtained:", cameraTrack);
-                        if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
-                            const capabilities = cameraTrack.getCapabilities();
-                            console.log("QR SCANNER LOG: Track capabilities:", capabilities);
-                            if (capabilities && capabilities.torch) {
-                                console.log("QR SCANNER LOG: Torch supported! Showing button.");
-                                torchButton.classList.remove('hidden');
-                            } else {
-                                console.log("QR SCANNER LOG: Torch NOT supported by this camera track.");
-                            }
-                        } else {
-                            console.log("QR SCANNER LOG: Camera track or getCapabilities() is not available.");
-                        }
-                    } catch (e) {
-                        console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
-                        torchButton.classList.add('hidden');
-                    }
-                }, 500); // Wait 500ms for the camera to stabilize
-            })
-            .catch(err => {
-                console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
-            });
-    }
+if (document.getElementById('hunt-page')?.classList.contains('active')) {
+html5QrCode = new Html5Qrcode("qr-reader");
+const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
+const torchButton = document.getElementById('torch-toggle-btn');
+console.log("QR SCANNER LOG: Attempting to start scanner...");
+html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {})
+.then(() => {
+console.log("QR SCANNER LOG: Scanner started successfully. Waiting to check for torch...");
+setTimeout(() => {
+try {
+console.log("QR SCANNER LOG: Attempting to get camera track...");
+cameraTrack = html5QrCode.getRunningTrack();
+console.log("QR SCANNER LOG: Camera track obtained:", cameraTrack);
+if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
+const capabilities = cameraTrack.getCapabilities();
+console.log("QR SCANNER LOG: Track capabilities:", capabilities);
+if (capabilities && capabilities.torch) {
+console.log("QR SCANNER LOG: Torch supported! Showing button.");
+torchButton.classList.remove('hidden');
+} else {
+console.log("QR SCANNER LOG: Torch NOT supported by this camera track.");
 }
-
-
+} else {
+console.log("QR SCANNER LOG: Camera track or getCapabilities() is not available.");
+}
+} catch (e) {
+console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
+torchButton.classList.add('hidden');
+}
+}, 500);
+})
+.catch(err => {
+console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
+});
+}
+}
 function stopScanner() {
-    const torchButton = document.getElementById('torch-toggle-btn');
-    if (cameraTrack && cameraTrack.readyState === 'live') {
-        if (isTorchOn) {
-            cameraTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(()=>{});
-        }
-        cameraTrack.stop();
-    }
-    cameraTrack = null;
-    isTorchOn = false;
-    
-    if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().catch(err => {});
-    }
-    
-    if (torchButton) {
-        torchButton.classList.add('hidden');
-        torchButton.classList.remove('torch-on');
-    }
+const torchButton = document.getElementById('torch-toggle-btn');
+if (cameraTrack && cameraTrack.readyState === 'live') {
+if (isTorchOn) {
+cameraTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(()=>{});
 }
-
+cameraTrack.stop();
+}
+cameraTrack = null;
+isTorchOn = false;
+if (html5QrCode && html5QrCode.isScanning) {
+html5QrCode.stop().catch(err => {});
+}
+if (torchButton) {
+torchButton.classList.add('hidden');
+torchButton.classList.remove('torch-on');
+}
+}
 function logout() {
-    sessionStorage.removeItem('currentUserStudentId');
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    stopScanner();
-    currentUser = null;
-    location.reload();
+sessionStorage.removeItem('currentUserStudentId');
+if (batchSendTimer) clearInterval(batchSendTimer);
+if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+stopScanner();
+currentUser = null;
+location.reload();
 }
-
 function switchPage(pageId) {
 stopScanner();
 if (mapResizeObserver) {
@@ -1631,10 +1630,8 @@ document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active')
 document.getElementById(pageId)?.classList.add('active');
 document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
 document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
-
 const appContainer = document.getElementById('app-container');
 appContainer.scrollTop = 0;
-
 if (pageId === 'hunt-page') {
 updateUserDashboard(scanQueue.length === 0);
 setTimeout(startScanner, 250);
@@ -1643,7 +1640,7 @@ updateLeaderboard();
 } else if (pageId === 'log-page') {
 updateScanHistory();
 } else if (pageId === 'map-page') {
-initializeMap(); 
+initializeMap();
 } else if (pageId === 'info-page') {
 fetchAndRenderInfoData();
 }
@@ -1687,6 +1684,10 @@ if (studentId) signIn(studentId);
 });
 document.getElementById('submit-btn').addEventListener('click', registerUser);
 document.getElementById('register-btn').addEventListener('click', () => {
+const studentId = document.getElementById('login-studentid').value.trim();
+if (studentId) {
+document.getElementById('reg-studentid').value = studentId;
+}
 loginView.classList.add('hidden');
 registrationView.classList.remove('hidden');
 });
@@ -1707,23 +1708,21 @@ e.preventDefault();
 switchPage(e.target.dataset.page);
 });
 document.getElementById('logout-btn').addEventListener('click', logout);
-
 document.getElementById('torch-toggle-btn').addEventListener('click', () => {
-    if (cameraTrack) {
-        try {
-            const desiredState = !isTorchOn;
-            cameraTrack.applyConstraints({
-                advanced: [{ torch: desiredState }]
-            });
-            isTorchOn = desiredState;
-            document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
-        } catch(e) {
-            console.error("Failed to toggle torch:", e);
-            alert("Sorry, the flashlight could not be controlled.");
-        }
-    }
+if (cameraTrack) {
+try {
+const desiredState = !isTorchOn;
+cameraTrack.applyConstraints({
+advanced: [{ torch: desiredState }]
 });
-
+isTorchOn = desiredState;
+document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
+} catch(e) {
+console.error("Failed to toggle torch:", e);
+alert("Sorry, the flashlight could not be controlled.");
+}
+}
+});
 const modalBackdrop = document.getElementById('info-modal-backdrop');
 if (modalBackdrop) {
 document.getElementById('modal-close-btn').addEventListener('click', () => {
@@ -1737,6 +1736,28 @@ document.body.style.overflow = 'hidden';
 }
 }
 );
+// Handle click on "Terms & Conditions" link in the registration form
+const viewTermsLink = document.getElementById('view-terms-link');
+if (viewTermsLink) {
+viewTermsLink.addEventListener('click', (e) => {
+e.preventDefault();
+const infoItem = infoDataCache.find(item => item.title.includes('Terms & Conditions'));
+if (infoItem) {
+showInfoModal(infoItem.title, infoItem.content);
+}
+});
+}
+// Handle click on "What is Duck Hunt?" link on the login screen
+const whatIsDuckHuntLink = document.getElementById('what-is-duck-hunt-link');
+if (whatIsDuckHuntLink) {
+whatIsDuckHuntLink.addEventListener('click', (e) => {
+e.preventDefault();
+const infoItem = infoDataCache.find(item => item.title === 'What is Duck Hunt?');
+if (infoItem) {
+showInfoModal(infoItem.title, infoItem.content);
+}
+});
+}
 }
 });
 </script>
