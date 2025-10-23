@@ -208,7 +208,7 @@ text-shadow: 0 0 8px #fff !important;
 font-size: 1.8rem !important;
 }
 .footer-logo {
-height: 120px; /* Reverted to original 120px */
+height: 60px; /* SHRUNK for mobile clearance */
 margin: 0 auto 15px auto;
 display: block;
 object-fit: contain;
@@ -424,7 +424,23 @@ color: var(--green);
 #log-list .list-item .primary-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 0; }
 #log-list .list-item .secondary-text { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
 .button-group { display: flex; gap: 0.5rem; }
-.button-group button, .full-width-btn { flex: 1; border-radius: 10px; padding: 12px 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); transition: all 0.2s ease; box-shadow: var(--inset-shadow); min-height: 48px; box-sizing: border-box; display: flex; justify-content: center; align-items: center; }
+.button-group button, .full-width-btn { 
+flex: 1; 
+border-radius: 10px; 
+padding: 12px 15px; 
+font-size: 1rem; /* Slightly reduced button font size */
+font-weight: bold; 
+cursor: pointer; 
+border: 1px solid var(--glass-border-bottom); 
+border-top-color: var(--glass-border-top); 
+transition: all 0.2s ease; 
+box-shadow: var(--inset-shadow); 
+min-height: 44px; /* Slightly reduced button height */
+box-sizing: border-box; 
+display: flex; 
+justify-content: center; 
+align-items: center; 
+}
 .primary-btn { background-color: var(--green); color: white; border-color: rgba(255, 255, 255, 0.3); }
 .secondary-btn { background-color: rgba(0, 0, 0, 0.4); /* Darker Secondary Button */ color: white; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
 .primary-btn:hover, .secondary-btn:hover, .full-width-btn:hover { box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); border-color: var(--green); transform: translateY(-2px); }
@@ -472,7 +488,7 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-justify-content: space-between; /* Reverted to space-between for original spacing */
+justify-content: flex-start; /* Push content from the top */
 align-items: center;
 overflow-y: auto; 
 padding-top: calc(var(--safe-padding) + var(--safe-area-top));
@@ -499,9 +515,8 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-margin-bottom: 1.5rem; 
-padding-bottom: 0; 
-margin-top: auto; /* Reverted to auto to push it to the middle/top-ish */
+margin: 100px auto 10px auto; /* Centered horizontally, pushed down 100px to clear instructions */
+flex-shrink: 0;
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
@@ -521,9 +536,10 @@ display: flex;
 flex-direction: column;
 justify-content: center;
 align-items: center;
+margin-top: 30px; /* Added extra space below the card */
 }
 .footer-logo {
-height: 120px; /* Final size */
+height: 60px; /* Reverted to 60px */
 margin: 0 auto 15px auto; 
 display: block;
 object-fit: contain;
@@ -740,7 +756,7 @@ transform: translateY(-2px);
 <div id="qr-reader"></div>
 <button id="torch-toggle-btn" class="hidden">
 <svg viewBox="0 0 24 24" width="24" height="24">
-<path fill="currentColor" d="M9,2A1,1 0 0,0 8,3V4A1,1 0 0,0 9,5H15A1,1 0 0,0 16,4V3A1,1 0 0,0 15,2H9M9,6A1,1 0 0,0 8,7V8A1,1 0 0,0 9,9H15A1,1 0 0,0 16,8V7A1,1 0 0,0 15,6H9M8,10V20A2,2 0,0 10,22H14A2,2 0,0 16,20V10H8Z"></path>
+<path fill="currentColor" d="M9,2A1,1 0 0,0 8,3V4A1,1 0 0,0 9,5H15A1,1 0 0,0 16,4V3A1,1 0 0,0 15,2H9M9,6A1,1 0 0,0 8,7V8A1,1 0 0,0 9,9H15A1,1 0 0,0 16,8V7A1,1 0 0,0 15,6H9M8,10V20A2,2 0 0,0 10,22H14A2,2 0 0,0 16,20V10H8Z"></path>
 </svg>
 </button>
 </div>
@@ -883,7 +899,7 @@ const infoDataCache = [
         "**5. Fair Play & Integrity**",
         "Duck Hunt is meant to be a fun, fair, and community-focused event. The following actions are strictly prohibited: Hacking, altering, or exploiting the website or QR code system. Sharing duck links, screenshots, or QR codes online. Using bots, automation, or fake accounts to collect ducks. Registering under multiple names or providing false information. If cheating or manipulation is detected, the participant’s account and points may be removed.",
         "**6. Safety & Conduct**",
-        "Participants are expected to play responsibly and respect the GCU campus community. Do not enter restricted, staff-only, or unsafe areas. Avoid disrupting classes, offices, or campus operations. Stay aware of your surroundings while exploring. Be courteous to others and uphold GCU’s community standards. Duck Hunt is designed to celebrate GCU spirit and promote Lip Sync 2025, not to interfere with campus life.",
+        "Participants are expected to play responsibly and respect the GCU campus community. Do not enter restricted, staff-only, or unsafe areas. Avoid disrupting classes, offices, or campus operations. Stay aware of your surroundings while exploring. Be courteous to others and uphold GCU’s community standards. Duck Hunt is designed to celebrate GCU spirit and promote Lip Sync, not to interfere with campus life.",
         "**7. Prizes**",
         "The top three players on the final leaderboard will win the following prizes: 🥇 First Place: VIP Lip Sync tickets for up to four people. 🥈 Second Place: Free Stampede for two months. 🥉 Third Place: $200 Lope Shop shopping spree with Thunder. Winners will be contacted through cab@gcu.edu once results are finalized.",
         "**8. Event Schedule**",
