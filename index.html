@@ -488,10 +488,11 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-justify-content: center; /* Center content block and footer together */
+justify-content: flex-start; /* Aligns content from top */
 align-items: center;
 overflow-y: auto; 
-padding-top: calc(var(--safe-padding) + var(--safe-area-top));
+/* Calculate minimum required padding below instructions card + desired space */
+padding-top: calc(100px + var(--safe-area-top)); 
 padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
 }
 .reg-input, #login-studentid { background: rgba(0, 0, 0, 0.3); /* Darker Input Background */ border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow); }
@@ -515,7 +516,7 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-margin: 100px auto 10px auto; /* Pushed down 100px to clear instructions */
+margin: auto; /* Uses auto margins for perfect vertical centering within the scrollable content area */
 flex-shrink: 0;
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
