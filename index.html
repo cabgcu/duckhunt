@@ -319,6 +319,20 @@ width: 100%;
 max-width: 450px;
 margin: 0 auto;
 }
+/* IMPORTANT: Added padding bottom to clear the fixed tab bar */
+#info-page {
+    padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+}
+#leaderboard-page {
+    padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+}
+#log-page {
+    padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+}
+#map-page {
+    padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+}
+
 #leaderboard-list, #log-list {
 list-style: none;
 padding: 0;
@@ -517,7 +531,7 @@ width: 85%;
 max-width: 300px; 
 /* This calc ensures the card is offset from the top instruction bar 
    and horizontally centered in the available space. */
-margin-top: calc(65px + var(--safe-area-top)); 
+margin-top: calc(85px + var(--safe-area-top)); /* INCREASED TOP MARGIN */
 margin-bottom: 10px; /* Space above footer */
 margin-left: auto; /* Centering fix */
 margin-right: auto; /* Centering fix */
@@ -544,7 +558,7 @@ align-items: center;
 margin-top: 30px; /* Added extra space below the card */
 }
 .footer-logo {
-height: 60px; /* Final size */
+height: 80px; /* Final size */
 margin: 0 auto 15px auto; 
 display: block;
 object-fit: contain;
