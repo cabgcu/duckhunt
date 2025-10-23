@@ -209,7 +209,7 @@ text-shadow: 0 0 8px #fff !important;
 font-size: 1.8rem !important;
 }
 .footer-logo {
-height: 60px;
+height: 60px; /* Final size */
 margin: 0 auto 15px auto;
 display: block;
 object-fit: contain;
@@ -530,12 +530,12 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-/* Using calc() for centered offset: (screen_height / 2) - (card_content_height / 2) */
-/* The value 120px compensates for the instruction bar height and ensures it looks centered. */
-margin-top: calc(50vh - 120px); 
-margin-bottom: 10px; /* Space above footer */
-margin-left: auto; /* Centering fix */
-margin-right: auto; /* Centering fix */
+/* This calc centers the card in the viewport and then offsets it down by half the height of the instruction bar, 
+   ensuring it looks balanced. */
+margin-top: calc(50vh - 140px); /* Adjusted calc value */
+margin-bottom: 10px; 
+margin-left: auto; 
+margin-right: auto; 
 flex-shrink: 0;
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
