@@ -346,6 +346,7 @@ position: relative;
 width: 90%;
 max-width: 400px;
 padding: 1.5rem;
+max-height: 90vh; 
 }
 #modal-close-btn {
 position: absolute;
@@ -366,8 +367,8 @@ text-align: center !important;
 #modal-content {
 text-align: center;
 padding: 0 0.5rem;
-max-height: 70vh;
-overflow-y: auto;
+max-height: calc(90vh - 120px); 
+overflow-y: auto; 
 }
 #modal-content ul {
 list-style-type: disc;
@@ -480,7 +481,7 @@ padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
 .reg-input, #login-studentid { background: rgba(0, 0, 0, 0.3); /* Darker Input Background */ border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow); }
 .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); }
 #instructions-card { position: absolute; top: calc(20px + var(--safe-area-top)); left: 50%; transform: translateX(-50%); padding: 0.8rem 1.2rem; border-radius: 12px; width: 90%; max-width: 450px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 101; }
-#header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; }
+#header-card { position: relative; width: 85%; max-width: 300px; margin-bottom: 1.5rem; padding-bottom: 20px; /* Added padding to ensure footer content clears buttons */ }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
 .terms-group { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9rem; margin-top: -0.5rem; }
@@ -491,7 +492,7 @@ padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
 .prize-list-small { text-align: center; list-style: none; padding: 0; margin: 0.5rem 0 0 0; font-size: 0.9rem; }
 .prize-list-small li { margin: 3px 0; }
 footer {
-position: relative; /* Changed from fixed to relative */
+position: relative;
 padding: 10px 10px calc(20px + var(--safe-area-bottom)) 10px;
 color: rgba(255, 255, 255, 0.7);
 font-size: 0.8rem;
@@ -499,7 +500,6 @@ display: flex;
 flex-direction: column;
 justify-content: center;
 align-items: center;
-/* Removed absolute/fixed positioning */
 }
 .footer-logo {
 height: 120px;
