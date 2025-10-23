@@ -488,11 +488,10 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-justify-content: flex-start; /* Aligns content from top */
+justify-content: center; /* Center content block and footer together */
 align-items: center;
 overflow-y: auto; 
-/* Calculate minimum required padding below instructions card + desired space */
-padding-top: calc(100px + var(--safe-area-top)); 
+padding-top: calc(var(--safe-padding) + var(--safe-area-top));
 padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
 }
 .reg-input, #login-studentid { background: rgba(0, 0, 0, 0.3); /* Darker Input Background */ border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow); }
@@ -516,7 +515,8 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-margin: auto; /* Uses auto margins for perfect vertical centering within the scrollable content area */
+/* Auto margins center the card vertically and horizontally */
+margin: auto; 
 flex-shrink: 0;
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -811,7 +811,7 @@ alt="Interactive Campus Map">
 </div>
 <script>
 // --- CONFIGURATION ---
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzgyRQZe5Y2A3W8YkVRwCPv7OAseEHpSDcBzUjy-EEAn9kXc2TWMOi4UtTTUz4PROD/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyj-yNx2DFQFVvCKtXjtPsUeHfiGm7DnX8Y1_ulNt76vCBHsB0m2TL-9D9ZHshJjtpM/exec';
 const POPUP_DURATION_MS = 2000;
 const BATCH_SEND_INTERVAL_MS = 15000;
 const DATA_REFRESH_INTERVAL_MS = 30000;
