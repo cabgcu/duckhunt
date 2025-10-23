@@ -34,12 +34,13 @@ body {
 margin: 0;
 background-color: #000;
 overflow-x: hidden;
-min-height: 100vh;
-min-height: 100svh;
+/* Removed min-height to allow full viewport control */
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 color: white;
 text-align: center;
 position: relative;
+height: 100vh; /* Ensures full viewport height */
+overflow: hidden; /* Prevents body scrolling */
 }
 .hidden { display: none !important; }
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
@@ -208,7 +209,7 @@ text-shadow: 0 0 8px #fff !important;
 font-size: 1.8rem !important;
 }
 .footer-logo {
-height: 80px; /* Increased to 80px */
+height: 60px;
 margin: 0 auto 15px auto;
 display: block;
 object-fit: contain;
@@ -529,12 +530,12 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-/* Using calc() for centering: (100svh/2) - (card_height/2) - (instructions_height/2) */
-/* This pushes the card lower than the pure center, compensating for the fixed bar above. */
-margin-top: calc(50vh - 170px); 
+/* Using calc() for centered offset: (screen_height / 2) - (card_content_height / 2) */
+/* The value 120px compensates for the instruction bar height and ensures it looks centered. */
+margin-top: calc(50vh - 120px); 
 margin-bottom: 10px; /* Space above footer */
-margin-left: auto; 
-margin-right: auto;
+margin-left: auto; /* Centering fix */
+margin-right: auto; /* Centering fix */
 flex-shrink: 0;
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -1635,20 +1636,32 @@ html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}
 console.log("QR SCANNER LOG: Scanner started successfully. Waiting to check for torch...");
 setTimeout(() => {
 try {
-const desiredState = !isTorchOn;
-cameraTrack.applyConstraints({
-advanced: [{ torch: desiredState }]
-});
-isTorchOn = desiredState;
-document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
-} catch(e) {
-console.error("Failed to toggle torch:", e);
-alert("Sorry, the flashlight could not be controlled.");
+cameraTrack = html5QrCode.getRunningTrack();
+console.log("QR SCANNER LOG: Attempting to get camera track...");
+cameraTrack = html5QrCode.getRunningTrack();
+console.log("QR SCANNER LOG: Camera track obtained:", cameraTrack);
+if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
+const capabilities = cameraTrack.getCapabilities();
+console.log("QR SCANNER LOG: Track capabilities:", capabilities);
+if (capabilities && capabilities.torch) {
+console.log("QR SCANNER LOG: Torch supported! Showing button.");
+torchButton.classList.remove('hidden');
+} else {
+console.log("QR SCANNER LOG: Torch NOT supported by this camera track.");
 }
+} else {
+console.log("QR SCANNER LOG: Camera track or getCapabilities() is not available.");
 }
+} catch (e) {
+console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
+torchButton.classList.add('hidden');
+}
+}, 500);
+})
+.catch(err => {
+console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
 });
 }
-});
 }
 function stopScanner() {
 const torchButton = document.getElementById('torch-toggle-btn');
