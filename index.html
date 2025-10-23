@@ -502,7 +502,7 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-justify-content: center; /* Center content block and footer together */
+justify-content: center; /* Centers items as a column */
 align-items: center;
 overflow-y: auto; 
 padding-top: calc(var(--safe-padding) + var(--safe-area-top));
@@ -529,12 +529,12 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-/* This calc ensures the card is offset from the top instruction bar 
-   and horizontally centered in the available space. */
-margin-top: calc(85px + var(--safe-area-top)); /* INCREASED TOP MARGIN */
+/* Using calc() for centering: (100svh/2) - (card_height/2) - (instructions_height/2) */
+/* This pushes the card lower than the pure center, compensating for the fixed bar above. */
+margin-top: calc(50vh - 170px); 
 margin-bottom: 10px; /* Space above footer */
-margin-left: auto; /* Centering fix */
-margin-right: auto; /* Centering fix */
+margin-left: auto; 
+margin-right: auto;
 flex-shrink: 0;
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -558,7 +558,7 @@ align-items: center;
 margin-top: 30px; /* Added extra space below the card */
 }
 .footer-logo {
-height: 80px; /* Final size */
+height: 60px; /* Final size */
 margin: 0 auto 15px auto; 
 display: block;
 object-fit: contain;
@@ -1635,31 +1635,20 @@ html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, () => {}
 console.log("QR SCANNER LOG: Scanner started successfully. Waiting to check for torch...");
 setTimeout(() => {
 try {
-console.log("QR SCANNER LOG: Attempting to get camera track...");
-cameraTrack = html5QrCode.getRunningTrack();
-console.log("QR SCANNER LOG: Camera track obtained:", cameraTrack);
-if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
-const capabilities = cameraTrack.getCapabilities();
-console.log("QR SCANNER LOG: Track capabilities:", capabilities);
-if (capabilities && capabilities.torch) {
-console.log("QR SCANNER LOG: Torch supported! Showing button.");
-torchButton.classList.remove('hidden');
-} else {
-console.log("QR SCANNER LOG: Torch NOT supported by this camera track.");
+const desiredState = !isTorchOn;
+cameraTrack.applyConstraints({
+advanced: [{ torch: desiredState }]
+});
+isTorchOn = desiredState;
+document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
+} catch(e) {
+console.error("Failed to toggle torch:", e);
+alert("Sorry, the flashlight could not be controlled.");
 }
-} else {
-console.log("QR SCANNER LOG: Camera track or getCapabilities() is not available.");
 }
-} catch (e) {
-console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
-torchButton.classList.add('hidden');
-}
-}, 500);
-})
-.catch(err => {
-console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
 });
 }
+});
 }
 function stopScanner() {
 const torchButton = document.getElementById('torch-toggle-btn');
