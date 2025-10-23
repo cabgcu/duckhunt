@@ -34,7 +34,6 @@ body {
 margin: 0;
 background-color: #000;
 overflow-x: hidden;
-/* Removed min-height to allow full viewport control */
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 color: white;
 text-align: center;
@@ -503,9 +502,10 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-justify-content: center; /* Centers items as a column */
+/* Centers items as a column */
+justify-content: center; 
 align-items: center;
-overflow-y: auto; 
+/* Removed scroll, now rely on viewport sizing */
 padding-top: calc(var(--safe-padding) + var(--safe-area-top));
 padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
 }
@@ -530,8 +530,8 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-/* This calc centers the card in the viewport and then offsets it down by a slightly smaller value than before. */
-margin-top: calc(50vh - 100px); /* Adjusted calc value to move it up */
+/* FIX: Adjusted the top margin to pull it up slightly more (50vh - 100px) */
+margin-top: calc(50vh - 100px); 
 margin-bottom: 10px; /* Space above footer */
 margin-left: auto; /* Centering fix */
 margin-right: auto; /* Centering fix */
@@ -713,11 +713,6 @@ background-color: rgba(255, 100, 100, 0.2);
 border-color: rgba(255, 100, 100, 0.4);
 box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
 transform: translateY(-2px);
-}
-.info-card-button:active, .info-card-button:focus:not([disabled]) {
-    box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); 
-    border-color: var(--green); 
-    transform: translateY(-2px);
 }
 </style>
 </head>
