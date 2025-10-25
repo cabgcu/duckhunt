@@ -1,46 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Duck Hunt 2025</title>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-<style>
-:root {
---green: #60A34D;
---pink: #ff69b4;
---gold: #FFD700;
---background-start: #1c0f29;
---background-end: #0c0a15;
---glass-bg: rgba(0, 0, 0, 0.4); /* Darker Glass */
---glass-blur: 24px;
---glass-border-top: rgba(255, 255, 255, 0.15); /* Slightly less visible top border */
---glass-border-bottom: rgba(255, 255, 255, 0.03); /* Darker bottom border */
---glass-shadow: none;
---inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05); /* Darker inset shadow */
---highlight-color: #ffffff;
---glow-color: rgba(96, 163, 77, 0.8);
---active-glow: 0 0 12px rgba(96, 163, 77, 0.9);
---tab-bar-height: 65px;
---safe-padding: 1rem;
---ribbon-height: 40px;
---frosted-black: rgba(0, 0, 0, 0.85); /* Darker Frosted Black */
---safe-area-top: env(safe-area-inset-top, 0px);
---safe-area-bottom: env(safe-area-inset-bottom, 0px);
---safe-area-left: env(safe-area-inset-left, 0px);
---safe-area-right: env(safe-area-inset-right, 0px);
-}
-body {
-margin: 0;
-background-color: #000;
-overflow-x: hidden;
-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-color: white;
-text-align: center;
-position: relative;
-height: 100vh; /* Ensures full viewport height */
-overflow: hidden; /* Prevents body scrolling */
-}
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"><title>Duck Hunt 2025</title><script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script><style>:root {--green: #60A34D;--pink: #ff69b4;--gold: #FFD700;--background-start: #1c0f29;--background-end: #0c0a15;--glass-bg: rgba(0, 0, 0, 0.4);--glass-blur: 24px;--glass-border-top: rgba(255, 255, 255, 0.15);--glass-border-bottom: rgba(255, 255, 255, 0.03);--glass-shadow: none;--inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);--highlight-color: #ffffff;--glow-color: rgba(96, 163, 77, 0.8);--active-glow: 0 0 12px rgba(96, 163, 77, 0.9);--tab-bar-height: 65px;--safe-padding: 1rem;--ribbon-height: 40px;--frosted-black: rgba(0, 0, 0, 0.85);--safe-area-top: env(safe-area-inset-top, 0px);--safe-area-bottom: env(safe-area-inset-bottom, 0px);--safe-area-left: env(safe-area-inset-left, 0px);--safe-area-right: env(safe-area-inset-right, 0px);}body {margin: 0;background-color: #000;overflow-x: hidden;font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;color: white;text-align: center;position: relative;height: 100vh;overflow: hidden;}
 .hidden { display: none !important; }
 .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 3px solid #fff; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -635,7 +593,7 @@ opacity: 0.5;
 position: absolute;
 width: 50px;
 height: 50px;
-background-image: url('https://i.imgur.com/S23bWc.png');
+background-image: url('https://i.imgur.com/S23b6Wc.png');
 background-size: contain;
 background-repeat: no-repeat;
 opacity: 0;
@@ -828,11 +786,13 @@ alt="Interactive Campus Map">
 </div>
 <script>
 // --- CONFIGURATION ---
-// ⚠️ CRITICAL: Replace this with the URL you get after redeploying the optimized Google Apps Script.
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzos8nCC0PpEQ_AaOiVjkkS4J8i4HRsa8aTX4rMDm5LNCMhSTRmU1KgpqLK2nNI2Awx/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrHtTGyiqUJxbUhKzgwgE9EO87kHJaje7lhF582IpFcsjo3xslPY2yfo0bq63LuTGM/exec';
 const POPUP_DURATION_MS = 2000;
-const BATCH_SEND_INTERVAL_MS = 45000; // Increased to 45 seconds for better backend throughput
-const DATA_REFRESH_INTERVAL_MS = 60000; // Increased to 1 minute to reduce continuous load
+// 🚀 PERFORMANCE TWEAK: Increased batch send interval to 60 seconds.
+// This creates larger batches and reduces the number of calls to the server,
+// which is essential for handling 300+ concurrent users.
+const BATCH_SEND_INTERVAL_MS = 60000;
+const DATA_REFRESH_INTERVAL_MS = 60000; // Increased for performance
 const VIRTUAL_LIMIT = 10;
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 const MAP_SPOTS = [
@@ -863,94 +823,94 @@ const mapImageElement = document.getElementById('campus-map-img');
 // Pre-populated Info Data (Refactored)
 const infoDataCache = [
 {
-    title: 'How to Play & Duck Types',
-    content: [
-        "**Get Started:** Use the **Scanner** tab to find and scan QR codes hidden around campus. The **Map** shows general areas where ducks are still available.",
-        "**Earn Points:** Each duck grants points depending on its type. Only the **first student** to scan a unique code earns the points; after that, the code is inactive (a 'dead code').",
-        "**Track Progress:** Check the **Leaderboard** for your rank and use **Scan History** to track your finds.",
-        "**Event Dates:** Virtual ducks start the week of **October 27th**. The physical hunt runs from **November 3rd to November 8th**.",
-        "",
-        "**Duck Values:**",
-        "🥇 Golden Duck (3 total): **2,000 pts**",
-        "👑 Student Engagement Duck: **1,000 pts**",
-        "🦆 Physical Ducks (3,000+ total): **100 pts**",
-        "💻 Virtual Ducks (Max " + VIRTUAL_LIMIT + "/day): **25 pts**"
-    ]
+    title: 'How to Play & Duck Types',
+    content: [
+        "**Get Started:** Use the **Scanner** tab to find and scan QR codes hidden around campus. The **Map** shows general areas where ducks are still available.",
+        "**Earn Points:** Each duck grants points depending on its type. Only the **first student** to scan a unique code earns the points; after that, the code is inactive (a 'dead code').",
+        "**Track Progress:** Check the **Leaderboard** for your rank and use **Scan History** to track your finds.",
+        "**Event Dates:** Virtual ducks start the week of **October 27th**. The physical hunt runs from **November 3rd to November 8th**.",
+        "",
+        "**Duck Values:**",
+        "🥇 Golden Duck (3 total): **2,000 pts**",
+        "👑 Student Engagement Duck: **1,000 pts**",
+        "🦆 Physical Ducks (3,000+ total): **100 pts**",
+        "💻 Virtual Ducks (Max " + VIRTUAL_LIMIT + "/day): **25 pts**"
+    ]
 },
 {
-    title: 'Prizes & Eligibility (The Stakes)',
-    content: [
-        "The **TOP THREE POINT EARNERS** on the final leaderboard will win massive prizes to celebrate Lip Sync 2025!",
-        "",
-        "### Grand Prizes:",
-        "🥇 **1st Place: VIP Lip Sync Experience!**",
-        "Get VIP tickets for up to four people.",
-        "🥈 **2nd Place: Stampede Fuel!**",
-        "Enjoy free Stampede for two months.",
-        "🥉 **3rd Place: Lope Shop Shopping Spree!**",
-        "Win a $200 Lope Shop shopping spree with Thunder.",
-        "",
-        "**Eligibility:** You must be a verified GCU student with a valid **@my.gcu.edu** email and only **one account** per student is permitted to claim a prize."
-    ]
+    title: 'Prizes & Eligibility (The Stakes)',
+    content: [
+        "The **TOP THREE POINT EARNERS** on the final leaderboard will win massive prizes to celebrate Lip Sync 2025!",
+        "",
+        "### Grand Prizes:",
+        "🥇 **1st Place: VIP Lip Sync Experience!**",
+        "Get VIP tickets for up to four people.",
+        "🥈 **2nd Place: Stampede Fuel!**",
+        "Enjoy free Stampede for two months.",
+        "🥉 **3rd Place: Lope Shop Shopping Spree!**",
+        "Win a $200 Lope Shop shopping spree with Thunder.",
+        "",
+        "**Eligibility:** You must be a verified GCU student with a valid **@my.gcu.edu** email and only **one account** per student is permitted to claim a prize."
+    ]
 },
 {
-    title: 'Fair Play Rules',
-    content: [
-        "Play fair and respect all other participants and campus property.",
-        "Do **NOT** share duck links, screenshots, or QR codes online.",
-        "Do **NOT** hack, alter, or interfere with the website or QR system.",
-        "Do **NOT** enter restricted, staff-only, or unsafe areas.",
-        "Uphold GCU’s community standards and have fun promoting Lip Sync 2025!"
-    ]
+    title: 'Fair Play Rules',
+    content: [
+        "Play fair and respect all other participants and campus property.",
+        "Do **NOT** share duck links, screenshots, or QR codes online.",
+        "Do **NOT** hack, alter, or interfere with the website or QR system.",
+        "Do **NOT** enter restricted, staff-only, or unsafe areas.",
+        "Uphold GCU’s community standards and have fun promoting Lip Sync 2025!"
+    ]
 },
 {
-    title: 'Duck Hunt 2025 – Terms & Conditions',
-    content: [
-        "**1. Purpose**",
-        "Duck Hunt 2025 is a campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) at Grand Canyon University, created to promote and celebrate Lip Sync 2025. The event encourages students to explore campus, connect with others, and show school spirit through a fun, interactive competition. Participants will search for hidden ducks, scan their unique QR codes, and compete to reach the top of the leaderboard for prizes.",
-        "**2. Eligibility**",
-        "Participation is open exclusively to GCU traditional on-ground students and commuter traditional students. All participants must register using their Student ID and @my.gcu.edu email address. Each student may only have one account. Duplicate or shared accounts are not permitted.",
-        "**3. How to Play**",
-        "Visit cabgcuduckhunt.com and log in using your GCU student information. Find QR-coded “ducks” hidden around campus. Scan each duck through the Duck Hunt web app to earn points. Once a duck is scanned by any player, it becomes inactive (“dead code”) and cannot be reused.",
-        "**Duck Types & Point Values:** Golden Ducks (3 total): 2,000 points each. Student Engagement Ducks: 1,000 points each. Physical Ducks (3,000+ hidden): 100 points each. Virtual Ducks (10,000 total): 25 points each. Virtual Ducks can be found at the Commuter Lounge, Thunderground, The Riverbed, and the Multicultural Office, as well as at CAB events and on promotional flyers.",
-        "**4. Special Ducks**",
-        "Each Student Engagement group receives one Special Duck worth 1,000 points. Groups have complete freedom in how they distribute their duck—whether through an event, social media challenge, or creative campus placement. Groups are asked to release their Special Duck no earlier than November 3rd, when the physical hunt begins. The student who finds and scans the Special Duck first automatically earns 1,000 points and keeps the duck as a souvenir.",
-        "**5. Fair Play & Integrity**",
-        "Duck Hunt is meant to be a fun, fair, and community-focused event. The following actions are strictly prohibited: Hacking, altering, or exploiting the website or QR code system. Sharing duck links, screenshots, or QR codes online. Using bots, automation, or fake accounts to collect ducks. Registering under multiple names or providing false information. If cheating or manipulation is detected, the participant’s account and points may be removed.",
-        "**6. Safety & Conduct**",
-        "Participants are expected to play responsibly and respect the GCU campus community. Do not enter restricted, staff-only, or unsafe areas. Avoid disrupting classes, offices, or campus operations. Stay aware of your surroundings while exploring. Be courteous to others and uphold GCU’s community standards. Duck Hunt is designed to celebrate GCU spirit and promote Lip Sync 2025, not to interfere with campus life.",
-        "**7. Prizes**",
-        "The top three players on the final leaderboard will win the following prizes: 🥇 First Place: VIP Lip Sync tickets for up to four people. 🥈 Second Place: Free Stampede for two months. 🥉 Third Place: $200 Lope Shop shopping spree with Thunder. Winners will be contacted through cab@gcu.edu once results are finalized.",
-        "**8. Event Schedule**",
-        "Virtual Duck Launch: Week of October 27, 2025. Physical Hunt: November 3 – November 8, 2025.",
-        "**9. Privacy & Data**",
-        "By registering, participants agree to share limited information (name, Student ID, and GCU email) used only for event participation, leaderboard tracking, and prize notification. Leaderboard names will display as first name + last initial for privacy.",
-        "**10. Agreement**",
-        "By registering and participating in Duck Hunt 2025, you acknowledge that you have read and agree to these Terms & Conditions. Duck Hunt exists to build campus spirit, encourage friendly competition, and promote Lip Sync 2025 in a positive, engaging way."
-    ]
+    title: 'Duck Hunt 2025 – Terms & Conditions',
+    content: [
+        "**1. Purpose**",
+        "Duck Hunt 2025 is a campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) at Grand Canyon University, created to promote and celebrate Lip Sync 2025. The event encourages students to explore campus, connect with others, and show school spirit through a fun, interactive competition. Participants will search for hidden ducks, scan their unique QR codes, and compete to reach the top of the leaderboard for prizes.",
+        "**2. Eligibility**",
+        "Participation is open exclusively to GCU traditional on-ground students and commuter traditional students. All participants must register using their Student ID and @my.gcu.edu email address. Each student may only have one account. Duplicate or shared accounts are not permitted.",
+        "**3. How to Play**",
+        "Visit cabgcuduckhunt.com and log in using your GCU student information. Find QR-coded “ducks” hidden around campus. Scan each duck through the Duck Hunt web app to earn points. Once a duck is scanned by any player, it becomes inactive (“dead code”) and cannot be reused.",
+        "**Duck Types & Point Values:** Golden Ducks (3 total): 2,000 points each. Student Engagement Ducks: 1,000 points each. Physical Ducks (3,000+ total): 100 points each. Virtual Ducks (10,000 total): 25 points each. Virtual Ducks can be found at the Commuter Lounge, Thunderground, The Riverbed, and the Multicultural Office, as well as at CAB events and on promotional flyers.",
+        "**4. Special Ducks**",
+        "Each Student Engagement group receives one Special Duck worth 1,000 points. Groups have complete freedom in how they distribute their duck—whether through an event, social media challenge, or creative campus placement. Groups are asked to release their Special Duck no earlier than November 3rd, when the physical hunt begins. The student who finds and scans the Special Duck first automatically earns 1,000 points and keeps the duck as a souvenir.",
+        "**5. Fair Play & Integrity**",
+        "Duck Hunt is meant to be a fun, fair, and community-focused event. The following actions are strictly prohibited: Hacking, altering, or exploiting the website or QR code system. Sharing duck links, screenshots, or QR codes online. Using bots, automation, or fake accounts to collect ducks. Registering under multiple names or providing false information. If cheating or manipulation is detected, the participant’s account and points may be removed.",
+        "**6. Safety & Conduct**",
+        "Participants are expected to play responsibly and respect the GCU campus community. Do not enter restricted, staff-only, or unsafe areas. Avoid disrupting classes, offices, or campus operations. Stay aware of your surroundings while exploring. Be courteous to others and uphold GCU’s community standards. Duck Hunt is designed to celebrate GCU spirit and promote Lip Sync 2025, not to interfere with campus life.",
+        "**7. Prizes**",
+        "The top three players on the final leaderboard will win the following prizes: 🥇 First Place: VIP Lip Sync tickets for up to four people. 🥈 Second Place: Free Stampede for two months. 🥉 Third Place: $200 Lope Shop shopping spree with Thunder. Winners will be contacted through cab@gcu.edu once results are finalized.",
+        "**8. Event Schedule**",
+        "Virtual Duck Launch: Week of October 27, 2025. Physical Hunt: November 3 – November 8, 2025.",
+        "**9. Privacy & Data**",
+        "By registering, participants agree to share limited information (name, Student ID, and GCU email) used only for event participation, leaderboard tracking, and prize notification. Leaderboard names will display as first name + last initial for privacy.",
+        "**10. Agreement**",
+        "By registering and participating in Duck Hunt 2025, you acknowledge that you have read and agree to these Terms & Conditions. Duck Hunt exists to build campus spirit, encourage friendly competition, and promote Lip Sync 2025 in a positive, engaging way."
+    ]
 },
 {
-    title: 'What is Duck Hunt?',
-    content: [
-        "Duck Hunt is the ultimate campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) to celebrate Lip Sync 2025!",
-        "Students find hidden QR-coded ducks, scan them to earn points, and compete for massive prizes at the top of the leaderboard.",
-        "",
-        "**Event Dates:** Virtual Hunt starts **October 27th**. Physical Hunt runs **November 3rd - November 8th**.",
-        "",
-        "### Prizes:",
-        "🥇 **1st Place:** VIP Lip Sync Tickets",
-        "🥈 **2nd Place:** 2 Months Free Stampede",
-        "🥉 **3rd Place:** $200 Lope Shop Spree",
-        "",
-        "### Check out the Lip Sync 2025 Promo Video!",
-        `<iframe width="100%" height="200" src="https://www.youtube.com/embed/6I-lgo3Vu_8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
-        "",
-        "Ready to hunt? Sign in above!"
-    ]
+    title: 'What is Duck Hunt?',
+    content: [
+        "Duck Hunt is the ultimate campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) to celebrate Lip Sync 2025!",
+        "Students find hidden QR-coded ducks, scan them to earn points, and compete for massive prizes at the top of the leaderboard.",
+        "",
+        "**Event Dates:** Virtual Hunt starts **October 27th**. Physical Hunt runs **November 3rd - November 8th**.",
+        "",
+        "### Prizes:",
+        "🥇 **1st Place:** VIP Lip Sync Tickets",
+        "🥈 **2nd Place:** 2 Months Free Stampede",
+        "🥉 **3rd Place:** $200 Lope Shop Spree",
+        "",
+        "### Check out the Lip Sync 2025 Promo Video!",
+        `<iframe width="100%" height="200" src="https://www.youtube.com/embed/6I-lgo3Vu_8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
+        "",
+        "Ready to hunt? Sign in above!"
+    ]
 },
 {
-    title: 'Contact & Support',
-    content: "Duck Hunt is hosted by the Canyon Activities Board (CAB). For questions or support, please contact us on Instagram at @CABGCU."
+    title: 'Contact & Support',
+    content: "Duck Hunt is hosted by the Canyon Activities Board (CAB). For questions or support, please contact us on Instagram at @CABGCU."
 }
 ];
 // --- CACHING & STATE ---
@@ -964,19 +924,16 @@ let dataRefreshTimer = null;
 let locationCountsCache = {};
 let pendingPoints = 0;
 let pendingDucks = 0;
-
+let scanHistoryCache = [];
 // --- PERSISTENCE FUNCTIONS ---
 function getQueueKey() {
-    // Uses studentId to save the queue uniquely for each user
     return 'scanQueue_' + (currentUser ? currentUser.studentId : 'guest');
 }
-
 function saveScanQueue() {
     if (currentUser) {
         localStorage.setItem(getQueueKey(), JSON.stringify(scanQueue));
     }
 }
-
 function loadScanQueue() {
     if (!currentUser) return;
     const savedQueue = localStorage.getItem(getQueueKey());
@@ -985,7 +942,8 @@ function loadScanQueue() {
             const parsedQueue = JSON.parse(savedQueue);
             if (Array.isArray(parsedQueue) && parsedQueue.length > 0) {
                 scanQueue = parsedQueue;
-                // Re-apply optimistic points from loaded queue
+                pendingPoints = 0;
+                pendingDucks = 0;
                 scanQueue.forEach(scan => {
                     const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
                     if (duckInfo) {
@@ -1002,8 +960,6 @@ function loadScanQueue() {
         }
     }
 }
-
-
 // --- MAP INTERACTION LOGIC ---
 const mapCardContainer = document.getElementById('map-card-container');
 let isPanning = false;
@@ -1070,6 +1026,7 @@ isPanning = true;
 updateLabelSizeOnPan();
 }
 async function updateDuckMapData() {
+// 🚀 This action now hits the server cache, making it fast
 const result = await postToAction('getDuckCounts');
 if (result.status === 'success' && result.locations) {
 locationCountsCache = {};
@@ -1097,6 +1054,7 @@ mapImageElement.onload = resolve;
 mapImageElement.onerror = resolve;
 }
 });
+// 🚀 This is now very fast because updateDuckMapData() is cached
 Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
 if (mapImageElement.naturalWidth > 0) {
 positionMarkers();
@@ -1262,42 +1220,6 @@ pointsEl.classList.remove('pending-update');
 ducksEl.classList.remove('pending-update');
 }
 }
-// --- PERSISTENCE FUNCTIONS (CRITICAL ADDITIONS) ---
-function getQueueKey() {
-    return 'scanQueue_' + (currentUser ? currentUser.studentId : 'guest');
-}
-
-function saveScanQueue() {
-    if (currentUser) {
-        localStorage.setItem(getQueueKey(), JSON.stringify(scanQueue));
-    }
-}
-
-function loadScanQueue() {
-    if (!currentUser) return;
-    const savedQueue = localStorage.getItem(getQueueKey());
-    if (savedQueue) {
-        try {
-            const parsedQueue = JSON.parse(savedQueue);
-            if (Array.isArray(parsedQueue) && parsedQueue.length > 0) {
-                scanQueue = parsedQueue;
-                scanQueue.forEach(scan => {
-                    const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
-                    if (duckInfo) {
-                        pendingPoints += duckInfo.points || 0;
-                        pendingDucks += 1;
-                    }
-                });
-                updateOptimisticDisplay();
-                showNotification(`Loaded ${scanQueue.length} pending scans from last session.`);
-            }
-        } catch(e) {
-            console.error("Error loading scan queue:", e);
-            localStorage.removeItem(getQueueKey());
-        }
-    }
-}
-// --- END PERSISTENCE FUNCTIONS ---
 async function onScanSuccess(decodedText) {
 if (!currentUser) return;
 const triggerVisualError = () => {
@@ -1315,6 +1237,7 @@ if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
 triggerVisualError();
 return;
 }
+// 🚀 This check uses the FAST cached duck data
 const duckInfo = duckDataCache[lookupId];
 if (!duckInfo) {
 triggerVisualError();
@@ -1326,7 +1249,7 @@ const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
 localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
 if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) {
 triggerVisualError();
-displayErrorPopup(`Daily limit of ${VIRTUAL_DUCK_DAILY_LIMIT} Virtual Ducks reached.`);
+displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
 triggerFrostAnimation();
 processingDucks.delete(lookupId);
 return;
@@ -1347,46 +1270,54 @@ triggerGoldenDuckAnimation();
 } else {
 triggerDuckAnimation();
 }
-// Force immediate send since we have a new scan
-sendBatchScans();
+// 🚀 PERFORMANCE: Removed the immediate send. The batch timer will handle this.
+// sendBatchScans();
 }
+// 🌟 CRITICAL: Modified sendBatchScans to return success status
 async function sendBatchScans() {
-if (scanQueue.length === 0) return;
-const scansToSend = [...scanQueue];
-scanQueue = [];
-const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase()));
-const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-sentDuckIds.forEach(id => processingDucks.delete(id));
-if (batchResult.status === "success") {
-// 🌟 CRITICAL: Clear the local storage queue on successful send 🌟
-localStorage.removeItem(getQueueKey());
-if (batchResult.updatedUser) {
-currentUser.points = batchResult.updatedUser.points;
-currentUser.duckCount = batchResult.updatedUser.duckCount;
-pendingPoints = 0;
-pendingDucks = 0;
-updateOptimisticDisplay();
-}
-if (batchResult.results) {
-batchResult.results.forEach(result => {
-const id = result.duckId.trim().toLowerCase();
-if (result.status === "success") {
-claimedDucksCache.add(id);
-} else {
-displayRevertPopup(result.message || "A duck was claimed just before you!");
-}
-});
-}
-} else {
-displayRevertPopup(batchResult.message || "A server error occurred.");
-// Re-add failed scans to the front of the queue and save to storage
-scanQueue = [...scansToSend, ...scanQueue];
-saveScanQueue();
-}
+    if (scanQueue.length === 0) return true;
+    const scansToSend = [...scanQueue];
+    // 🚀 Optimistic clear of the queue. If it fails, we'll restore it.
+    scanQueue = [];
+    const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase()));
+    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+    sentDuckIds.forEach(id => processingDucks.delete(id));
+    if (batchResult.status === "success") {
+        // 🌟 SUCCESS: Scans are saved. Clear the backup.
+        localStorage.removeItem(getQueueKey());
+        if (batchResult.updatedUser) {
+            currentUser.points = batchResult.updatedUser.points;
+            currentUser.duckCount = batchResult.updatedUser.duckCount;
+            pendingPoints = 0;
+            pendingDucks = 0;
+            updateOptimisticDisplay();
+        }
+        if (batchResult.results) {
+            batchResult.results.forEach(result => {
+                const id = result.duckId.trim().toLowerCase();
+                if (result.status === "success") {
+                    claimedDucksCache.add(id);
+                } else {
+                    // 🌟 A single scan failed (e.g., claimed by someone else).
+                    // This is NOT a total failure, so we just show the message.
+                    displayRevertPopup(result.message || "A duck was claimed just before you!");
+                }
+            });
+        }
+        return true; // Success
+    } else {
+        // 🌟 FAILURE: The entire batch failed (e.g., server error, offline).
+        // Restore the queue from our backup and re-save it.
+        displayRevertPopup(batchResult.message || "A server error occurred. Your scans are saved and will be retried.");
+        scanQueue = [...scansToSend, ...scanQueue];
+        saveScanQueue();
+        return false; // Failure
+    }
 }
 function periodicDataRefresh() {
 if (!currentUser) return;
 updateUserDashboard(true);
+// 🚀 This action now hits the server cache, making it fast
 postToAction('getClaimedDucks').then(result => {
 if (result.status === 'success' && Array.isArray(result.claimed)) {
 claimedDucksCache = new Set(result.claimed);
@@ -1403,22 +1334,34 @@ updateRibbon('');
 // --- APP INITIALIZATION & LOGIN ---
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
 currentUser = user;
+// 🚀 User object from the server now includes points AND duckCount
+// This makes login much faster.
 currentUser.duckCount = user.duckCount || 0;
 sessionStorage.setItem('currentUserStudentId', user.studentId);
+
+// 🚀 MODIFICATION: Define results outside the try block
+let duckResult, claimedDucksResult; 
 try {
-const [duckResult, claimedDucksResult] = await Promise.all([
+// 🚀 These now hit the server cache, making app start instant
+[duckResult, claimedDucksResult] = await Promise.all([
 postToAction('getDuckData'),
 postToAction('getClaimedDucks')
 ]);
-if (duckResult.status === "success") {
-duckDataCache = duckResult.ducks;
-} else { throw new Error("Failed to load duck data."); }
-if (claimedDucksResult.status === "success" && Array.isArray(claimedDucksResult.claimed)) {
-claimedDucksCache = new Set(claimedDucksResult.claimed);
+if (duckResult.status !== "success") { 
+    // 🚀 Pass the server's message to the error
+    throw new Error(duckResult.message || "Failed to load duck data."); 
 }
+duckDataCache = duckResult.ducks;
+
+if (claimedDucksResult.status !== "success" ) { 
+    throw new Error(claimedDucksResult.message || "Failed to load claimed ducks."); 
+}
+claimedDucksCache = new Set(claimedDucksResult.claimed);
+
 } catch (e) {
 console.error("Failed to load critical game data:", e);
-alert("Could not load critical game data. Please try again.");
+// 🚀 MODIFICATION: The error 'e' now contains the server's message
+alert(`Could not load critical game data.\n\nError: ${e.message}\n\nPlease check your Google Sheet deployment permissions (set to "Anyone") and your sheet tab names.`);
 if (loginButtonEl) {
 loginButtonEl.innerHTML = loginButtonContent;
 loginButtonEl.disabled = false;
@@ -1429,7 +1372,8 @@ if (loginButtonEl) {
 loginButtonEl.innerHTML = loginButtonContent;
 loginButtonEl.disabled = false;
 }
-// 🌟 CRITICAL: Load any pending scans immediately after signing in 🌟
+// 🌟 CRITICAL: Load any pending scans immediately after signing in
+// This is the core of the "data safety" feature.
 loadScanQueue();
 loginScreen.classList.remove('visible');
 appWrapper.classList.add('visible');
@@ -1442,6 +1386,8 @@ if (initialDuckId) {
 onScanSuccess(initialDuckId);
 initialDuckId = null;
 }
+// This background fetch is still useful for getting the ribbon text
+// and pre-loading scan history for the log page.
 try {
 const [historyResult, infoResult] = await Promise.all([
 postToAction('getScanHistory', { studentId: currentUser.studentId }),
@@ -1449,10 +1395,8 @@ postToAction('getInfoData')
 ]);
 if (Array.isArray(historyResult)) {
 scanHistoryCache = historyResult;
-// Only update duck count from history if local queue is empty
-if (scanQueue.length === 0) {
-currentUser.duckCount = historyResult.length;
-}
+// 🚀 We no longer need to calculate duck count from history,
+// but we still need to check for virtual scan limits.
 const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
 localVirtualScanTimestamps = historyResult
 .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
@@ -1465,15 +1409,18 @@ infoDataFetchTime = new Date();
 } catch (e) {
 console.error("Failed to load auxiliary data in background:", e);
 }
-await updateUserDashboard();
+// 🚀 This is now just a UI update, not a data fetch
+await updateUserDashboard(scanQueue.length === 0);
 }
 async function signIn(studentId) {
 const signinBtn = document.getElementById('signin-btn');
 const originalContent = signinBtn.innerHTML;
 signinBtn.innerHTML = '<div class="spinner"></div>';
 signinBtn.disabled = true;
+// 🚀 This is now a very fast call thanks to the new server logic
 const result = await postToAction('getUser', { studentId });
 if (result.status === "success") {
+// 🚀 showApp is now called almost instantly
 showApp(result.user, 'hunt-page', signinBtn, originalContent);
 } else {
 signinBtn.innerHTML = originalContent;
@@ -1505,6 +1452,7 @@ submitBtn.disabled = true;
 try {
 const result = await postToAction('registerUser', payload);
 if (result.status === "success") {
+// 🚀 Auto sign-in is also fast now
 const userResult = await postToAction('getUser', { studentId: payload.studentId });
 if (userResult.status === "success") {
 showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
@@ -1545,37 +1493,33 @@ function displayRevertPopup(message) {
 const revertPop = document.createElement('div');
 revertPop.className = 'point-pop';
 revertPop.style.background = '#f0ad4e';
-revertPop.innerHTML = `<strong>Points Reverted</strong><br><small>${message}</small>`;
+revertPop.innerHTML = `<strong>Scan Not Synced</strong><br><small>${message}</small>`;
 document.getElementById('qr-reader-container').appendChild(revertPop);
 setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 }
 async function updateUserDashboard(shouldUpdatePoints = true) {
 if (!currentUser) return;
+// 🚀 This function no longer needs to fetch user data if shouldUpdatePoints is true,
+// because the server's batchScanDucks response already updated currentUser.
+// This function is now just for updating Rank and Scan History.
 try {
-const fetches = [
-postToAction('getLeaderboard'),
-postToAction('getScanHistory', { studentId: currentUser.studentId })
-];
-if (shouldUpdatePoints) {
-fetches.unshift(postToAction('getUser', { studentId: currentUser.studentId }));
-}
-const responses = await Promise.all(fetches);
-let userResult, leaderboardData, historyResult;
 const hasPendingScans = scanQueue.length > 0;
+// 🚀 Only fetch user data if we DON'T have pending scans
+// and the server hasn't just given us an update.
 if (shouldUpdatePoints && !hasPendingScans) {
-userResult = responses.shift();
+const userResult = await postToAction('getUser', { studentId: currentUser.studentId });
 if (userResult.status === "success") {
 currentUser.points = userResult.user.points;
 currentUser.duckCount = userResult.user.duckCount;
 }
-} else if (shouldUpdatePoints) {
-responses.shift();
 }
+// Always update the display (even with pending points)
 updateOptimisticDisplay();
-const leaderboardIndex = shouldUpdatePoints ? 0 : 0;
-const historyIndex = shouldUpdatePoints ? 1 : 1;
-leaderboardData = responses[leaderboardIndex];
-historyResult = responses[historyIndex];
+// Always fetch leaderboard and history for rank/log
+const [leaderboardData, historyResult] = await Promise.all([
+postToAction('getLeaderboard'),
+postToAction('getScanHistory', { studentId: currentUser.studentId })
+]);
 document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 if (Array.isArray(leaderboardData)) {
 const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
@@ -1587,6 +1531,8 @@ document.getElementById('player-rank-display').textContent = rankText;
 }
 if (Array.isArray(historyResult)) {
 scanHistoryCache = historyResult;
+// 🚀 This check is important. We only trust the server's duck count
+// if our local scan queue is empty.
 if (!hasPendingScans) {
 currentUser.duckCount = historyResult.length;
 updateOptimisticDisplay();
@@ -1603,7 +1549,7 @@ listElement.innerHTML = `<li class="list-item glass-card" style="justify-content
 }
 const leaderboardData = await postToAction('getLeaderboard');
 if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
-listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet!</li>';
+listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet.</li>';
 return;
 }
 let html = '';
@@ -1612,7 +1558,9 @@ const rank = index + 1;
 const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
 const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
 const displayName = `${player.firstName} ${lastNameInitial}`;
-html += `<li class="list-item glass-card"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
+// 🚀 UI TWEAK: Added the duck count next to the points
+const duckText = player.duckCount > 0 ? `(${player.duckCount} 🦆)` : '';
+html += `<li class="list-item glass-card"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts ${duckText}</span></li>`;
 });
 listElement.innerHTML = html;
 }
@@ -1628,7 +1576,7 @@ listElement.innerHTML = '<li class="list-item glass-card" style="justify-content
 return;
 }
 let html = '';
-scanData.sort((a, b) => new Date(b.timestamp) - new Date(b.timestamp)).forEach(scan => {
+scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(scan => {
 const scanDate = new Date(scan.timestamp);
 const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const duckTypeDisplay = scan.duckType === 'Golden Duck' ? '🥇 Golden Duck' : scan.duckType || 'Duck';
@@ -1695,6 +1643,7 @@ html += `
 container.innerHTML = html;
 document.querySelectorAll('.info-card-button').forEach(button => {
 button.addEventListener('click', (e) => {
+// Use the index to find the correct item in the cache
 const infoItem = infoDataCache.find(item => item.title === e.currentTarget.querySelector('h4').textContent);
 if (infoItem) {
 showInfoModal(infoItem.title, infoItem.content);
@@ -1768,39 +1717,48 @@ torchButton.classList.add('hidden');
 torchButton.classList.remove('torch-on');
 }
 }
-// 🌟 CRITICAL: Modified logout to force batch send and wait 🌟
+// 🌟 CRITICAL: Modified logout for better data safety
 async function logout() {
+    // 🚀 Don't stop the user with a confirm() box.
+    // Just *try* to send the final batch. If it fails,
+    // the data is still saved and will sync on next login.
     if (scanQueue.length > 0) {
-        const confirmed = confirm(`You have ${scanQueue.length} pending duck scans. These must be sent before logging out. Click OK to send them now, or Cancel to stop.`);
-        if (!confirmed) return;
-        
-        showNotification("Sending final batch of scans...");
-        // Wait for the batch to send before proceeding
+        showNotification("Syncing final scans before logout...");
+        // We 'await' this, but we don't stop logout if it fails.
+        // The data is safe in localStorage either way.
         await sendBatchScans();
     }
-
+    
     sessionStorage.removeItem('currentUserStudentId');
     if (batchSendTimer) clearInterval(batchSendTimer);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
     stopScanner();
     currentUser = null;
-    localStorage.removeItem(getQueueKey()); // Final cleanup of local queue
+    // 🚀 We no longer remove the item from localStorage.
+    // We leave it there in case the final send failed,
+    // so it can be synced by the next user (if it's a shared device)
+    // or the same user if they log back in.
+    // The getQueueKey() is user-specific, so this is safe.
+    // localStorage.removeItem(getQueueKey());
     location.reload();
 }
-
-// 🌟 CRITICAL: Modified switchPage to trigger batch send if leaving the scanner 🌟
+// 🌟 CRITICAL: Modified switchPage to trigger batch send if leaving the scanner
 function switchPage(pageId) {
+    // 🚀 Check which page we are *leaving*
+    const isLeavingScanPage = document.getElementById('hunt-page')?.classList.contains('active');
+    
     stopScanner();
     if (mapResizeObserver) {
         mapResizeObserver.disconnect();
         mapResizeObserver = null;
     }
-
-    // Trigger batch scan if leaving the hunt-page with pending scans
-    if (scanQueue.length > 0 && document.getElementById('hunt-page')?.classList.contains('active')) {
+    
+    // 🚀 Trigger batch scan if leaving the hunt-page with pending scans
+    if (scanQueue.length > 0 && isLeavingScanPage) {
+        showNotification("Syncing scans...");
         sendBatchScans();
     }
-
+    
     document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId)?.classList.add('active');
     document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -1837,8 +1795,9 @@ el.style.left = '50%';
 el.style.transform = 'translateX(-50%)';
 el.style.zIndex = '999';
 el.style.width = '80%';
-el.maxWidth = '350px';
-el.innerHTML = `<p>${message}</p>`;
+el.style.maxWidth = '350px';
+el.style.transition = 'top 0.5s ease-out';
+el.innerHTML = `<p style="margin:0;">${message}</p>`;
 document.body.appendChild(el);
 setTimeout(() => el.style.top = '20px', 10);
 setTimeout(() => {
@@ -1852,6 +1811,7 @@ startRandomFadingDuckFeet();
 checkForInitialDuck();
 const savedStudentId = sessionStorage.getItem('currentUserStudentId');
 if (savedStudentId) {
+// 🚀 This sign-in is now fast
 signIn(savedStudentId);
 }
 document.getElementById('signin-btn').addEventListener('click', () => {
@@ -1876,12 +1836,8 @@ document.getElementById('instructions-card').style.display = 'none';
 });
 document.getElementById('tab-bar').addEventListener('click', (e) => {
 if (e.target.matches('.tab-button')) {
-// Handle navigation and batch sending if leaving the hunt page
-if (e.target.dataset.page !== 'hunt-page' && document.querySelector('#hunt-page.active')) {
-    switchPage(e.target.dataset.page);
-} else {
-    switchPage(e.target.dataset.page);
-}
+// The logic inside switchPage now handles the batch send check
+switchPage(e.target.dataset.page);
 }
 });
 document.getElementById('scan-history-link').addEventListener('click', (e) => {
@@ -1908,12 +1864,12 @@ const modalBackdrop = document.getElementById('info-modal-backdrop');
 if (modalBackdrop) {
 document.getElementById('modal-close-btn').addEventListener('click', () => {
 modalBackdrop.style.display = 'none';
-document.body.style.overflow = 'hidden';
+document.body.style.overflow = '';
 });
 modalBackdrop.addEventListener('click', (e) => {
 if (e.target.id === 'info-modal-backdrop') {
 modalBackdrop.style.display = 'none';
-document.body.style.overflow = 'hidden';
+document.body.style.overflow = '';
 }
 }
 );
