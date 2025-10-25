@@ -502,10 +502,9 @@ width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-/* Centers items as a column */
-justify-content: flex-start; /* IMPORTANT: Allows margin-top to control vertical position */
+justify-content: flex-start; 
 align-items: center;
-overflow-y: hidden; /* IMPORTANT: Prevents scrolling */
+overflow-y: hidden; /* Prevents scrollbar */
 padding-top: calc(var(--safe-padding) + var(--safe-area-top));
 padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
 }
@@ -531,7 +530,7 @@ position: relative;
 width: 85%; 
 max-width: 300px; 
 /* **PERMANENT COORDINATE FIX** */
-margin-top: 227px; 
+margin-top: 210px; 
 margin-bottom: 10px; /* Space above footer */
 margin-left: auto; /* Centering fix */
 margin-right: auto; /* Centering fix */
@@ -810,7 +809,7 @@ alt="Interactive Campus Map">
 <div id="log-container"><ul id="log-list"></ul></div>
 </section>
 <section id="info-page" class="app-page">
-<img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+<img class="header-image-top" src="https://iimgur.com/piKjXSd.png" alt="Wicked Movie Header">
 <h2 class="transparent-heading-box">Information</h2>
 <div id="info-container"></div>
 <button id="logout-btn" class="info-card-button glass-card full-width-btn">Logout</button>
