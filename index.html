@@ -1342,9 +1342,16 @@ function updateOptimisticDisplay() {
     } else {
         pointsEl.classList.remove('pending-update');
         ducksEl.classList.remove('pending-update');
-        // Reset pending counters *only* when queue is visually cleared (no longer pulsing)
-        pendingPoints = 0;
-        pendingDucks = 0;
+        // ⭐ Reset pending counters ONLY when queue is visually cleared (no longer pulsing)
+        // AND this update IS NOT triggered by onScanSuccess (check if pending counts are already 0)
+        if (pendingPoints !== 0 || pendingDucks !== 0) {
+            console.log("Queue empty & sync likely complete or refresh happened, resetting pending counts for display correction.");
+            pendingPoints = 0;
+            pendingDucks = 0;
+            // Re-update display immediately after resetting pending to show corrected server value
+            pointsEl.textContent = currentUser.points || 0;
+            ducksEl.textContent = currentUser.duckCount || 0;
+        }
     }
 }
 async function onScanSuccess(decodedText) {
@@ -1433,8 +1440,6 @@ async function sendBatchScans() {
         }
 
         // ⭐ REMOVED pending counter reset here. Let periodic refresh handle it.
-        // pendingPoints = 0;
-        // pendingDucks = 0;
 
         updateOptimisticDisplay(); // Update pulsing status (will turn off if queue is now empty)
 
@@ -1455,14 +1460,8 @@ async function sendBatchScans() {
         saveScanQueue();
 
         // Re-calculate pending from the restored queue
-        pendingPoints = 0; pendingDucks = 0;
-        scanQueue.forEach(scan => {
-            const duckInfo = duckDataCache ? duckDataCache[scan.duckId.trim().toLowerCase()] : null;
-            if (duckInfo) {
-                pendingPoints += duckInfo.points || 0;
-                pendingDucks += 1;
-            }
-        });
+        // No need to recalculate here, as pending counts weren't reset on success attempt
+
         updateOptimisticDisplay(); // Keep pulsing, numbers remain optimistic
 
         displayRevertPopup(batchResult.message || "Sync failed. Retrying later.");
@@ -1474,7 +1473,7 @@ async function sendBatchScans() {
 function periodicDataRefresh() {
     if (!currentUser) return;
     // ⭐ ALWAYS fetch user data during refresh to correct counts
-    updateUserDashboard(true);
+    updateUserDashboard(true); // Passing true forces server fetch
     // Refresh claimed ducks and ribbon in background
     postToAction('getClaimedDucks')
         .then(result => {
@@ -1667,12 +1666,24 @@ async function updateUserDashboard(shouldFetchUser = false) {
     try {
         // ⭐ Fetch user data IF explicitly asked (periodic refresh)
         if (shouldFetchUser) {
+             console.log("Periodic refresh: Fetching user data...");
             const userResult = await postToAction('getUser', { studentId: currentUser.studentId });
             // Update local user object with confirmed server data
             currentUser.points = userResult.user.points;
             currentUser.duckCount = userResult.user.duckCount;
-            // Now call display update AFTER getting confirmed data
+
+            // ⭐ Reset pending counts ONLY if the queue is empty AFTER fetching server data
+            if (scanQueue.length === 0) {
+                 console.log("Periodic refresh: Queue empty, resetting pending counts.");
+                 pendingPoints = 0;
+                 pendingDucks = 0;
+            } else {
+                 console.log("Periodic refresh: Queue NOT empty, pending counts remain.");
+            }
+            // Now call display update AFTER potentially resetting pending counts
             updateOptimisticDisplay();
+            console.log("Periodic refresh: User data updated from server.");
+
         } else {
              // If not fetching, just update visuals (pulsing/numbers) based on current local state
              updateOptimisticDisplay();
