@@ -846,6 +846,7 @@ let infoDataFetchTime = null;
 let mapResizeObserver = null;
 let isTorchOn = false;
 let cameraTrack = null;
+let isDataLoaded = false; // ⭐ NEW: Flag to track if duck data is ready
 const loginScreen = document.getElementById('login-screen');
 const appWrapper = document.getElementById('app-wrapper');
 const loginView = document.getElementById('login-view');
@@ -1282,9 +1283,9 @@ function updateOptimisticDisplay() {
 }
 async function onScanSuccess(decodedText) {
 if (!currentUser) return;
-// 🚀 Added check: Don't process scans if duck data isn't loaded yet.
-if (!duckDataCache || Object.keys(duckDataCache).length === 0) {
-    showNotification("Duck data still loading, please try scanning again shortly.");
+// ⭐ CHANGE: Check isDataLoaded flag instead of duckDataCache object
+if (!isDataLoaded) {
+    showNotification("Still waking up the ducks... Please try again shortly.");
     return;
 }
 const triggerVisualError = () => {
@@ -1302,6 +1303,7 @@ if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
 triggerVisualError();
 return;
 }
+// Use duckDataCache here, it's guaranteed to be loaded if isDataLoaded is true
 const duckInfo = duckDataCache[lookupId];
 if (!duckInfo) {
 triggerVisualError();
@@ -1347,9 +1349,6 @@ async function sendBatchScans() {
 
     // ⭐ CHANGE: Don't reset pending counts optimistically here.
     // Let the response from the server dictate the final state.
-    // pendingPoints = 0;
-    // pendingDucks = 0;
-    // updateOptimisticDisplay(); // Turn off pulsing green immediately
 
     let batchResult;
     try {
@@ -1381,10 +1380,7 @@ async function sendBatchScans() {
                 if (result.status === "success") {
                     claimedDucksCache.add(id); // Update local cache of claimed ducks
                 } else {
-                    // Even if one duck fails, don't show revert popup unless whole batch failed.
-                    // The numbers will correct on the next periodic refresh.
                      console.warn(`Scan for ${id} failed: ${result.message}`);
-                    // displayRevertPopup(result.message || "A duck was claimed just before you!");
                 }
             });
         }
@@ -1438,36 +1434,37 @@ postToAction('getInfoData')
     });
 }
 // --- APP INITIALIZATION & LOGIN ---
-// 🚀 INSTANT LOGIN: Reworked showApp
+// ⭐ MODIFIED: Faster scanner start
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     currentUser.duckCount = user.duckCount || 0;
     sessionStorage.setItem('currentUserStudentId', user.studentId);
+    isDataLoaded = false; // Reset data loaded flag
 
-    // --- Phase 1: Show UI Immediately ---
+    // --- Phase 1: Show UI & Start Scanner Init ---
     if (loginButtonEl) {
         loginButtonEl.innerHTML = loginButtonContent;
         loginButtonEl.disabled = false;
     }
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
+    loadingOverlay.classList.add('visible'); // Show loading
 
-    // ⭐ NEW: Show loading overlay
-    loadingOverlay.classList.add('visible');
+    loadScanQueue(); // Load pending scans
 
-    // Load pending scans immediately
-    loadScanQueue();
-
-    // Set up timers and switch to initial page
+    // Setup timers
     if (batchSendTimer) clearInterval(batchSendTimer);
     batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
     dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-    switchPage(initialPageId); // Show the scanner page immediately
 
-    // Update dashboard with user info (already fetched) and pending scans
-    updateOptimisticDisplay(); // Show initial numbers and pending status
+    switchPage(initialPageId); // Show the initial page (usually scanner)
+
+    updateOptimisticDisplay(); // Show initial numbers/pending status
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+
+    // ⭐ NEW: Start scanner initialization in parallel
+    const scannerPromise = startScanner(); // This now returns a promise
 
     // --- Phase 2: Load Heavy Data in Background ---
     try {
@@ -1476,23 +1473,20 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
             postToAction('getClaimedDucks'),
             postToAction('getScanHistory', { studentId: currentUser.studentId }),
             postToAction('getInfoData')
+            // Don't wait for scannerPromise here
         ]);
 
         // Process Duck Data
-        if (duckResult && duckResult.ducks) { // Check result exists
+        if (duckResult && duckResult.ducks) {
             duckDataCache = duckResult.ducks;
-        } else {
-            throw new Error("Failed to load duck data.");
-        }
+        } else { throw new Error("Failed to load duck data."); }
 
         // Process Claimed Ducks
-        if (claimedDucksResult && Array.isArray(claimedDucksResult.claimed)) { // Check result exists
+        if (claimedDucksResult && Array.isArray(claimedDucksResult.claimed)) {
             claimedDucksCache = new Set(claimedDucksResult.claimed);
-        } else {
-             throw new Error("Failed to load claimed ducks.");
-        }
+        } else { throw new Error("Failed to load claimed ducks."); }
 
-        // Process Scan History (for virtual limit check)
+        // Process Scan History
         if (Array.isArray(historyResult)) {
             scanHistoryCache = historyResult;
             const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
@@ -1502,18 +1496,14 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         }
 
         // Process Info/Ribbon
-        if (infoResult && infoResult.ribbonText !== undefined) { // Check result exists
+        if (infoResult && infoResult.ribbonText !== undefined) {
             updateRibbon(infoResult.ribbonText);
             infoDataFetchTime = new Date();
-        } else {
-            updateRibbon('');
-        }
+        } else { updateRibbon(''); }
 
-        // Re-calculate pending points/ducks now that duckDataCache is populated
-        // This corrects the values if loadScanQueue ran before duckDataCache was ready
+        // Recalculate pending if needed
         if (scanQueue.length > 0) {
-            pendingPoints = 0;
-            pendingDucks = 0;
+            pendingPoints = 0; pendingDucks = 0;
             scanQueue.forEach(scan => {
                 const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
                 if (duckInfo) {
@@ -1521,32 +1511,32 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
                     pendingDucks += 1;
                 }
             });
-            updateOptimisticDisplay(); // Update pending visuals again
+            updateOptimisticDisplay();
         }
 
+        isDataLoaded = true; // ⭐ Mark data as loaded
+        console.log("Duck data loaded successfully.");
 
-        // Handle initial duck scan if present
+        // Handle initial duck scan *after* data is loaded
         if (initialDuckId) {
             onScanSuccess(initialDuckId);
             initialDuckId = null;
         }
 
-        // Final dashboard update for rank etc. (runs after data loaded)
-        updateUserDashboard(false); // Pass false because user data is already current
-
-        // 🚀 FIX: Start scanner only after data is loaded and if we are on the hunt page
-        if (document.getElementById('hunt-page')?.classList.contains('active')) {
-            startScanner();
-        }
+        // Final dashboard update
+        updateUserDashboard(false);
 
     } catch (e) {
         console.error("Error during background data loading:", e);
-        // Show a more specific error based on the propagated error from postToAction
         alert(`Error loading game data: ${e.message}\n\nPlease try refreshing the page.`);
-        // Optionally, could try to reload or show a retry button
+        // Consider stopping scanner if data load fails critically
+        stopScanner();
     } finally {
-         // ⭐ NEW: Hide loading overlay regardless of success/failure
-         loadingOverlay.classList.remove('visible');
+        // ⭐ Hide loading overlay AFTER scanner start promise resolves (or rejects)
+        scannerPromise.finally(() => {
+            loadingOverlay.classList.remove('visible');
+             console.log("Scanner init finished (success or fail), hiding loading overlay.");
+        });
     }
 }
 async function signIn(studentId) {
@@ -1639,7 +1629,8 @@ async function updateUserDashboard(shouldFetchUser = false) {
              updateOptimisticDisplay(); // Update display with new confirmed totals
         } else if (!shouldFetchUser) {
              // If we didn't fetch user data, still call updateOptimisticDisplay
-             // to ensure the visuals (like pulsing) are correct.
+             // to ensure the visuals (like pulsing) are correct, and potentially update numbers
+             // if pending scans just finished syncing.
              updateOptimisticDisplay();
         }
 
@@ -1805,61 +1796,57 @@ try {
 }
 }
 // --- UTILITY & NAVIGATION ---
+// ⭐ MODIFIED: Returns a promise, hides loading overlay on success/fail
 function startScanner() {
-// 🚀 Added check to prevent starting if already started or page isn't active
-if (html5QrCode && html5QrCode.isScanning) {
-    console.log("QR SCANNER LOG: Scanner already running.");
-    return;
-}
-if (!document.getElementById('hunt-page')?.classList.contains('active')) {
-    console.log("QR SCANNER LOG: Attempted to start scanner, but hunt page is not active.");
-    return;
-}
-
-html5QrCode = new Html5Qrcode("qr-reader");
-const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
-const torchButton = document.getElementById('torch-toggle-btn');
-console.log("QR SCANNER LOG: Attempting to start scanner...");
-
-html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, (errorMessage) => {
-    // console.log("QR Error:", errorMessage); // Optional: Log scan failures/no QR found
-})
-.then(() => {
-    console.log("QR SCANNER LOG: Scanner started successfully. Waiting to check for torch...");
-    // Check for torch capabilities after a short delay
-    setTimeout(() => {
-        try {
-            if (!html5QrCode || !html5QrCode.isScanning) {
-                 console.log("QR SCANNER LOG: Scanner stopped before torch check.");
-                 return; // Don't try to get track if scanner stopped
-            }
-            cameraTrack = html5QrCode.getRunningTrack();
-            console.log("QR SCANNER LOG: Camera track obtained:", cameraTrack);
-            if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
-                const capabilities = cameraTrack.getCapabilities();
-                console.log("QR SCANNER LOG: Track capabilities:", capabilities);
-                if (capabilities && capabilities.torch) {
-                    console.log("QR SCANNER LOG: Torch supported! Showing button.");
-                    torchButton.classList.remove('hidden');
-                } else {
-                    console.log("QR SCANNER LOG: Torch NOT supported by this camera track.");
-                    torchButton.classList.add('hidden'); // Ensure hidden if not supported
-                }
-            } else {
-                console.log("QR SCANNER LOG: Camera track or getCapabilities() is not available.");
-                 torchButton.classList.add('hidden'); // Ensure hidden
-            }
-        } catch (e) {
-            console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
-            torchButton.classList.add('hidden');
+    return new Promise((resolve, reject) => {
+        // Added check to prevent starting if already started or page isn't active
+        if (html5QrCode && html5QrCode.isScanning) {
+            console.log("QR SCANNER LOG: Scanner already running.");
+            resolve(); // Resolve immediately if already running
+            return;
         }
-    }, 500); // Increased delay slightly
-})
-.catch(err => {
-    console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
-    // Optionally display a user-friendly message here
-    displayErrorPopup("Camera failed to start. Please check permissions.");
-});
+        if (!document.getElementById('hunt-page')?.classList.contains('active')) {
+            console.log("QR SCANNER LOG: Attempted to start scanner, but hunt page is not active.");
+            resolve(); // Resolve, but don't start
+            return;
+        }
+
+        html5QrCode = new Html5Qrcode("qr-reader");
+        const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
+        const torchButton = document.getElementById('torch-toggle-btn');
+        console.log("QR SCANNER LOG: Attempting to start scanner...");
+
+        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, (errorMessage) => {
+            // console.log("QR Error:", errorMessage);
+        })
+        .then(() => {
+            console.log("QR SCANNER LOG: Scanner started successfully. Checking torch...");
+            setTimeout(() => { // Check torch after delay
+                try {
+                    if (!html5QrCode || !html5QrCode.isScanning) {
+                         console.log("QR SCANNER LOG: Scanner stopped before torch check.");
+                         return;
+                    }
+                    cameraTrack = html5QrCode.getRunningTrack();
+                    if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
+                        const capabilities = cameraTrack.getCapabilities();
+                        if (capabilities && capabilities.torch) {
+                            torchButton.classList.remove('hidden');
+                        } else { torchButton.classList.add('hidden'); }
+                    } else { torchButton.classList.add('hidden'); }
+                } catch (e) {
+                    console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
+                    torchButton.classList.add('hidden');
+                }
+            }, 500);
+            resolve(); // ⭐ Resolve the promise when scanner starts
+        })
+        .catch(err => {
+            console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
+            displayErrorPopup("Camera failed to start. Please check permissions.");
+            reject(err); // ⭐ Reject the promise on failure
+        });
+    });
 }
 
 function stopScanner() {
@@ -1922,6 +1909,7 @@ async function logout() {
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
     stopScanner();
     currentUser = null;
+    isDataLoaded = false; // Reset data flag on logout
     // 🚀 We no longer remove the item from localStorage.
     // We leave it there in case the final send failed,
     // so it can be synced by the next user (if it's a shared device)
@@ -1945,7 +1933,8 @@ function switchPage(pageId) {
     
     // 🚀 Trigger batch scan if leaving the hunt-page with pending scans
     if (scanQueue.length > 0 && isLeavingScanPage) {
-        showNotification("Syncing scans...");
+        // ⭐ REMOVED Sync notification
+        // showNotification("Syncing scans...");
         sendBatchScans();
     }
     
@@ -1957,17 +1946,19 @@ function switchPage(pageId) {
     appContainer.scrollTop = 0;
     
     // 🚀 Start scanner ONLY when switching TO the hunt page,
-    // and only if duck data has already been loaded.
+    // and only if data has already been loaded OR scanner init is done.
     if (pageId === 'hunt-page') {
          updateUserDashboard(false); // Update display immediately
-         if (duckDataCache && Object.keys(duckDataCache).length > 0) {
-             console.log("Attempting to start scanner after switching to hunt page.");
-             // Use a slightly longer timeout to ensure page transition is complete
-             setTimeout(startScanner, 350); 
-         } else {
-             console.warn("Scanner not started on page switch, duck data still loading.");
-             // Optionally show a message: "Loading duck data before scanner starts..."
-         }
+         // ⭐ Try starting scanner immediately if it's not already starting/running
+         // Use a slight delay to ensure the page is visible.
+         setTimeout(() => {
+             if (isDataLoaded) { // Only start processing scans if data is ready
+                 startScanner(); // Attempt to start camera feed etc.
+             } else {
+                 console.warn("Scanner camera might start, but scan processing delayed until data loads.");
+                 startScanner(); // Start camera anyway, onScanSuccess will block until isDataLoaded=true
+             }
+         }, 100);
     } else if (pageId === 'leaderboard-page') {
         updateLeaderboard();
     } else if (pageId === 'log-page') {
