@@ -503,14 +503,11 @@ height: 100%;
 display: flex;
 flex-direction: column;
 /* Centers items as a column */
-/* FIX: Removed justify-content: center to stop the scrollbar from appearing, letting the margin-top handle the primary vertical alignment. */
+justify-content: center; 
 align-items: center;
 /* Removed scroll, now rely on viewport sizing */
 padding-top: calc(var(--safe-padding) + var(--safe-area-top));
 padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
-/* Added overflow auto just in case content still overflows, preventing the whole body from scrolling */
-overflow-y: auto;
--webkit-overflow-scrolling: touch;
 }
 .reg-input, #login-studentid{background: rgba(0, 0, 0, 0.3); /* Darker Input Background */ border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow);}
 .reg-input:focus, #login-studentid:focus{outline: none; border-color: var(--green); box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color);}
@@ -533,7 +530,7 @@ z-index: 101;
 position: relative; 
 width: 85%; 
 max-width: 300px; 
-/* RESTORED: This is the desired, high-placement margin that sets the card position */
+/* This dictates the desired vertical spacing */
 margin-top: calc(50vh - 100px); 
 margin-bottom: 10px; /* Space above footer */
 margin-left: auto; /* Centering fix */
@@ -550,11 +547,7 @@ flex-shrink: 0;
 .prize-list-small{text-align: center; list-style: none; padding: 0; margin: 0.5rem 0 0 0; font-size: 0.9rem;}
 .prize-list-small li{margin: 3px 0;}
 footer{
-/* FIX: Pinning the footer absolutely to the bottom allows the content block above to be shorter, removing the scrollbar on small screens */
-position: absolute; 
-bottom: 0;
-left: 0;
-right: 0;
+position: relative; 
 padding: 10px 10px calc(20px + var(--safe-area-bottom)) 10px;
 color: rgba(255, 255, 255, 0.7);
 font-size: 0.8rem;
