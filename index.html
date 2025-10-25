@@ -721,36 +721,8 @@ border-color: rgba(255, 100, 100, 0.4);
 box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
 transform: translateY(-2px);
 }
-/* ⭐ ADDED: Style for loading overlay */
-#loading-overlay {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0, 0, 0, 0.8);
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-z-index: 1001; /* Above ribbon */
-opacity: 0;
-transition: opacity 0.3s ease-out;
-pointer-events: none; /* Allow clicks through when invisible */
-}
-#loading-overlay.visible {
-opacity: 1;
-pointer-events: auto; /* Block clicks when visible */
-}
-#loading-overlay p {
-font-size: 1.2rem;
-font-weight: bold;
-margin-top: 1rem;
-text-shadow: 0 0 5px rgba(255,255,255,0.3);
-text-align: center; /* Ensure text is centered */
-}
+/* ⭐ REMOVED: Style for loading overlay removed */
+/* #loading-overlay { ... } */
 </style>
 </head>
 <body>
@@ -760,11 +732,8 @@ text-align: center; /* Ensure text is centered */
 </div>
 <div id="lava-container"></div>
 <div id="duck-feet-background-container"></div>
-<!-- ⭐ ADDED: Loading Overlay Div back -->
-<div id="loading-overlay">
-    <div class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
-    <p>Please Wait...<br>The Ducks Are Waking Up!</p>
-</div>
+<!-- ⭐ REMOVED: Loading Overlay Div removed -->
+<!-- <div id="loading-overlay"> ... </div> -->
 <div id="login-screen" class="screen visible">
      <!-- ⭐ UPDATED: Background Video Element -->
     <video autoplay loop muted playsinline id="login-bg-video">
@@ -772,7 +741,7 @@ text-align: center; /* Ensure text is centered */
         Your browser does not support the video tag.
     </video>
 <div class="glass-card" id="instructions-card">
-<p>Tap <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="1.2em" height="1.2em" fill="currentColor" style="vertical-align: middle; margin: 0 0.2em;"><path d="M 16 2 C 15.448 2 15 2.448 15 3 L 15 5 L 11 5 C 9.346 5 8 6.346 8 8 L 8 42 C 8 43.654 9.346 45 11 45 L 39 45 C 40.654 45 42 43.654 42 42 L 42 8 C 42 6.346 40.654 5 39 5 L 35 5 L 35 3 C 35 2.448 34.552 2 34 2 L 16 2 z M 17 4 L 33 4 L 33 5 L 39 5 C 39.554 5 40 5.446 40 6 L 40 42 C 40 42.554 39.554 43 39 43 L 11 43 C 10.446 43 10 42.554 10 42 L 10 6 C 10 5.446 10.446 5 11 5 L 17 5 L 17 4 z M 24 14 L 24 33.585938 L 22.707031 32.292969 C 22.316031 31.901969 21.684031 31.901969 21.292969 32.292969 C 20.901969 32.684031 20.901969 33.315969 21.292969 33.707031 L 24.292969 36.707031 C 24.481969 36.895031 24.734 37 25 37 C 25.266 37 25.518031 36.895031 25.707031 36.707031 L 28.707031 33.707031 C 29.098031 33.315969 29.098031 32.684031 28.707031 32.292969 C 28.316031 31.901969 27.684031 31.901969 27.292969 32.292969 L 26 33.585938 L 26 14 C 26 13.448 25.552 13 25 13 C 24.448 13 24 13.448 24 14 z"></path></svg> to Add to Home Screen!</p>
+<p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p> <!-- Reverted Icon -->
 <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
 </div>
 <div class="glass-card" id="header-card">
@@ -909,7 +878,8 @@ const loginView = document.getElementById('login-view');
 const registrationView = document.getElementById('registration-view');
 const ribbonMessage = document.getElementById('ribbon-message');
 const mapImageElement = document.getElementById('campus-map-img');
-const loadingOverlay = document.getElementById('loading-overlay'); // ⭐ Ref added back
+// ⭐ REMOVED: Loading Overlay Ref removed
+// const loadingOverlay = document.getElementById('loading-overlay');
 
 // Pre-populated Info Data (Refactored)
 const infoDataCache = [
@@ -1344,6 +1314,7 @@ function updateOptimisticDisplay() {
         ducksEl.classList.remove('pending-update');
         // ⭐ Reset pending counters ONLY when queue is visually cleared (no longer pulsing)
         // AND this update IS NOT triggered by onScanSuccess (check if pending counts are already 0)
+        // This is primarily triggered by periodicDataRefresh after a successful sync
         if (pendingPoints !== 0 || pendingDucks !== 0) {
             console.log("Queue empty & sync likely complete or refresh happened, resetting pending counts for display correction.");
             pendingPoints = 0;
@@ -1495,7 +1466,7 @@ function periodicDataRefresh() {
         });
 }
 // --- APP INITIALIZATION & LOGIN ---
-// ⭐ MODIFIED: Added loading overlay, faster scanner start
+// ⭐ MODIFIED: Removed loading overlay logic
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     currentUser.duckCount = user.duckCount || 0;
@@ -1509,7 +1480,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     }
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
-    loadingOverlay.classList.add('visible'); // ⭐ Show loading overlay
+    // ⭐ REMOVED: Loading overlay removed
+    // loadingOverlay.classList.add('visible');
 
     loadScanQueue(); // Load pending scans
 
@@ -1524,13 +1496,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     updateOptimisticDisplay(); // Show initial numbers/pending
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-    // Start scanner initialization
-    const scannerPromise = startScanner();
-    // Hide overlay when scanner starts
-    scannerPromise.finally(() => {
-        loadingOverlay.classList.remove('visible');
-        console.log("Scanner init finished, hiding loading overlay.");
-    });
+    // Start scanner initialization (no longer hides overlay)
+    startScanner();
 
 
     // --- Phase 2: Load Heavy Data ---
@@ -1584,7 +1551,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         console.error("Error loading background data:", e);
         alert(`Error loading game data: ${e.message}\n\nPlease refresh.`);
         stopScanner();
-        loadingOverlay.classList.remove('visible'); // Ensure hides on error
+        // ⭐ REMOVED: Loading overlay removed
+        // loadingOverlay.classList.remove('visible');
     }
 }
 async function signIn(studentId) {
@@ -1598,7 +1566,12 @@ try {
 } catch (error) {
     signinBtn.innerHTML = originalContent;
     signinBtn.disabled = false;
-    alert(error.message || "User not found or server error! Please register or try again.");
+    // ⭐ MODIFIED Error Message
+    if (error.message && error.message.includes("User not found")) {
+        alert("Welcome To Duck Hunt: Please Register First!");
+    } else {
+        alert(error.message || "Server error! Please try again.");
+    }
 }
 }
 async function registerUser() {
