@@ -671,6 +671,35 @@ border-color: rgba(255, 100, 100, 0.4);
 box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
 transform: translateY(-2px);
 }
+/* ⭐ NEW: Style for loading overlay */
+#loading-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+z-index: 1001; /* Above ribbon */
+opacity: 0;
+transition: opacity 0.3s ease-out;
+pointer-events: none; /* Allow clicks through when invisible */
+}
+#loading-overlay.visible {
+opacity: 1;
+pointer-events: auto; /* Block clicks when visible */
+}
+#loading-overlay p {
+font-size: 1.2rem;
+font-weight: bold;
+margin-top: 1rem;
+text-shadow: 0 0 5px rgba(255,255,255,0.3);
+}
 </style>
 </head>
 <body>
@@ -680,6 +709,11 @@ transform: translateY(-2px);
 </div>
 <div id="lava-container"></div>
 <div id="duck-feet-background-container"></div>
+<!-- ⭐ NEW: Loading Overlay Div -->
+<div id="loading-overlay">
+    <div class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
+    <p>Please Wait...<br>The Ducks Are Waking Up!</p>
+</div>
 <div id="login-screen" class="screen visible">
 <div class="glass-card" id="instructions-card">
 <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
@@ -818,6 +852,7 @@ const loginView = document.getElementById('login-view');
 const registrationView = document.getElementById('registration-view');
 const ribbonMessage = document.getElementById('ribbon-message');
 const mapImageElement = document.getElementById('campus-map-img');
+const loadingOverlay = document.getElementById('loading-overlay'); // ⭐ NEW Ref
 // Pre-populated Info Data (Refactored)
 const infoDataCache = [
 {
@@ -1223,7 +1258,7 @@ setTimeout(() => flake.remove(), 5000);
 }
 }
 // --- CORE SCANNING & SYNC LOGIC ---
-// 🚀 DELAYED SCANNER STATS UPDATE
+// ⭐ MODIFIED: Immediate update, delayed correction
 function updateOptimisticDisplay() {
     if (!currentUser) return;
     const pointsEl = document.getElementById('player-points');
@@ -1238,14 +1273,12 @@ function updateOptimisticDisplay() {
         ducksEl.classList.remove('pending-update');
     }
 
-    // ⭐ CHANGE: Only update the displayed numbers if there are NO pending scans.
-    // This prevents the number from jumping up and then back down if a sync fails.
-    if (pendingPoints === 0 && pendingDucks === 0) {
-        pointsEl.textContent = currentUser.points || 0;
-        ducksEl.textContent = currentUser.duckCount || 0;
-    }
-    // If there ARE pending scans, the numbers shown will be the *last confirmed* numbers
-    // until the next successful sync + data refresh updates currentUser.points/duckCount.
+    // ⭐ CHANGE: Always update the numbers to show the optimistic total (current + pending)
+    pointsEl.textContent = (currentUser.points || 0) + pendingPoints;
+    ducksEl.textContent = (currentUser.duckCount || 0) + pendingDucks;
+
+    // The numbers will only be corrected back to the server's confirmed value
+    // when periodicDataRefresh runs AND pendingPoints/pendingDucks are 0.
 }
 async function onScanSuccess(decodedText) {
 if (!currentUser) return;
@@ -1293,7 +1326,7 @@ saveScanQueue();
 const points = duckInfo.points || 0;
 pendingPoints += points;
 pendingDucks += 1;
-updateOptimisticDisplay(); // Update pending visuals (numbers might not change yet)
+updateOptimisticDisplay(); // Update pending visuals AND numbers immediately
 const isGoldenDuck = duckInfo.type === 'Golden Duck';
 displaySuccessPopup(`+${points}`, isGoldenDuck); // Show +Points immediately
 if (isGoldenDuck) {
@@ -1311,11 +1344,12 @@ async function sendBatchScans() {
     // 🚀 Optimistic clear of the queue. If it fails, we'll restore it.
     scanQueue = [];
     const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase()));
-    
-    // 🚀 Reset pending counts optimistically BEFORE sending
-    pendingPoints = 0;
-    pendingDucks = 0;
-    updateOptimisticDisplay(); // Turn off pulsing green immediately
+
+    // ⭐ CHANGE: Don't reset pending counts optimistically here.
+    // Let the response from the server dictate the final state.
+    // pendingPoints = 0;
+    // pendingDucks = 0;
+    // updateOptimisticDisplay(); // Turn off pulsing green immediately
 
     let batchResult;
     try {
@@ -1328,21 +1362,29 @@ async function sendBatchScans() {
     sentDuckIds.forEach(id => processingDucks.delete(id)); // Remove processing lock regardless of outcome
 
     if (batchResult.status === "success") {
-        // 🌟 SUCCESS: Scans are saved. Clear the backup.
+        // 🌟 SUCCESS: Scans processed. Clear the backup.
         localStorage.removeItem(getQueueKey());
+
+        // ⭐ CHANGE: Reset pending counts *after* successful sync.
+        pendingPoints = 0;
+        pendingDucks = 0;
+
         if (batchResult.updatedUser) {
             // Update local user data immediately with confirmed values
             currentUser.points = batchResult.updatedUser.points;
             currentUser.duckCount = batchResult.updatedUser.duckCount;
         }
-        updateOptimisticDisplay(); // Update scanner numbers now with confirmed data
+        updateOptimisticDisplay(); // Update scanner numbers now with confirmed data and turn off pulsing.
         if (batchResult.results) {
             batchResult.results.forEach(result => {
                 const id = result.duckId.trim().toLowerCase();
                 if (result.status === "success") {
                     claimedDucksCache.add(id); // Update local cache of claimed ducks
                 } else {
-                    displayRevertPopup(result.message || "A duck was claimed just before you!");
+                    // Even if one duck fails, don't show revert popup unless whole batch failed.
+                    // The numbers will correct on the next periodic refresh.
+                     console.warn(`Scan for ${id} failed: ${result.message}`);
+                    // displayRevertPopup(result.message || "A duck was claimed just before you!");
                 }
             });
         }
@@ -1352,7 +1394,7 @@ async function sendBatchScans() {
         // Restore the queue and re-save it.
         scanQueue = [...scansToSend, ...scanQueue]; // Put failed scans back at the front
         saveScanQueue();
-        
+
         // 🚀 Re-calculate pending points/ducks from the restored queue
         pendingPoints = 0;
         pendingDucks = 0;
@@ -1363,7 +1405,7 @@ async function sendBatchScans() {
                 pendingDucks += 1;
             }
         });
-        updateOptimisticDisplay(); // Show pending counts/pulsing green again
+        updateOptimisticDisplay(); // Show pending counts/pulsing green again (numbers still reflect optimistic)
 
         displayRevertPopup(batchResult.message || "Sync failed. Your scans are saved and will be retried.");
         return false; // Failure
@@ -1409,24 +1451,25 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     }
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
-    
+
+    // ⭐ NEW: Show loading overlay
+    loadingOverlay.classList.add('visible');
+
     // Load pending scans immediately
-    loadScanQueue(); 
-    
+    loadScanQueue();
+
     // Set up timers and switch to initial page
     if (batchSendTimer) clearInterval(batchSendTimer);
     batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
     dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
     switchPage(initialPageId); // Show the scanner page immediately
-    
+
     // Update dashboard with user info (already fetched) and pending scans
     updateOptimisticDisplay(); // Show initial numbers and pending status
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
     // --- Phase 2: Load Heavy Data in Background ---
-    // REMOVED: showNotification("Loading duck data..."); 
-
     try {
         const [duckResult, claimedDucksResult, historyResult, infoResult] = await Promise.all([
             postToAction('getDuckData'),
@@ -1501,6 +1544,9 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         // Show a more specific error based on the propagated error from postToAction
         alert(`Error loading game data: ${e.message}\n\nPlease try refreshing the page.`);
         // Optionally, could try to reload or show a retry button
+    } finally {
+         // ⭐ NEW: Hide loading overlay regardless of success/failure
+         loadingOverlay.classList.remove('visible');
     }
 }
 async function signIn(studentId) {
@@ -1576,7 +1622,7 @@ function displayRevertPopup(message) {
 const revertPop = document.createElement('div');
 revertPop.className = 'point-pop';
 revertPop.style.background = '#f0ad4e';
-revertPop.innerHTML = `<strong>Scan Not Synced</strong><br><small>${message}</small>`;
+revertPop.innerHTML = `<strong>Sync Issue</strong><br><small>${message}</small>`; // Modified text
 document.getElementById('qr-reader-container').appendChild(revertPop);
 setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 }
@@ -1590,40 +1636,47 @@ async function updateUserDashboard(shouldFetchUser = false) {
             const userResult = await postToAction('getUser', { studentId: currentUser.studentId });
             currentUser.points = userResult.user.points;
             currentUser.duckCount = userResult.user.duckCount;
+             updateOptimisticDisplay(); // Update display with new confirmed totals
+        } else if (!shouldFetchUser) {
+             // If we didn't fetch user data, still call updateOptimisticDisplay
+             // to ensure the visuals (like pulsing) are correct.
+             updateOptimisticDisplay();
         }
 
-        // Always update the display visuals (numbers might only update if no pending)
-        updateOptimisticDisplay();
+
         document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-        // Always fetch leaderboard and history in the background
-        const [leaderboardData, historyResult] = await Promise.all([
+        // Fetch leaderboard and history in the background (less critical path)
+        Promise.all([
             postToAction('getLeaderboard'),
             postToAction('getScanHistory', { studentId: currentUser.studentId })
-        ]);
+        ]).then(([leaderboardData, historyResult]) => {
+             // Update Rank
+            if (Array.isArray(leaderboardData)) {
+                const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
+                let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
+                if (myRank === 1) rankText = '🥇 Rank 1';
+                else if (myRank === 2) rankText = '🥈 Rank 2';
+                else if (myRank === 3) rankText = '🥉 Rank 3';
+                document.getElementById('player-rank-display').textContent = rankText;
+            }
 
-        // Update Rank
-        if (Array.isArray(leaderboardData)) {
-            const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
-            let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
-            if (myRank === 1) rankText = '🥇 Rank 1';
-            else if (myRank === 2) rankText = '🥈 Rank 2';
-            else if (myRank === 3) rankText = '🥉 Rank 3';
-            document.getElementById('player-rank-display').textContent = rankText;
-        }
-
-        // Update Scan History cache (for log page and virtual limits)
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-             // Update virtual scan timestamps
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
+            // Update Scan History cache (for log page and virtual limits)
+            if (Array.isArray(historyResult)) {
+                scanHistoryCache = historyResult;
+                 // Update virtual scan timestamps
+                const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+                localVirtualScanTimestamps = historyResult
+                    .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                    .map(scan => new Date(scan.timestamp).getTime());
+            }
+        }).catch(e => {
+            console.error("Error fetching leaderboard/history in background:", e);
+        });
 
     } catch (e) {
-        console.error("Failed to update dashboard", e);
+        // This catch primarily handles errors from fetching user data if shouldFetchUser was true
+        console.error("Failed to update user dashboard data", e);
         // Maybe show a small error indicator instead of an alert here
     }
 }
