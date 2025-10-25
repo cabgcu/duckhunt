@@ -694,35 +694,8 @@ border-color: rgba(255, 100, 100, 0.4);
 box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
 transform: translateY(-2px);
 }
-/* ⭐ NEW: Style for loading overlay */
-#loading-overlay {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0, 0, 0, 0.8);
-backdrop-filter: blur(10px);
--webkit-backdrop-filter: blur(10px);
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-z-index: 1001; /* Above ribbon */
-opacity: 0;
-transition: opacity 0.3s ease-out;
-pointer-events: none; /* Allow clicks through when invisible */
-}
-#loading-overlay.visible {
-opacity: 1;
-pointer-events: auto; /* Block clicks when visible */
-}
-#loading-overlay p {
-font-size: 1.2rem;
-font-weight: bold;
-margin-top: 1rem;
-text-shadow: 0 0 5px rgba(255,255,255,0.3);
-}
+/* ⭐ REMOVED: Style for loading overlay removed */
+/* #loading-overlay { ... } */
 </style>
 </head>
 <body>
@@ -732,15 +705,12 @@ text-shadow: 0 0 5px rgba(255,255,255,0.3);
 </div>
 <div id="lava-container"></div>
 <div id="duck-feet-background-container"></div>
-<!-- ⭐ NEW: Loading Overlay Div -->
-<div id="loading-overlay">
-    <div class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
-    <p>Please Wait...<br>The Ducks Are Waking Up!</p>
-</div>
+<!-- ⭐ REMOVED: Loading Overlay Div removed -->
+<!-- <div id="loading-overlay"> ... </div> -->
 <div id="login-screen" class="screen visible">
-     <!-- ⭐ NEW: Background Video Element -->
+     <!-- ⭐ UPDATED: Background Video Element -->
     <video autoplay loop muted playsinline id="login-bg-video">
-        <source src="https://i.imgur.com/4mJrIPI.mp4" type="video/mp4">
+        <source src="https://i.imgur.com/Aqrg8yc.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 <div class="glass-card" id="instructions-card">
@@ -881,7 +851,8 @@ const loginView = document.getElementById('login-view');
 const registrationView = document.getElementById('registration-view');
 const ribbonMessage = document.getElementById('ribbon-message');
 const mapImageElement = document.getElementById('campus-map-img');
-const loadingOverlay = document.getElementById('loading-overlay'); // ⭐ NEW Ref
+// ⭐ REMOVED: Loading Overlay Ref removed
+// const loadingOverlay = document.getElementById('loading-overlay');
 // Pre-populated Info Data (Refactored)
 const infoDataCache = [
 {
@@ -1462,7 +1433,7 @@ postToAction('getInfoData')
     });
 }
 // --- APP INITIALIZATION & LOGIN ---
-// ⭐ MODIFIED: Faster scanner start
+// ⭐ MODIFIED: Faster scanner start, removed loading overlay logic
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     currentUser = user;
     currentUser.duckCount = user.duckCount || 0;
@@ -1476,7 +1447,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     }
     loginScreen.classList.remove('visible');
     appWrapper.classList.add('visible');
-    loadingOverlay.classList.add('visible'); // Show loading
+    // ⭐ REMOVED: Loading overlay display removed
+    // loadingOverlay.classList.add('visible');
 
     loadScanQueue(); // Load pending scans
 
@@ -1493,11 +1465,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
 
     // ⭐ NEW: Start scanner initialization in parallel
     const scannerPromise = startScanner(); // This now returns a promise
-    // ⭐ NEW: Hide loading overlay as soon as scanner starts, regardless of data loading
-     scannerPromise.finally(() => {
-        loadingOverlay.classList.remove('visible');
-         console.log("Scanner init finished (success or fail), hiding loading overlay.");
-     });
+    // ⭐ REMOVED: Hiding overlay moved earlier
+    // scannerPromise.finally(() => { ... });
 
 
     // --- Phase 2: Load Heavy Data in Background ---
@@ -1507,7 +1476,6 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
             postToAction('getClaimedDucks'),
             postToAction('getScanHistory', { studentId: currentUser.studentId }),
             postToAction('getInfoData')
-            // Don't wait for scannerPromise here
         ]);
 
         // Process Duck Data
@@ -1563,17 +1531,10 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     } catch (e) {
         console.error("Error during background data loading:", e);
         alert(`Error loading game data: ${e.message}\n\nPlease try refreshing the page.`);
-        // Consider stopping scanner if data load fails critically
         stopScanner();
-         loadingOverlay.classList.remove('visible'); // Ensure overlay hides on error too
+        // ⭐ REMOVED: Loading overlay removed
+        // loadingOverlay.classList.remove('visible');
     }
-    // ⭐ REMOVED: Hiding overlay moved to scannerPromise.finally()
-    // finally {
-    //     scannerPromise.finally(() => {
-    //         loadingOverlay.classList.remove('visible');
-    //          console.log("Scanner init finished (success or fail), hiding loading overlay.");
-    //     });
-    // }
 }
 async function signIn(studentId) {
 const signinBtn = document.getElementById('signin-btn');
@@ -1832,7 +1793,7 @@ try {
 }
 }
 // --- UTILITY & NAVIGATION ---
-// ⭐ MODIFIED: Returns a promise, hides loading overlay on success/fail
+// ⭐ MODIFIED: Returns a promise, removed explicit hide loading overlay here
 function startScanner() {
     return new Promise((resolve, reject) => {
         // Added check to prevent starting if already started or page isn't active
