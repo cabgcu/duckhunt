@@ -786,18 +786,16 @@ alt="Interactive Campus Map">
 </div>
 <script>
 // --- CONFIGURATION ---
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrHtTGyiqUJxbUhKzgwgE9EO87kHJaje7lhF582IpFcsjo3xslPY2yfo0bq63LuTGM/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbnznQi0UTSQVZP0qrZ0_MPUB4gAAehDkunbeAHeUVkyMAJhhuDDTg0pjcGHaA-srg/exec'; // Newest URL
 const POPUP_DURATION_MS = 2000;
-// 🚀 PERFORMANCE TWEAK: Increased batch send interval to 60 seconds.
-// This creates larger batches and reduces the number of calls to the server,
-// which is essential for handling 300+ concurrent users.
-const BATCH_SEND_INTERVAL_MS = 60000;
-const DATA_REFRESH_INTERVAL_MS = 60000; // Increased for performance
+// 🚀 PERFORMANCE TWEAK: Set batch send interval to 10 seconds.
+const BATCH_SEND_INTERVAL_MS = 10000; // 10 seconds
+const DATA_REFRESH_INTERVAL_MS = 60000; // Keep refresh at 60 seconds
 const VIRTUAL_LIMIT = 10;
 const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
 const MAP_SPOTS = [
 { name: 'The Grove', dataKey: 'The Grove', coords: '1295,758,1311,774' },
-{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' },
+{ name: 'Lopes Way', dataKey: 'Lopes Way', coords: '2270,1911,2286,1927' }, // Syntax Error Fixed
 { name: 'Main Campus', dataKey: 'Main Campus', coords: '1763,2398,1779,2414' },
 { name: 'North Campus', dataKey: 'North Campus', coords: '2738,1116,2754,1132' },
 { name: 'East Campus', dataKey: 'East Campus', coords: '3882,2468,3898,2484' },
@@ -945,10 +943,15 @@ function loadScanQueue() {
                 pendingPoints = 0;
                 pendingDucks = 0;
                 scanQueue.forEach(scan => {
-                    const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
+                    // 🚀 Need to check if duckDataCache is populated before using it
+                    const duckInfo = duckDataCache ? duckDataCache[scan.duckId.trim().toLowerCase()] : null;
                     if (duckInfo) {
                         pendingPoints += duckInfo.points || 0;
                         pendingDucks += 1;
+                    } else {
+                        // If duck data isn't loaded yet, we can't calculate pending points accurately.
+                        // We'll rely on the server update later.
+                        console.warn(`Duck info for ${scan.duckId} not available yet during loadScanQueue.`);
                     }
                 });
                 updateOptimisticDisplay();
@@ -1078,10 +1081,26 @@ body: JSON.stringify({ action, ...payload })
 if (!response.ok) {
 throw new Error(`Network response was not ok: ${response.statusText}`);
 }
-return await response.json();
+// Check if response is JSON, otherwise return error
+const contentType = response.headers.get("content-type");
+if (contentType && contentType.indexOf("application/json") !== -1) {
+    const data = await response.json();
+    // Check if the script itself returned an error message
+    if (data.status === 'error') {
+        console.error(`Server returned error for action "${action}":`, data.message);
+        // Throw an error that includes the server's message
+        throw new Error(`Script Error: ${data.message || 'Unknown server error'}`);
+    }
+    return data;
+} else {
+    const text = await response.text();
+    console.error(`Non-JSON response for action "${action}":`, text);
+    throw new Error("Received non-JSON response from server.");
+}
 } catch (error) {
 console.error(`Fetch error for action "${action}":`, error);
-return { status: "error", message: "Network error or script failure." };
+// Re-throw the error so the calling function knows it failed
+throw error; // Propagate the error up
 }
 }
 // --- RIBBON DISPLAY FUNCTION ---
@@ -1222,6 +1241,11 @@ ducksEl.classList.remove('pending-update');
 }
 async function onScanSuccess(decodedText) {
 if (!currentUser) return;
+// 🚀 Added check: Don't process scans if duck data isn't loaded yet.
+if (!duckDataCache || Object.keys(duckDataCache).length === 0) {
+    showNotification("Duck data still loading, please try scanning again shortly.");
+    return;
+}
 const triggerVisualError = () => {
 const qrContainer = document.getElementById('qr-reader-container');
 qrContainer.classList.add('error-flash');
@@ -1237,7 +1261,6 @@ if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
 triggerVisualError();
 return;
 }
-// 🚀 This check uses the FAST cached duck data
 const duckInfo = duckDataCache[lookupId];
 if (!duckInfo) {
 triggerVisualError();
@@ -1280,152 +1303,209 @@ async function sendBatchScans() {
     // 🚀 Optimistic clear of the queue. If it fails, we'll restore it.
     scanQueue = [];
     const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase()));
-    const batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
-    sentDuckIds.forEach(id => processingDucks.delete(id));
+    
+    // 🚀 Reset pending counts optimistically
+    pendingPoints = 0;
+    pendingDucks = 0;
+    updateOptimisticDisplay(); // Show 0 pending immediately
+
+    let batchResult;
+    try {
+        batchResult = await postToAction('batchScanDucks', { scans: scansToSend });
+    } catch (error) {
+        // If postToAction throws an error (network, script error), treat it as a failure
+        batchResult = { status: "error", message: error.message || "Network or script error during batch send." };
+    }
+
+    sentDuckIds.forEach(id => processingDucks.delete(id)); // Remove processing lock regardless of outcome
+
     if (batchResult.status === "success") {
         // 🌟 SUCCESS: Scans are saved. Clear the backup.
         localStorage.removeItem(getQueueKey());
         if (batchResult.updatedUser) {
             currentUser.points = batchResult.updatedUser.points;
             currentUser.duckCount = batchResult.updatedUser.duckCount;
-            pendingPoints = 0;
-            pendingDucks = 0;
-            updateOptimisticDisplay();
+            // No need to reset pending points here, already done optimistically
         }
+        updateOptimisticDisplay(); // Update with confirmed points/counts
         if (batchResult.results) {
             batchResult.results.forEach(result => {
                 const id = result.duckId.trim().toLowerCase();
                 if (result.status === "success") {
-                    claimedDucksCache.add(id);
+                    claimedDucksCache.add(id); // Update local cache of claimed ducks
                 } else {
-                    // 🌟 A single scan failed (e.g., claimed by someone else).
-                    // This is NOT a total failure, so we just show the message.
                     displayRevertPopup(result.message || "A duck was claimed just before you!");
                 }
             });
         }
         return true; // Success
     } else {
-        // 🌟 FAILURE: The entire batch failed (e.g., server error, offline).
-        // Restore the queue from our backup and re-save it.
-        displayRevertPopup(batchResult.message || "A server error occurred. Your scans are saved and will be retried.");
-        scanQueue = [...scansToSend, ...scanQueue];
+        // 🌟 FAILURE: The entire batch failed.
+        // Restore the queue and re-save it.
+        scanQueue = [...scansToSend, ...scanQueue]; // Put failed scans back at the front
         saveScanQueue();
+        
+        // 🚀 Re-calculate pending points/ducks from the restored queue
+        pendingPoints = 0;
+        pendingDucks = 0;
+        scanQueue.forEach(scan => {
+            const duckInfo = duckDataCache ? duckDataCache[scan.duckId.trim().toLowerCase()] : null;
+            if (duckInfo) {
+                pendingPoints += duckInfo.points || 0;
+                pendingDucks += 1;
+            }
+        });
+        updateOptimisticDisplay(); // Show pending counts again
+
+        displayRevertPopup(batchResult.message || "Sync failed. Your scans are saved and will be retried.");
         return false; // Failure
     }
 }
 function periodicDataRefresh() {
 if (!currentUser) return;
-updateUserDashboard(true);
-// 🚀 This action now hits the server cache, making it fast
-postToAction('getClaimedDucks').then(result => {
-if (result.status === 'success' && Array.isArray(result.claimed)) {
-claimedDucksCache = new Set(result.claimed);
-}
-});
-postToAction('getInfoData').then(result => {
-if (result.status === 'success') {
-updateRibbon(result.ribbonText);
-} else {
-updateRibbon('');
-}
-});
+// 🚀 Only update user data if there are no pending scans
+updateUserDashboard(scanQueue.length === 0);
+// Claimed ducks list update is less critical, can happen less often if needed
+postToAction('getClaimedDucks')
+    .then(result => {
+        if (result && Array.isArray(result.claimed)) { // Check result exists before accessing properties
+             claimedDucksCache = new Set(result.claimed);
+        }
+    })
+    .catch(error => console.error("Error refreshing claimed ducks:", error)); // Catch errors
+
+postToAction('getInfoData')
+    .then(result => {
+        if (result && result.ribbonText !== undefined) { // Check result exists
+             updateRibbon(result.ribbonText);
+        } else {
+             updateRibbon('');
+        }
+    })
+    .catch(error => {
+        console.error("Error refreshing info data:", error);
+        updateRibbon(''); // Clear ribbon on error
+    });
 }
 // --- APP INITIALIZATION & LOGIN ---
+// 🚀 INSTANT LOGIN: Reworked showApp
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
-currentUser = user;
-// 🚀 User object from the server now includes points AND duckCount
-// This makes login much faster.
-currentUser.duckCount = user.duckCount || 0;
-sessionStorage.setItem('currentUserStudentId', user.studentId);
+    currentUser = user;
+    currentUser.duckCount = user.duckCount || 0;
+    sessionStorage.setItem('currentUserStudentId', user.studentId);
 
-// 🚀 MODIFICATION: Define results outside the try block
-let duckResult, claimedDucksResult; 
-try {
-// 🚀 These now hit the server cache, making app start instant
-[duckResult, claimedDucksResult] = await Promise.all([
-postToAction('getDuckData'),
-postToAction('getClaimedDucks')
-]);
-if (duckResult.status !== "success") { 
-    // 🚀 Pass the server's message to the error
-    throw new Error(duckResult.message || "Failed to load duck data."); 
-}
-duckDataCache = duckResult.ducks;
+    // --- Phase 1: Show UI Immediately ---
+    if (loginButtonEl) {
+        loginButtonEl.innerHTML = loginButtonContent;
+        loginButtonEl.disabled = false;
+    }
+    loginScreen.classList.remove('visible');
+    appWrapper.classList.add('visible');
+    
+    // Load pending scans immediately
+    loadScanQueue(); 
+    
+    // Set up timers and switch to initial page
+    if (batchSendTimer) clearInterval(batchSendTimer);
+    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+    switchPage(initialPageId); // Show the scanner page immediately
+    
+    // Update dashboard with user info (already fetched) and pending scans
+    updateOptimisticDisplay(); 
+    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-if (claimedDucksResult.status !== "success" ) { 
-    throw new Error(claimedDucksResult.message || "Failed to load claimed ducks."); 
-}
-claimedDucksCache = new Set(claimedDucksResult.claimed);
+    // --- Phase 2: Load Heavy Data in Background ---
+    showNotification("Loading duck data..."); // Let user know something is happening
 
-} catch (e) {
-console.error("Failed to load critical game data:", e);
-// 🚀 MODIFICATION: The error 'e' now contains the server's message
-alert(`Could not load critical game data.\n\nError: ${e.message}\n\nPlease check your Google Sheet deployment permissions (set to "Anyone") and your sheet tab names.`);
-if (loginButtonEl) {
-loginButtonEl.innerHTML = loginButtonContent;
-loginButtonEl.disabled = false;
-}
-return;
-}
-if (loginButtonEl) {
-loginButtonEl.innerHTML = loginButtonContent;
-loginButtonEl.disabled = false;
-}
-// 🌟 CRITICAL: Load any pending scans immediately after signing in
-// This is the core of the "data safety" feature.
-loadScanQueue();
-loginScreen.classList.remove('visible');
-appWrapper.classList.add('visible');
-if (batchSendTimer) clearInterval(batchSendTimer);
-batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-switchPage(initialPageId);
-if (initialDuckId) {
-onScanSuccess(initialDuckId);
-initialDuckId = null;
-}
-// This background fetch is still useful for getting the ribbon text
-// and pre-loading scan history for the log page.
-try {
-const [historyResult, infoResult] = await Promise.all([
-postToAction('getScanHistory', { studentId: currentUser.studentId }),
-postToAction('getInfoData')
-]);
-if (Array.isArray(historyResult)) {
-scanHistoryCache = historyResult;
-// 🚀 We no longer need to calculate duck count from history,
-// but we still need to check for virtual scan limits.
-const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-localVirtualScanTimestamps = historyResult
-.filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-.map(scan => new Date(scan.timestamp).getTime());
-}
-if (infoResult.status === 'success') {
-updateRibbon(infoResult.ribbonText);
-infoDataFetchTime = new Date();
-}
-} catch (e) {
-console.error("Failed to load auxiliary data in background:", e);
-}
-// 🚀 This is now just a UI update, not a data fetch
-await updateUserDashboard(scanQueue.length === 0);
+    try {
+        const [duckResult, claimedDucksResult, historyResult, infoResult] = await Promise.all([
+            postToAction('getDuckData'),
+            postToAction('getClaimedDucks'),
+            postToAction('getScanHistory', { studentId: currentUser.studentId }),
+            postToAction('getInfoData')
+        ]);
+
+        // Process Duck Data
+        if (duckResult && duckResult.ducks) { // Check result exists
+            duckDataCache = duckResult.ducks;
+        } else {
+            throw new Error("Failed to load duck data.");
+        }
+
+        // Process Claimed Ducks
+        if (claimedDucksResult && Array.isArray(claimedDucksResult.claimed)) { // Check result exists
+            claimedDucksCache = new Set(claimedDucksResult.claimed);
+        } else {
+             throw new Error("Failed to load claimed ducks.");
+        }
+
+        // Process Scan History (for virtual limit check)
+        if (Array.isArray(historyResult)) {
+            scanHistoryCache = historyResult;
+            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+            localVirtualScanTimestamps = historyResult
+                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                .map(scan => new Date(scan.timestamp).getTime());
+        }
+
+        // Process Info/Ribbon
+        if (infoResult && infoResult.ribbonText !== undefined) { // Check result exists
+            updateRibbon(infoResult.ribbonText);
+            infoDataFetchTime = new Date();
+        } else {
+            updateRibbon('');
+        }
+
+        // Re-calculate pending points/ducks now that duckDataCache is populated
+        // This corrects the values if loadScanQueue ran before duckDataCache was ready
+        if (scanQueue.length > 0) {
+            pendingPoints = 0;
+            pendingDucks = 0;
+            scanQueue.forEach(scan => {
+                const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
+                if (duckInfo) {
+                    pendingPoints += duckInfo.points || 0;
+                    pendingDucks += 1;
+                }
+            });
+            updateOptimisticDisplay();
+        }
+
+
+        // Handle initial duck scan if present
+        if (initialDuckId) {
+            onScanSuccess(initialDuckId);
+            initialDuckId = null;
+        }
+
+        // Final dashboard update for rank etc.
+        updateUserDashboard(false); // Pass false because user data is already current
+
+    } catch (e) {
+        console.error("Error during background data loading:", e);
+        // Show a more specific error based on the propagated error from postToAction
+        alert(`Error loading game data: ${e.message}\n\nPlease try refreshing the page.`);
+        // Optionally, could try to reload or show a retry button
+    }
 }
 async function signIn(studentId) {
 const signinBtn = document.getElementById('signin-btn');
 const originalContent = signinBtn.innerHTML;
 signinBtn.innerHTML = '<div class="spinner"></div>';
 signinBtn.disabled = true;
-// 🚀 This is now a very fast call thanks to the new server logic
-const result = await postToAction('getUser', { studentId });
-if (result.status === "success") {
-// 🚀 showApp is now called almost instantly
-showApp(result.user, 'hunt-page', signinBtn, originalContent);
-} else {
-signinBtn.innerHTML = originalContent;
-signinBtn.disabled = false;
-alert("User not found! Please register before signing in.");
+try {
+    // 🚀 This is the only call needed before showing the app UI
+    const result = await postToAction('getUser', { studentId });
+    // showApp now handles the rest of the loading
+    showApp(result.user, 'hunt-page', signinBtn, originalContent);
+} catch (error) {
+    // If getUser fails, show error and re-enable button
+    signinBtn.innerHTML = originalContent;
+    signinBtn.disabled = false;
+    // Use error message from postToAction if available
+    alert(error.message || "User not found or server error! Please register or try again.");
 }
 }
 async function registerUser() {
@@ -1451,23 +1531,13 @@ submitBtn.innerHTML = '<div class="spinner"></div>';
 submitBtn.disabled = true;
 try {
 const result = await postToAction('registerUser', payload);
-if (result.status === "success") {
-// 🚀 Auto sign-in is also fast now
+// 🚀 Auto sign-in now just needs getUser
 const userResult = await postToAction('getUser', { studentId: payload.studentId });
-if (userResult.status === "success") {
 showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
-} else {
-throw new Error("Auto sign-in failed after registration.");
-}
-} else {
-submitBtn.innerHTML = originalContent;
-submitBtn.disabled = false;
-alert(result.message);
-}
 } catch (error) {
 submitBtn.innerHTML = originalContent;
 submitBtn.disabled = false;
-alert("Error registering. Please check your Student ID and try again.");
+alert(error.message || "Error registering. Please check details and try again.");
 }
 }
 // --- UI & DATA DISPLAY FUNCTIONS ---
@@ -1497,85 +1567,88 @@ revertPop.innerHTML = `<strong>Scan Not Synced</strong><br><small>${message}</sm
 document.getElementById('qr-reader-container').appendChild(revertPop);
 setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 }
-async function updateUserDashboard(shouldUpdatePoints = true) {
-if (!currentUser) return;
-// 🚀 This function no longer needs to fetch user data if shouldUpdatePoints is true,
-// because the server's batchScanDucks response already updated currentUser.
-// This function is now just for updating Rank and Scan History.
-try {
-const hasPendingScans = scanQueue.length > 0;
-// 🚀 Only fetch user data if we DON'T have pending scans
-// and the server hasn't just given us an update.
-if (shouldUpdatePoints && !hasPendingScans) {
-const userResult = await postToAction('getUser', { studentId: currentUser.studentId });
-if (userResult.status === "success") {
-currentUser.points = userResult.user.points;
-currentUser.duckCount = userResult.user.duckCount;
-}
-}
-// Always update the display (even with pending points)
-updateOptimisticDisplay();
-// Always fetch leaderboard and history for rank/log
-const [leaderboardData, historyResult] = await Promise.all([
-postToAction('getLeaderboard'),
-postToAction('getScanHistory', { studentId: currentUser.studentId })
-]);
-document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
-if (Array.isArray(leaderboardData)) {
-const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
-let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
-if (myRank === 1) rankText = '🥇 Rank 1';
-else if (myRank === 2) rankText = '🥈 Rank 2';
-else if (myRank === 3) rankText = '🥉 Rank 3';
-document.getElementById('player-rank-display').textContent = rankText;
-}
-if (Array.isArray(historyResult)) {
-scanHistoryCache = historyResult;
-// 🚀 This check is important. We only trust the server's duck count
-// if our local scan queue is empty.
-if (!hasPendingScans) {
-currentUser.duckCount = historyResult.length;
-updateOptimisticDisplay();
-}
-}
-} catch (e) {
-console.error("Failed to update dashboard", e);
-}
+// 🚀 Reworked updateUserDashboard for instant login
+async function updateUserDashboard(shouldFetchUser = false) {
+    if (!currentUser) return;
+    try {
+        // Fetch user data only if explicitly asked (e.g., periodic refresh)
+        // AND if there are no pending local changes.
+        if (shouldFetchUser && scanQueue.length === 0) {
+            const userResult = await postToAction('getUser', { studentId: currentUser.studentId });
+            currentUser.points = userResult.user.points;
+            currentUser.duckCount = userResult.user.duckCount;
+        }
+
+        // Always update the display with current data (including pending)
+        updateOptimisticDisplay();
+        document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+
+        // Always fetch leaderboard and history in the background
+        const [leaderboardData, historyResult] = await Promise.all([
+            postToAction('getLeaderboard'),
+            postToAction('getScanHistory', { studentId: currentUser.studentId })
+        ]);
+
+        // Update Rank
+        if (Array.isArray(leaderboardData)) {
+            const myRank = leaderboardData.findIndex(p => String(p.studentId).trim() === String(currentUser.studentId).trim()) + 1;
+            let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
+            if (myRank === 1) rankText = '🥇 Rank 1';
+            else if (myRank === 2) rankText = '🥈 Rank 2';
+            else if (myRank === 3) rankText = '🥉 Rank 3';
+            document.getElementById('player-rank-display').textContent = rankText;
+        }
+
+        // Update Scan History cache (for log page and virtual limits)
+        if (Array.isArray(historyResult)) {
+            scanHistoryCache = historyResult;
+             // Update virtual scan timestamps
+            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+            localVirtualScanTimestamps = historyResult
+                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                .map(scan => new Date(scan.timestamp).getTime());
+        }
+
+    } catch (e) {
+        console.error("Failed to update dashboard", e);
+        // Maybe show a small error indicator instead of an alert here
+    }
 }
 async function updateLeaderboard() {
 const listElement = document.getElementById('leaderboard-list');
-if (listElement.innerHTML === '') {
-listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
+listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`; // Show spinner immediately
+try {
+    const leaderboardData = await postToAction('getLeaderboard');
+    if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
+        listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet.</li>';
+        return;
+    }
+    let html = '';
+    leaderboardData.slice(0, 10).forEach((player, index) => {
+        const rank = index + 1;
+        const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+        const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
+        const displayName = `${player.firstName} ${lastNameInitial}`;
+        const duckText = player.duckCount > 0 ? `(${player.duckCount} 🦆)` : '';
+        html += `<li class="list-item glass-card"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts ${duckText}</span></li>`;
+    });
+    listElement.innerHTML = html;
+} catch (error) {
+    listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center; color: #ffaaaa;">Error loading leaderboard.</li>`;
+    console.error("Error updating leaderboard:", error);
 }
-const leaderboardData = await postToAction('getLeaderboard');
-if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
-listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet.</li>';
-return;
-}
-let html = '';
-leaderboardData.slice(0, 10).forEach((player, index) => {
-const rank = index + 1;
-const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
-const lastNameInitial = (player.lastName && player.lastName.length > 0) ? `${player.lastName.charAt(0)}.` : '';
-const displayName = `${player.firstName} ${lastNameInitial}`;
-// 🚀 UI TWEAK: Added the duck count next to the points
-const duckText = player.duckCount > 0 ? `(${player.duckCount} 🦆)` : '';
-html += `<li class="list-item glass-card"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts ${duckText}</span></li>`;
-});
-listElement.innerHTML = html;
 }
 function updateScanHistory() {
 const listElement = document.getElementById('log-list');
-const scanData = scanHistoryCache;
+const scanData = scanHistoryCache; // Use the cached data
 if (!scanData || scanData.length === 0) {
-if (scanHistoryCache.length === 0 && !document.querySelector('#log-list .spinner')) {
-listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
-} else {
-listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet.</li>';
-}
-return;
+    // If cache is empty, show loading or empty message
+    // Note: History is fetched in the background by showApp/periodicDataRefresh
+     listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet (or history is loading).</li>';
+    return;
 }
 let html = '';
+// Sort here just in case the cache wasn't sorted (though server should sort)
 scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(scan => {
 const scanDate = new Date(scan.timestamp);
 const timeString = scanDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -1652,12 +1725,17 @@ showInfoModal(infoItem.title, infoItem.content);
 });
 }
 async function fetchAndRenderInfoData() {
-renderInfoCards(infoDataCache);
-const result = await postToAction('getInfoData');
-if (result.status === 'success') {
-updateRibbon(result.ribbonText);
-} else {
-updateRibbon('');
+renderInfoCards(infoDataCache); // Render cards from hardcoded data immediately
+try {
+    const result = await postToAction('getInfoData');
+    if (result && result.ribbonText !== undefined) {
+         updateRibbon(result.ribbonText);
+    } else {
+        updateRibbon('');
+    }
+} catch (error) {
+     console.error("Error fetching info data:", error);
+     updateRibbon(''); // Clear ribbon on error
 }
 }
 // --- UTILITY & NAVIGATION ---
@@ -1766,13 +1844,19 @@ function switchPage(pageId) {
     const appContainer = document.getElementById('app-container');
     appContainer.scrollTop = 0;
     
+    // Start scanner *only* if duck data is loaded
     if (pageId === 'hunt-page') {
-        updateUserDashboard(scanQueue.length === 0);
-        setTimeout(startScanner, 250);
+         updateUserDashboard(false); // Update display immediately
+         if (duckDataCache && Object.keys(duckDataCache).length > 0) {
+             setTimeout(startScanner, 250);
+         } else {
+             console.warn("Scanner not started yet, duck data still loading.");
+             // Optionally show a message to the user
+         }
     } else if (pageId === 'leaderboard-page') {
         updateLeaderboard();
     } else if (pageId === 'log-page') {
-        updateScanHistory();
+        updateScanHistory(); // Uses cached data, should be fast
     } else if (pageId === 'map-page') {
         initializeMap();
     } else if (pageId === 'info-page') {
