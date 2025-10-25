@@ -24,6 +24,7 @@ display: flex;
 flex-direction: column;
 padding-top: var(--safe-area-top);
 transition: padding-top 0.3s ease;
+z-index: 1; /* Ensure app wrapper is above login video */
 }
 #app-wrapper.ribbon-active {
 padding-top: calc(var(--ribbon-height) + var(--safe-area-top));
@@ -425,6 +426,11 @@ height: 100%;
 z-index: -1;
 overflow: hidden;
 }
+/* ⭐ CHANGE: Hide lava effect on login screen */
+#login-screen.visible ~ #lava-container::before,
+#login-screen.visible ~ #lava-container::after {
+    display: none;
+}
 #lava-container::before, #lava-container::after {
 content: '';
 position: absolute;
@@ -452,19 +458,28 @@ animation-delay: -8s;
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
 #login-screen {
-position: absolute;
+position: fixed; /* Changed to fixed */
 top: 0;
 left: 0;
 width: 100%;
 height: 100%;
 display: flex;
 flex-direction: column;
-/* Centers items as a column */
 justify-content: center;
 align-items: center;
-/* Removed scroll, now rely on viewport sizing */
 padding-top: calc(var(--safe-padding) + var(--safe-area-top));
 padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
+overflow: hidden; /* Ensure video doesn't cause scroll */
+}
+/* ⭐ UPDATED: Background Video Style for edge-to-edge cover */
+#login-bg-video {
+position: fixed; /* Changed to fixed */
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+object-fit: cover; /* Cover ensures edge-to-edge, zooming/cropping as needed */
+z-index: -10; /* Behind login card content */
 }
 .reg-input, #login-studentid { background: rgba(0, 0, 0, 0.3); /* Darker Input Background */ border: 1px solid var(--glass-border-bottom); border-top-color: var(--glass-border-top); border-radius: 10px; padding: 12px 15px; font-size: 1rem; color: white; text-align: center; transition: all 0.2s ease; box-shadow: var(--inset-shadow); }
 .reg-input:focus, #login-studentid:focus { outline: none; border-color: var(--green); box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color); }
@@ -481,17 +496,17 @@ box-sizing: border-box;
 display: flex;
 justify-content: space-between;
 align-items: center;
-z-index: 101;
+z-index: 101; /* Above video */
 }
 #header-card {
-position: relative;
+position: relative; /* Ensure card is above video */
+z-index: 1; /* Ensure card is above video */
 width: 85%;
 max-width: 300px;
-/* FIX: Adjusted the top margin to pull it up slightly more (50vh - 100px) */
-margin-top: calc(50vh - 100px);
-margin-bottom: 10px; /* Space above footer */
-margin-left: auto; /* Centering fix */
-margin-right: auto; /* Centering fix */
+margin-top: calc(50vh - 120px); /* Adjusted slightly for better centering */
+margin-bottom: 20px; /* Increased Space above footer */
+margin-left: auto;
+margin-right: auto;
 flex-shrink: 0;
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -504,23 +519,31 @@ flex-shrink: 0;
 .prize-list-small { text-align: center; list-style: none; padding: 0; margin: 0.5rem 0 0 0; font-size: 0.9rem; }
 .prize-list-small li { margin: 3px 0; }
 footer {
-position: relative;
-padding: 10px 10px calc(20px + var(--safe-area-bottom)) 10px;
-color: rgba(255, 255, 255, 0.7);
+position: relative; /* Ensure footer is above video */
+z-index: 1; /* Ensure footer is above video */
+padding: 10px 10px calc(15px + var(--safe-area-bottom)) 10px; /* Adjusted padding slightly */
+color: rgba(255, 255, 255, 0.8); /* Slightly brighter text */
 font-size: 0.8rem;
 display: flex;
 flex-direction: column;
 justify-content: center;
 align-items: center;
-margin-top: 30px; /* Added extra space below the card */
+margin-top: auto; /* Push footer towards bottom */
+margin-bottom: 20px; /* Add space from absolute bottom */
+/* Add a subtle background to improve readability over video */
+background: rgba(0,0,0,0.5); /* Darker background */
+border-radius: 12px;
+width: 90%;
+max-width: 350px;
+box-shadow: 0 0 10px rgba(0,0,0,0.5); /* Add slight shadow */
 }
 .footer-logo {
 height: 60px; /* Final size */
-margin: 0 auto 15px auto;
+margin: 0 auto 10px auto; /* Reduced margin */
 display: block;
 object-fit: contain;
 }
-footer p { margin: 2px 0; }
+footer p { margin: 3px 0; }
 #scanner-overlay-stats { position: absolute; top: 0; left: 0; right: 0; z-index: 10; background: rgba(0, 0, 0, 0.5); /* Darker Overlay Stats Background */ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px 20px 0 0; border-bottom: 1px solid var(--glass-border-top); padding: 0.8rem; display: flex; justify-content: space-around; }
 .stat { text-align: center; }
 .stat h4 { margin: 0; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 0.9rem; }
@@ -715,6 +738,11 @@ text-shadow: 0 0 5px rgba(255,255,255,0.3);
     <p>Please Wait...<br>The Ducks Are Waking Up!</p>
 </div>
 <div id="login-screen" class="screen visible">
+     <!-- ⭐ NEW: Background Video Element -->
+    <video autoplay loop muted playsinline id="login-bg-video">
+        <source src="https://i.imgur.com/4mJrIPI.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
 <div class="glass-card" id="instructions-card">
 <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
 <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -1465,6 +1493,12 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
 
     // ⭐ NEW: Start scanner initialization in parallel
     const scannerPromise = startScanner(); // This now returns a promise
+    // ⭐ NEW: Hide loading overlay as soon as scanner starts, regardless of data loading
+     scannerPromise.finally(() => {
+        loadingOverlay.classList.remove('visible');
+         console.log("Scanner init finished (success or fail), hiding loading overlay.");
+     });
+
 
     // --- Phase 2: Load Heavy Data in Background ---
     try {
@@ -1531,13 +1565,15 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         alert(`Error loading game data: ${e.message}\n\nPlease try refreshing the page.`);
         // Consider stopping scanner if data load fails critically
         stopScanner();
-    } finally {
-        // ⭐ Hide loading overlay AFTER scanner start promise resolves (or rejects)
-        scannerPromise.finally(() => {
-            loadingOverlay.classList.remove('visible');
-             console.log("Scanner init finished (success or fail), hiding loading overlay.");
-        });
+         loadingOverlay.classList.remove('visible'); // Ensure overlay hides on error too
     }
+    // ⭐ REMOVED: Hiding overlay moved to scannerPromise.finally()
+    // finally {
+    //     scannerPromise.finally(() => {
+    //         loadingOverlay.classList.remove('visible');
+    //          console.log("Scanner init finished (success or fail), hiding loading overlay.");
+    //     });
+    // }
 }
 async function signIn(studentId) {
 const signinBtn = document.getElementById('signin-btn');
