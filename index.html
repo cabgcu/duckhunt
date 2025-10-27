@@ -735,7 +735,7 @@ transform: translateY(-2px);
 <!-- ⭐ REMOVED: Loading Overlay Div removed -->
 <!-- <div id="loading-overlay"> ... </div> -->
 <div id="login-screen" class="screen visible">
-     <!-- ⭐ UPDATED: Background Video Element -->
+      <!-- ⭐ UPDATED: Background Video Element -->
     <video autoplay loop muted playsinline id="login-bg-video">
         <source src="https://i.imgur.com/Aqrg8yc.mp4" type="video/mp4">
         Your browser does not support the video tag.
@@ -1345,6 +1345,8 @@ if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId
 const lookupId = finalDuckId.trim().toLowerCase();
 if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
 triggerVisualError();
+// ⭐ ADDED: Show notification for duplicate scan
+displayErrorPopup("Quack! Already claimed.");
 return;
 }
 // Use duckDataCache here
@@ -1518,8 +1520,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
              scanHistoryCache = historyResult;
              const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
              localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
+                 .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                 .map(scan => new Date(scan.timestamp).getTime());
         }
         if (infoResult && infoResult.ribbonText !== undefined) { updateRibbon(infoResult.ribbonText); infoDataFetchTime = new Date(); }
         else { updateRibbon(''); }
@@ -1680,7 +1682,7 @@ async function updateUserDashboard(shouldFetchUser = false) {
             }
              // Update History Cache
              if (Array.isArray(historyResult)) {
-                scanHistoryCache = historyResult;
+                 scanHistoryCache = historyResult;
                  const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
                  localVirtualScanTimestamps = historyResult
                      .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
@@ -1842,11 +1844,41 @@ function startScanner() {
         const torchButton = document.getElementById('torch-toggle-btn');
         console.log("QR SCANNER LOG: Attempting to start scanner...");
 
+        // ⭐ ADDED: Show loading message
+        const readerEl = document.getElementById('qr-reader');
+        let loadingEl = readerEl.querySelector('.scanner-loading-message');
+        if (!loadingEl) {
+            loadingEl = document.createElement('div');
+            loadingEl.className = 'scanner-loading-message'; // Added class for potential removal
+            loadingEl.style = `
+                position: absolute; 
+                top: 50%; 
+                left: 50%; 
+                transform: translate(-50%, -50%); 
+                color: white; 
+                font-weight: bold; 
+                font-size: 1.1rem; 
+                z-index: 10; 
+                text-align: center;
+                background: rgba(0,0,0,0.5);
+                padding: 1rem;
+                border-radius: 10px;
+                width: 80%;
+            `;
+            loadingEl.innerHTML = 'Quack Quack!<br>The Scanner Is Still Loading!';
+            readerEl.style.position = 'relative'; // Ensure parent is relative
+            readerEl.appendChild(loadingEl);
+        }
+
         html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, (errorMessage) => {
             // console.log("QR Error:", errorMessage);
         })
         .then(() => {
             console.log("QR SCANNER LOG: Scanner started successfully. Checking torch...");
+            // ⭐ ADDED: Remove loading message
+            const loadingEl = document.getElementById('qr-reader')?.querySelector('.scanner-loading-message');
+            if (loadingEl) loadingEl.remove();
+
             setTimeout(() => { // Check torch after delay
                 try {
                     if (!html5QrCode || !html5QrCode.isScanning) {
@@ -1869,6 +1901,10 @@ function startScanner() {
         })
         .catch(err => {
             console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
+            // ⭐ ADDED: Remove loading message
+            const loadingEl = document.getElementById('qr-reader')?.querySelector('.scanner-loading-message');
+            if (loadingEl) loadingEl.remove();
+
             displayErrorPopup("Camera failed to start. Please check permissions.");
             reject(err); // ⭐ Reject the promise on failure
         });
@@ -1877,6 +1913,11 @@ function startScanner() {
 
 function stopScanner() {
 const torchButton = document.getElementById('torch-toggle-btn');
+
+// ⭐ ADDED: Remove loading message just in case
+const loadingEl = document.getElementById('qr-reader')?.querySelector('.scanner-loading-message');
+if (loadingEl) loadingEl.remove();
+
 // Turn off torch first if it's on
 if (cameraTrack && cameraTrack.readyState === 'live' && isTorchOn) {
     cameraTrack.applyConstraints({ advanced: [{ torch: false }] })
