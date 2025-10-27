@@ -1483,6 +1483,37 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     isDataLoaded = false; // Reset flag
 
+    // ⭐ NEW LOGIC
+    if (initialDuckId) {
+        // Immediately add the duck from the URL to the processing queue.
+        // We don't know the points yet, but it's now queued for sync.
+        // First, check if it's *already* in the saved queue (e.g., login failed, user retried)
+        const savedQueue = localStorage.getItem(getQueueKey());
+        let alreadyQueued = false;
+        if (savedQueue) {
+             try {
+                const parsedQueue = JSON.parse(savedQueue);
+                if (Array.isArray(parsedQueue)) {
+                    alreadyQueued = parsedQueue.some(item => item.duckId === initialDuckId);
+                }
+             } catch(e) {}
+        }
+        
+        // Also check if it's in the *live* queue (which shouldn't happen here, but good practice)
+        if (!alreadyQueued) {
+            alreadyQueued = scanQueue.some(item => item.duckId === initialDuckId);
+        }
+
+        if (!alreadyQueued) {
+            console.log(`Queueing initial duckId: ${initialDuckId}`);
+            scanQueue.push({ duckId: initialDuckId, studentId: currentUser.studentId });
+            saveScanQueue(); // Save it immediately
+        }
+        // We will process this for a popup *after* data is loaded, but it's already in the queue.
+    }
+    // --- End New Logic ---
+
+
     // --- Phase 1: Show UI & Start Scanner Init ---
     if (loginButtonEl) {
         loginButtonEl.innerHTML = loginButtonContent;
@@ -1493,7 +1524,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     // ⭐ REMOVED: Loading overlay removed
     // loadingOverlay.classList.add('visible');
 
-    loadScanQueue(); // Load pending scans
+    loadScanQueue(); // This will now load the queue *including* the initialDuckId
 
     // Setup timers
     if (batchSendTimer) clearInterval(batchSendTimer);
@@ -1544,7 +1575,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
                      pendingDucks += 1;
                  }
              });
-             updateOptimisticDisplay();
+             updateOptimisticDisplay(); // ⭐ This will now show the points from initialDuckId
          }
 
 
@@ -1554,12 +1585,41 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
         // ⭐ MODIFICATION: If we are on the hunt page, NOW we can start the scanner.
         if (document.getElementById('hunt-page').classList.contains('active')) {
             console.log("Data loaded, starting scanner.");
-            startScanner();
+            startScanner(); // This will remove the "Loading" message and start the camera
         }
 
-        if (initialDuckId) { // Handle initial duck scan
-            onScanSuccess(initialDuckId);
-            initialDuckId = null;
+        // ⭐ MODIFIED: Process initialDuckId here for POPUP, but it's already in the queue.
+        if (initialDuckId) { 
+            const lookupId = initialDuckId.trim().toLowerCase();
+            // Check if it's already claimed on the server (e.g. user scanned, logged out, logged in again)
+            if (claimedDucksCache.has(lookupId)) {
+                displayErrorPopup("Quack! Already claimed.");
+            } 
+            // Check if it's in the processing set (which it should be if we just added it)
+            // No, processingDucks is only added in onScanSuccess.
+            // Let's just use the duckDataCache to show the popup.
+            else if (duckDataCache[lookupId]) {
+                const duckInfo = duckDataCache[lookupId];
+                const points = duckInfo.points || 0;
+                const isGoldenDuck = duckInfo.type === 'Golden Duck';
+                
+                // We need to show the popup on the hunt page.
+                // The hunt page is active, but the scanner isn't running. This is perfect.
+                displaySuccessPopup(`+${points}`, isGoldenDuck);
+                if (isGoldenDuck) {
+                    triggerGoldenDuckAnimation();
+                } else {
+                    triggerDuckAnimation();
+                }
+                
+                // Add to processingDucks so onScanSuccess doesn't re-add it if camera starts fast
+                processingDucks.add(lookupId); 
+            } else {
+                // DuckID from URL isn't in our duck data? Show an error.
+                displayErrorPopup("Invalid Duck ID.");
+            }
+
+            initialDuckId = null; // Finally, nullify it.
         }
         updateUserDashboard(false); // Final dashboard update
 
