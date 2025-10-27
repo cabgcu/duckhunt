@@ -1343,12 +1343,20 @@ const url = new URL(decodedText);
 if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
 } catch (e) {}
 const lookupId = finalDuckId.trim().toLowerCase();
-if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
-triggerVisualError();
-// ⭐ ADDED: Show notification for duplicate scan
-displayErrorPopup("Quack! Already claimed.");
-return;
+
+// SILENTLY ignore if it's in the processing queue. User already got success feedback.
+if (processingDucks.has(lookupId)) {
+    return;
 }
+
+// Show error message ONLY if it's already been claimed (i.e., confirmed by server from a *previous* batch).
+if (claimedDucksCache.has(lookupId)) {
+    triggerVisualError();
+    // ⭐ Show notification for duplicate scan (of an already synced duck)
+    displayErrorPopup("Quack! Already claimed.");
+    return;
+}
+
 // Use duckDataCache here
 const duckInfo = duckDataCache[lookupId];
 if (!duckInfo) {
@@ -1498,8 +1506,8 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     updateOptimisticDisplay(); // Show initial numbers/pending
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-    // Start scanner initialization (no longer hides overlay)
-    startScanner();
+    // ⭐ MODIFICATION: Removed startScanner() call. It will be called by switchPage or after data loads.
+    // startScanner(); 
 
 
     // --- Phase 2: Load Heavy Data ---
@@ -1542,6 +1550,12 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
 
         isDataLoaded = true; // Mark data loaded
         console.log("Duck data loaded successfully.");
+
+        // ⭐ MODIFICATION: If we are on the hunt page, NOW we can start the scanner.
+        if (document.getElementById('hunt-page').classList.contains('active')) {
+            console.log("Data loaded, starting scanner.");
+            startScanner();
+        }
 
         if (initialDuckId) { // Handle initial duck scan
             onScanSuccess(initialDuckId);
@@ -2013,17 +2027,43 @@ function switchPage(pageId) {
     appContainer.scrollTop = 0;
     
     // 🚀 Start scanner ONLY when switching TO the hunt page,
-    // and only if data has already been loaded OR scanner init is done.
+    // and only if data has already been loaded.
     if (pageId === 'hunt-page') {
          updateUserDashboard(false); // Update display immediately
          // ⭐ Try starting scanner immediately if it's not already starting/running
          // Use a slight delay to ensure the page is visible.
          setTimeout(() => {
-             if (isDataLoaded) { // Only start processing scans if data is ready
+             if (isDataLoaded) { // Only start scanner if data is ready
                  startScanner(); // Attempt to start camera feed etc.
              } else {
-                 console.warn("Scanner camera might start, but scan processing delayed until data loads.");
-                 startScanner(); // Start camera anyway, onScanSuccess will block until isDataLoaded=true
+                 // ⭐ MODIFICATION: Do NOT start scanner. Show loading message instead.
+                 console.warn("Data not loaded. Scanner will not start yet.");
+                 // We can show the "Quack Quack" message permanently until data is loaded.
+                 const readerEl = document.getElementById('qr-reader');
+                 let loadingEl = readerEl.querySelector('.scanner-loading-message');
+                 if (!loadingEl) {
+                    loadingEl = document.createElement('div');
+                    loadingEl.className = 'scanner-loading-message'; // Added class for potential removal
+                    loadingEl.style = `
+                        position: absolute; 
+                        top: 50%; 
+                        left: 50%; 
+                        transform: translate(-50%, -50%); 
+                        color: white; 
+                        font-weight: bold; 
+                        font-size: 1.1rem; 
+                        z-index: 10; 
+                        text-align: center;
+                        background: rgba(0,0,0,0.5);
+                        padding: 1rem;
+                        border-radius: 10px;
+                        width: 80%;
+                    `;
+                    readerEl.style.position = 'relative'; // Ensure parent is relative
+                    readerEl.appendChild(loadingEl);
+                 }
+                 // Use the "Quack Quack" message, as it's more generic for "loading"
+                 loadingEl.innerHTML = 'Quack Quack!<br>The Scanner Is Still Loading!';
              }
          }, 100);
     } else if (pageId === 'leaderboard-page') {
