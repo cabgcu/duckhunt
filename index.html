@@ -2104,95 +2104,128 @@ setTimeout(() => el.remove(), 500);
 }
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
-startRandomFadingDuckFeet();
-checkForInitialDuck();
-const savedStudentId = sessionStorage.getItem('currentUserStudentId');
-if (savedStudentId) {
-// 🚀 This sign-in is now fast
-signIn(savedStudentId);
-}
-document.getElementById('signin-btn').addEventListener('click', () => {
-const studentId = document.getElementById('login-studentid').value.trim();
-if (studentId) signIn(studentId);
-});
-document.getElementById('submit-btn').addEventListener('click', registerUser);
-document.getElementById('register-btn').addEventListener('click', () => {
-const studentId = document.getElementById('login-studentid').value.trim();
-if (studentId) {
-document.getElementById('reg-studentid').value = studentId;
-}
-loginView.classList.add('hidden');
-registrationView.classList.remove('hidden');
-});
-document.getElementById('back-btn').addEventListener('click', () => {
-registrationView.classList.add('hidden');
-loginView.classList.remove('hidden');
-});
-document.getElementById('close-instructions').addEventListener('click', () => {
-document.getElementById('instructions-card').style.display = 'none';
-});
-document.getElementById('tab-bar').addEventListener('click', (e) => {
-if (e.target.matches('.tab-button')) {
-// The logic inside switchPage now handles the batch send check
-switchPage(e.target.dataset.page);
-}
-});
-document.getElementById('scan-history-link').addEventListener('click', (e) => {
-e.preventDefault();
-switchPage(e.target.dataset.page);
-});
-document.getElementById('logout-btn').addEventListener('click', logout);
-document.getElementById('torch-toggle-btn').addEventListener('click', () => {
-if (cameraTrack) {
-try {
-const desiredState = !isTorchOn;
-cameraTrack.applyConstraints({
-advanced: [{ torch: desiredState }]
-});
-isTorchOn = desiredState;
-document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
-} catch(e) {
-console.error("Failed to toggle torch:", e);
-alert("Sorry, the flashlight could not be controlled.");
-}
-}
-});
-const modalBackdrop = document.getElementById('info-modal-backdrop');
-if (modalBackdrop) {
-document.getElementById('modal-close-btn').addEventListener('click', () => {
-modalBackdrop.style.display = 'none';
-document.body.style.overflow = '';
-});
-modalBackdrop.addEventListener('click', (e) => {
-if (e.target.id === 'info-modal-backdrop') {
-modalBackdrop.style.display = 'none';
-document.body.style.overflow = '';
-}
-}
-);
-// ⭐ MODIFIED: Find info items by title for login screen links
-const viewTermsLink = document.getElementById('view-terms-link');
-if (viewTermsLink) {
-viewTermsLink.addEventListener('click', (e) => {
-e.preventDefault();
-const infoItem = infoDataCache.find(item => item.title.includes('Terms & Conditions'));
-if (infoItem) {
-showInfoModal(infoItem.title, infoItem.content);
-}
-});
-}
-const whatIsDuckHuntLink = document.getElementById('what-is-duck-hunt-link');
-if (whatIsDuckHuntLink) {
-whatIsDuckHuntLink.addEventListener('click', (e) => {
-e.preventDefault();
-const infoItem = infoDataCache.find(item => item.title === 'What is Duck Hunt?');
-if (infoItem) {
-showInfoModal(infoItem.title, infoItem.content);
-}
-});
-}
-}
-});
+    // ⭐ NEW: Alternate login background video on refresh
+    try {
+        const loginVideos = [
+            'https://i.imgur.com/Aqrg8yc.mp4', // Original
+            'https://i.imgur.com/YwNPfOg.mp4'  // Alternate
+        ];
+        const videoElement = document.getElementById('login-bg-video');
+        const videoSource = videoElement.querySelector('source');
+        
+        if (videoSource) {
+            let lastVideoIndex = sessionStorage.getItem('lastVideoIndex');
+            let nextVideoIndex;
+
+            if (lastVideoIndex === null || lastVideoIndex === '1') {
+                // If last was null or the alternate, show the original
+                nextVideoIndex = 0;
+            } else {
+                // If last was the original, show the alternate
+                nextVideoIndex = 1;
+            }
+            
+            // Set the storage item to what we just showed
+            sessionStorage.setItem('lastVideoIndex', nextVideoIndex.toString());
+            
+            // Set the video source and reload
+            videoSource.src = loginVideos[nextVideoIndex];
+            videoElement.load();
+        }
+    } catch (e) {
+        console.warn("Could not alternate login video:", e);
+        // Fallback to hardcoded video src is fine
+    }
+
+    startRandomFadingDuckFeet();
+    checkForInitialDuck();
+    const savedStudentId = sessionStorage.getItem('currentUserStudentId');
+    if (savedStudentId) {
+    // 🚀 This sign-in is now fast
+    signIn(savedStudentId);
+    }
+    document.getElementById('signin-btn').addEventListener('click', () => {
+    const studentId = document.getElementById('login-studentid').value.trim();
+    if (studentId) signIn(studentId);
+    });
+    document.getElementById('submit-btn').addEventListener('click', registerUser);
+    document.getElementById('register-btn').addEventListener('click', () => {
+    const studentId = document.getElementById('login-studentid').value.trim();
+    if (studentId) {
+    document.getElementById('reg-studentid').value = studentId;
+    }
+    loginView.classList.add('hidden');
+    registrationView.classList.remove('hidden');
+    });
+    document.getElementById('back-btn').addEventListener('click', () => {
+    registrationView.classList.add('hidden');
+    loginView.classList.remove('hidden');
+    });
+    document.getElementById('close-instructions').addEventListener('click', () => {
+    document.getElementById('instructions-card').style.display = 'none';
+    });
+    document.getElementById('tab-bar').addEventListener('click', (e) => {
+    if (e.target.matches('.tab-button')) {
+    // The logic inside switchPage now handles the batch send check
+    switchPage(e.target.dataset.page);
+    }
+    });
+    document.getElementById('scan-history-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    switchPage(e.target.dataset.page);
+    });
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    document.getElementById('torch-toggle-btn').addEventListener('click', () => {
+    if (cameraTrack) {
+    try {
+    const desiredState = !isTorchOn;
+    cameraTrack.applyConstraints({
+    advanced: [{ torch: desiredState }]
+    });
+    isTorchOn = desiredState;
+    document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
+    } catch(e) {
+    console.error("Failed to toggle torch:", e);
+    alert("Sorry, the flashlight could not be controlled.");
+    }
+    }
+    });
+    const modalBackdrop = document.getElementById('info-modal-backdrop');
+    if (modalBackdrop) {
+    document.getElementById('modal-close-btn').addEventListener('click', () => {
+    modalBackdrop.style.display = 'none';
+    document.body.style.overflow = '';
+    });
+    modalBackdrop.addEventListener('click', (e) => {
+    if (e.target.id === 'info-modal-backdrop') {
+    modalBackdrop.style.display = 'none';
+    document.body.style.overflow = '';
+    }
+    }
+    );
+    // ⭐ MODIFIED: Find info items by title for login screen links
+    const viewTermsLink = document.getElementById('view-terms-link');
+    if (viewTermsLink) {
+    viewTermsLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    const infoItem = infoDataCache.find(item => item.title.includes('Terms & Conditions'));
+    if (infoItem) {
+    showInfoModal(infoItem.title, infoItem.content);
+    }
+    });
+    }
+    const whatIsDuckHuntLink = document.getElementById('what-is-duck-hunt-link');
+    if (whatIsDuckHuntLink) {
+    whatIsDuckHuntLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    const infoItem = infoDataCache.find(item => item.title === 'What is Duck Hunt?');
+    if (infoItem) {
+    showInfoModal(infoItem.title, infoItem.content);
+    }
+    });
+    }
+    }
+    });
 </script>
 </body>
 </html>
