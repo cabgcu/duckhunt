@@ -2117,12 +2117,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let lastVideoIndex = sessionStorage.getItem('lastVideoIndex');
             let nextVideoIndex;
 
-            if (lastVideoIndex === null || lastVideoIndex === '1') {
-                // If last was null or the alternate, show the original
-                nextVideoIndex = 0;
+            // ⭐ MODIFIED: Randomize first video, then alternate
+            if (lastVideoIndex === null) {
+                // First load this session, pick one randomly
+                nextVideoIndex = Math.round(Math.random()); 
             } else {
-                // If last was the original, show the alternate
-                nextVideoIndex = 1;
+                // Alternate from the last one shown
+                nextVideoIndex = lastVideoIndex === '1' ? 0 : 1;
             }
             
             // Set the storage item to what we just showed
