@@ -820,10 +820,11 @@ transform: translateY(-2px);
 <div class="stat"><h4>DUCKS</h4><p id="player-ducks">0</p></div>
 </div>
 <!-- ⭐ NEW: Scanner Loading Message -->
+<!-- ⭐ MODIFIED: Updated loading text -->
 <div id="scanner-loading-message">
     <div class="spinner" style="width: 30px; height: 30px; margin-bottom: 1rem;"></div>
-    <p>Quack Quack!</p>
-    <p>The Scanner Is Loading!</p>
+    <p id="scanner-loading-text-line1">Quack Quack!</p>
+    <p id="scanner-loading-text-line2">The Scanner Is Loading!</p>
 </div>
 <div id="qr-reader"></div>
 <button id="torch-toggle-btn" class="hidden">
@@ -924,6 +925,8 @@ const registrationView = document.getElementById('registration-view');
 const ribbonMessage = document.getElementById('ribbon-message');
 const mapImageElement = document.getElementById('campus-map-img');
 const scannerLoadingMessage = document.getElementById('scanner-loading-message'); // ⭐ Scanner loading message ref
+const scannerLoadingText1 = document.getElementById('scanner-loading-text-line1'); // ⭐ Ref for text line 1
+const scannerLoadingText2 = document.getElementById('scanner-loading-text-line2'); // ⭐ Ref for text line 2
 
 // Pre-populated Info Data (Refactored)
 const infoDataCache = [
@@ -1818,9 +1821,15 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
             // Save the *intent* to scan immediately
             localStorage.setItem(getPendingInitialDuckKey(), currentInitialDuckId);
             console.log(`TIME (${performance.now().toFixed(0)}ms): Saved pending initial duck ID to localStorage.`);
-            // Show generic feedback immediately
+            
+            // ⭐ Show generic feedback immediately
             console.log(`TIME (${performance.now().toFixed(0)}ms): Displaying initial generic 'DUCK CLAIMED!' popup.`);
             displaySuccessPopup("DUCK CLAIMED!", false, true); // Generic, non-golden, force display
+            
+            // ⭐ Set scanner text to "Awarding Points"
+            scannerLoadingText1.textContent = "Please Wait";
+            scannerLoadingText2.textContent = "As We Award Your Points!";
+
         } catch (e) {
             console.error("Error saving pending initial duck ID:", e);
         }
@@ -1962,7 +1971,10 @@ const result = await postToAction('registerUser', payload);
 localStorage.removeItem(getDuckDataCacheKey());
 localStorage.removeItem(getClaimedDucksCacheKey());
 // ⭐ Also clear any pending initial scan from a previous user/attempt
-localStorage.removeItem(getPendingInitialDuckKey()); // Use current user ID placeholder if needed
+// We need a key *before* currentUser is set, so we construct it
+const pendingKey = PENDING_INITIAL_DUCK_KEY_PREFIX + payload.studentId;
+localStorage.removeItem(pendingKey);
+
 const userResult = await postToAction('getUser', { studentId: payload.studentId });
 showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
 } catch (error) {
@@ -2319,7 +2331,9 @@ function startScanner() {
     .catch(err => {
          const cameraFailTime = performance.now();
         console.error(`TIME (${cameraFailTime.toFixed(0)}ms): CRITICAL - Scanner camera failed to start. Duration: ${(cameraFailTime - startTime).toFixed(0)}ms`, err);
-        scannerLoadingMessage.innerHTML = `<p style="color: #ffaaaa;">Camera Failed!</p><p style="font-size: 0.9rem; font-weight: normal;">Please check permissions and refresh.</p>`;
+        scannerLoadingText1.textContent = "Camera Failed!";
+        scannerLoadingText2.textContent = "Please check permissions.";
+        scannerLoadingMessage.querySelector('.spinner').style.display = 'none';
         // Don't hide the message, it now contains the error
     });
 }
@@ -2368,7 +2382,10 @@ if (html5QrCode && html5QrCode.isScanning) {
 }
 // ⭐ Show loading message again when scanner stops
 if (scannerLoadingMessage) {
-    scannerLoadingMessage.innerHTML = `<div class="spinner" style="width: 30px; height: 30px; margin-bottom: 1rem;"></div><p>Quack Quack!</p><p>The Scanner Is Loading!</p>`; // Reset text
+    // ⭐ MODIFIED: Reset to default text
+    scannerLoadingText1.textContent = "Quack Quack!";
+    scannerLoadingText2.textContent = "The Scanner Is Loading!";
+    scannerLoadingMessage.querySelector('.spinner').style.display = 'block'; // Ensure spinner is visible
     scannerLoadingMessage.classList.remove('hidden');
 }
 }
@@ -2388,10 +2405,14 @@ async function logout() {
     if (batchSendTimer) clearInterval(batchSendTimer);
     if (dataRefreshTimer) clearInterval(dataRefreshTimer);
     stopScanner();
+
+    // ⭐ Clear pending initial duck just in case
+    if(currentUser) {
+        try { localStorage.removeItem(getPendingInitialDuckKey()); } catch(e){} 
+    }
+    
     currentUser = null;
     isDataLoaded = false; // Reset data flag on logout
-    // Clear pending initial duck just in case
-    try { localStorage.removeItem(getPendingInitialDuckKey()); } catch(e){} 
     
     // 🚀 We no longer remove the main queue from localStorage on logout.
     // The getQueueKey() is user-specific.
