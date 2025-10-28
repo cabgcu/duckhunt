@@ -910,7 +910,8 @@ const VIDEO_SESSION_KEY = 'lastVideoIndex';
 // --- GLOBAL STATE & DOM REFERENCES ---
 let html5QrCode = null;
 let currentUser = null;
-let initialDuckId = null;
+let initialDuckId = null; // Used only for initial check
+const PENDING_INITIAL_DUCK_KEY_PREFIX = 'duckHunt_pendingInitial_'; // ⭐ Key for saving scan intent
 let infoDataFetchTime = null;
 let mapResizeObserver = null;
 let isTorchOn = false;
@@ -1093,6 +1094,11 @@ function getClaimedDucksCacheKey() {
     // This cache is user-specific
     return CLAIMED_DUCKS_KEY_PREFIX + (currentUser ? currentUser.studentId : 'guest');
 }
+// ⭐ NEW: Key for saving initial scan intent
+function getPendingInitialDuckKey() {
+    return PENDING_INITIAL_DUCK_KEY_PREFIX + (currentUser ? currentUser.studentId : 'guest');
+}
+
 
 function loadCriticalDataFromCache() {
     console.log("CACHE: Attempting to load critical data from localStorage...");
@@ -1423,76 +1429,104 @@ function updateOptimisticDisplay() {
     }
 }
 
-// ⭐ MODIFIED: Handle initial duck scan from URL
-async function handleInitialDuckScan() {
-    if (!initialDuckId) return;
 
-    // This function is now called *after* isDataLoaded is true
-    if (!isDataLoaded) {
-        console.error("handleInitialDuckScan called but isDataLoaded is false. This shouldn't happen.");
-        return; 
+// ⭐ NEW: Process SAVED initial scan from localStorage
+async function processSavedInitialScan() {
+    const pendingDuckKey = getPendingInitialDuckKey();
+    const duckIdToProcess = localStorage.getItem(pendingDuckKey);
+
+    if (!duckIdToProcess) {
+        console.log(`TIME (${performance.now().toFixed(0)}ms): No pending initial duck scan found in localStorage.`);
+        return; // No pending scan to process
     }
 
-    const duckIdToProcess = initialDuckId;
-    initialDuckId = null; // Clear it so we don't process it twice
-
-    console.log(`Processing initial duck scan from URL: ${duckIdToProcess}`);
-    
-    let finalDuckId = duckIdToProcess;
-    try {
-        const url = new URL(duckIdToProcess);
-        if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
-    } catch (e) {}
-    
-    const lookupId = finalDuckId.trim().toLowerCase();
-
-    // ⭐ Check server cache and session processing set
-    if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
-        console.warn(`Initial duck scan: ${lookupId} already claimed or being processed.`);
-        displayErrorPopup("Quack! Already claimed."); // ⭐ Show duplicate message
+    // ⭐ This check should ideally be redundant now because of call order, but keep as safety
+    if (!isDataLoaded) {
+        console.error("LOGIC ERROR: processSavedInitialScan called before critical data loaded.");
         return;
     }
 
+    const startTime = performance.now();
+    console.log(`TIME (${startTime.toFixed(0)}ms): Processing SAVED initial duck scan from localStorage: ${duckIdToProcess}`);
+
+    let finalDuckId = duckIdToProcess;
+    try {
+        if (duckIdToProcess.includes('://') && duckIdToProcess.includes('?')) {
+            const url = new URL(duckIdToProcess);
+            if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+        }
+    } catch (e) { /* ignore */ }
+    
+    const lookupId = finalDuckId.trim().toLowerCase();
+
+    // Check caches
+    if (claimedDucksCache.has(lookupId)) {
+        console.warn(`Saved initial scan: ${lookupId} already claimed (in cache). Removing pending key.`);
+        localStorage.removeItem(pendingDuckKey); // Clear the saved ID
+        displayErrorPopup("Quack! Already claimed.");
+        return;
+    }
+     // Check if it's already in the main queue (e.g., if user reloaded very fast)
+     if (scanQueue.some(scan => scan.duckId.trim().toLowerCase() === lookupId)) {
+         console.warn(`Saved initial scan: ${lookupId} already found in main scanQueue. Removing pending key.`);
+         localStorage.removeItem(pendingDuckKey); // Clear the saved ID
+         return; // Already queued
+     }
+     // Check session processing (less likely here, but for safety)
+     if (processingDucks.has(lookupId)) {
+         console.warn(`Saved initial scan: ${lookupId} is already being processed this session. Removing pending key.`);
+         localStorage.removeItem(pendingDuckKey); // Clear the saved ID
+         return; // Ignore
+     }
+
     const duckInfo = duckDataCache[lookupId];
     if (!duckInfo) {
-        console.error(`Initial duck scan: ${lookupId} is not a valid duck ID.`);
+        console.error(`Saved initial scan: ${lookupId} is not a valid duck ID. Removing pending key.`);
+        localStorage.removeItem(pendingDuckKey); // Clear the saved ID
         displayErrorPopup("Invalid Duck Code");
         return;
     }
 
-    // Add to this session's processing list
+    // Add to session processing
     processingDucks.add(lookupId);
 
+    // Virtual Duck Check
     if (duckInfo.type === 'Virtual Duck') {
         const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
         localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
         if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) {
-            displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
-            triggerFrostAnimation();
-            processingDucks.delete(lookupId); // Remove from processing
-            return;
+             displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
+             triggerFrostAnimation();
+             processingDucks.delete(lookupId);
+             localStorage.removeItem(pendingDuckKey); // Clear the saved ID
+             return;
         }
         localVirtualScanTimestamps.push(new Date().getTime());
     }
 
+    // Add to main scan queue
     scanQueue.push({ duckId: finalDuckId, studentId: currentUser.studentId });
-    saveScanQueue();
+    saveScanQueue(); // Save the updated main queue
 
     const points = duckInfo.points || 0;
     pendingPoints += points;
     pendingDucks += 1;
-    updateOptimisticDisplay(); // Update numbers and start pulsing
+    updateOptimisticDisplay(); // Update numbers/pulsing
+
+    // Clear the pending key *after* successfully adding to main queue and saving
+    localStorage.removeItem(pendingDuckKey);
+    console.log(`TIME (${performance.now().toFixed(0)}ms): Removed pending initial duck key.`);
 
     const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    // ⭐ Show popup on the scanner page
-    displaySuccessPopup(`+${points}`, isGoldenDuck, true); 
+    // Show CORRECT popup
+    displaySuccessPopup(`+${points}`, isGoldenDuck, true); // Force display
+    const endTime = performance.now();
+    console.log(`TIME (${endTime.toFixed(0)}ms): SAVED initial duck scan processed. Points: ${points}. Duration: ${(endTime - startTime).toFixed(0)}ms`);
     
-    if (isGoldenDuck) {
-        triggerGoldenDuckAnimation();
-    } else {
-        triggerDuckAnimation();
-    }
-    // Batch timer will handle sending this
+    if (isGoldenDuck) triggerGoldenDuckAnimation();
+    else triggerDuckAnimation();
+    
+    // Batch timer will handle sending this from the main queue
 }
 
 
@@ -1510,8 +1544,8 @@ setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
 };
 let finalDuckId = decodedText;
 try {
-const url = new URL(decodedText);
-if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
+ const url = new URL(decodedText);
+ if (url.searchParams.has('duckId')) { finalDuckId = url.searchParams.get('duckId'); }
 } catch (e) {}
 const lookupId = finalDuckId.trim().toLowerCase();
 
@@ -1671,40 +1705,49 @@ function periodicDataRefresh() {
         });
 }
 
-// ⭐ NEW: Centralized function to load critical data
-async function loadCriticalDataAndProcessInitialScan() {
+// ⭐ MODIFIED: Renamed function
+async function loadCriticalDataAndProcessSavedScan() {
+    const startTime = performance.now(); // Log timing
+    console.log(`TIME (${startTime.toFixed(0)}ms): Starting loadCriticalDataAndProcessSavedScan`);
+    
     if (loadCriticalDataFromCache()) {
         // CACHE HIT: Data loaded instantly
         isDataLoaded = true;
-        console.log("LOAD: Using cached critical data.");
+        const cacheLoadTime = performance.now();
+        console.log(`TIME (${cacheLoadTime.toFixed(0)}ms): Using cached critical data. Duration: ${(cacheLoadTime - startTime).toFixed(0)}ms`);
         
-        // ⭐ Process initial duck scan if it exists (using cache)
-        await handleInitialDuckScan();
+        // ⭐ Process SAVED initial duck scan if it exists (using cache)
+        await processSavedInitialScan(); // Call the processing function
         
-        // ⭐ Trigger background sync to get *fresh* data
+        // ⭐ Trigger background sync to get *fresh* data (no await needed)
+        console.log(`TIME (${performance.now().toFixed(0)}ms): Triggering background sync for cache update.`);
         postToAction('getDuckData').then(duckResult => {
              if (duckResult && duckResult.ducks) { 
                  duckDataCache = duckResult.ducks; 
                  saveCriticalDataToCache();
-                 console.log("CACHE: Background sync of duck data complete.");
+                 console.log(`TIME (${performance.now().toFixed(0)}ms): Background sync of duck data complete.`);
              }
-        });
+        }).catch(e => console.error("Background sync error (getDuckData):", e));
+        
         postToAction('getClaimedDucks').then(claimedDucksResult => {
             if (claimedDucksResult && Array.isArray(claimedDucksResult.claimed)) {
                 claimedDucksCache = new Set(claimedDucksResult.claimed);
                 saveCriticalDataToCache();
-                console.log("CACHE: Background sync of claimed ducks complete.");
+                console.log(`TIME (${performance.now().toFixed(0)}ms): Background sync of claimed ducks complete.`);
             }
-        });
+        }).catch(e => console.error("Background sync error (getClaimedDucks):", e));
 
     } else {
         // CACHE MISS: Fetch critical data now (first-time user)
-        console.log("LOAD: No cache. Fetching critical data from server...");
+        console.log(`TIME (${performance.now().toFixed(0)}ms): No cache. Fetching critical data from server...`);
         try {
+            const fetchStartTime = performance.now();
             const [duckResult, claimedDucksResult] = await Promise.all([
                 postToAction('getDuckData'),
                 postToAction('getClaimedDucks')
             ]);
+            const fetchEndTime = performance.now();
+            console.log(`TIME (${fetchEndTime.toFixed(0)}ms): Network fetch complete. Duration: ${(fetchEndTime - fetchStartTime).toFixed(0)}ms`);
 
             if (duckResult && duckResult.ducks) { duckDataCache = duckResult.ducks; }
             else { throw new Error("Failed to load duck data."); }
@@ -1718,8 +1761,8 @@ async function loadCriticalDataAndProcessInitialScan() {
             // ⭐ Save this data to cache for next time
             saveCriticalDataToCache();
 
-            // ⭐ Process initial duck scan if it exists (using fresh data)
-            await handleInitialDuckScan();
+            // ⭐ Process SAVED initial duck scan if it exists (using fresh data)
+            await processSavedInitialScan(); // Call the processing function
 
         } catch (e) {
             console.error("LOAD: CRITICAL ERROR loading essential data:", e);
@@ -1728,18 +1771,23 @@ async function loadCriticalDataAndProcessInitialScan() {
             throw e; // Re-throw error to stop showApp
         }
     }
+     const endTime = performance.now();
+     console.log(`TIME (${endTime.toFixed(0)}ms): loadCriticalDataAndProcessSavedScan finished. Total Duration: ${(endTime - startTime).toFixed(0)}ms`);
 }
 
 
 // --- APP INITIALIZATION & LOGIN ---
-// ⭐ MODIFIED: Re-architected loading flow
+// ⭐ MODIFIED: Re-architected loading flow + Immediate save/generic popup
 async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
+    const appStartTime = performance.now(); // Log timing
+    console.log(`TIME (${appStartTime.toFixed(0)}ms): showApp called for user ${user.studentId}`);
+    
     currentUser = user;
     currentUser.duckCount = user.duckCount || 0;
     sessionStorage.setItem('currentUserStudentId', user.studentId);
     isDataLoaded = false; // Reset flag
 
-    // --- Phase 1: Show UI Immediately ---
+    // --- Phase 1: Show UI Immediately & Initial Setup ---
     if (loginButtonEl) {
         loginButtonEl.innerHTML = loginButtonContent;
         loginButtonEl.disabled = false;
@@ -1763,34 +1811,58 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     updateOptimisticDisplay(); // Show initial numbers/pending
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
+    // ⭐ NEW: Save initialDuckId immediately and show generic popup
+    const currentInitialDuckId = initialDuckId; // Capture value before clearing
+    if (currentInitialDuckId) {
+        try {
+            // Save the *intent* to scan immediately
+            localStorage.setItem(getPendingInitialDuckKey(), currentInitialDuckId);
+            console.log(`TIME (${performance.now().toFixed(0)}ms): Saved pending initial duck ID to localStorage.`);
+            // Show generic feedback immediately
+            console.log(`TIME (${performance.now().toFixed(0)}ms): Displaying initial generic 'DUCK CLAIMED!' popup.`);
+            displaySuccessPopup("DUCK CLAIMED!", false, true); // Generic, non-golden, force display
+        } catch (e) {
+            console.error("Error saving pending initial duck ID:", e);
+        }
+    }
+    initialDuckId = null; // Clear global variable after checking/saving
+    
+    const uiSetupTime = performance.now();
+    console.log(`TIME (${uiSetupTime.toFixed(0)}ms): UI setup complete. Duration: ${(uiSetupTime - appStartTime).toFixed(0)}ms`);
 
-    // --- Phase 2: Load CRITICAL Data & Process URL Scan ---
+
+    // --- Phase 2: Load CRITICAL Data & Process Saved Scan ---
     try {
-        // This function handles cache/network and processes the initialDuckId
-        await loadCriticalDataAndProcessInitialScan();
+        // This function handles cache/network and then calls processSavedInitialScan
+        await loadCriticalDataAndProcessSavedScan(); // Renamed function, logs its own timing
     } catch (e) {
         console.error("Failed to load critical data. App load stopped.");
         return; // Stop loading
     }
     
     // --- Phase 3: Start Scanner & Load Non-Critical Data ---
-    console.log("LOAD: Critical data loaded. Starting scanner and loading non-critical data.");
+    const criticalDataLoadedTime = performance.now();
+    console.log(`TIME (${criticalDataLoadedTime.toFixed(0)}ms): Critical data loaded. Starting scanner and loading non-critical data.`);
     
     // ⭐ Hide scanner loading message
     scannerLoadingMessage.classList.add('hidden');
     
     // ⭐ Start scanner if we're on that page
     if (document.getElementById('hunt-page').classList.contains('active')) {
-        startScanner();
+        startScanner(); // Logs its own timing
     }
 
-    // ⭐ Load non-critical data in the background
+    // ⭐ Load non-critical data in the background (no await needed)
     (async () => {
+        const bgLoadStartTime = performance.now();
+        console.log(`TIME (${bgLoadStartTime.toFixed(0)}ms): Starting background load of non-critical data.`);
         try {
             const [historyResult, infoResult] = await Promise.all([
                 postToAction('getScanHistory', { studentId: currentUser.studentId }),
                 postToAction('getInfoData')
             ]);
+             const bgLoadEndTime = performance.now();
+             console.log(`TIME (${bgLoadEndTime.toFixed(0)}ms): Background network fetch complete. Duration: ${(bgLoadEndTime - bgLoadStartTime).toFixed(0)}ms`);
 
             // Process history
             if (Array.isArray(historyResult)) {
@@ -1806,29 +1878,41 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
                 infoDataFetchTime = new Date(); 
             } else { updateRibbon(''); }
             
-            console.log("LOAD: Non-critical data loaded.");
+            console.log("LOAD: Non-critical data processed.");
 
-            // Recalculate pending if needed... (e.g., from loaded queue)
-            if (scanQueue.length > 0) {
-                pendingPoints = 0; pendingDucks = 0;
-                scanQueue.forEach(scan => {
-                    const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
-                    if (duckInfo) {
-                        pendingPoints += duckInfo.points || 0;
-                        pendingDucks += 1;
-                    }
-                });
-                updateOptimisticDisplay();
-            }
+            // Recalculate pending if needed... (e.g., from loaded queue after critical data load)
+             if (scanQueue.length > 0 && isDataLoaded) { // Check if queue was loaded *before* data was ready
+                 const needsRecalc = scanQueue.some(scan => {
+                     const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
+                     return !duckInfo; // If any scan lacks info, recalc needed
+                 });
+                 if(needsRecalc){
+                     console.log("Recalculating pending points after critical data load.");
+                     pendingPoints = 0; pendingDucks = 0;
+                     scanQueue.forEach(scan => {
+                         const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
+                         if (duckInfo) {
+                             pendingPoints += duckInfo.points || 0;
+                             pendingDucks += 1;
+                         } else {
+                             console.warn(`Could not find duck info for ${scan.duckId} during recalc.`);
+                         }
+                     });
+                     updateOptimisticDisplay();
+                 }
+             }
             
             // Final dashboard update
             updateUserDashboard(false); 
+             console.log(`TIME (${performance.now().toFixed(0)}ms): Background processing complete.`);
 
         } catch (e) {
             console.error("LOAD: Error loading non-critical background data:", e);
             // Don't stop the app, just log the error
         }
     })();
+     const finalTime = performance.now();
+     console.log(`TIME (${finalTime.toFixed(0)}ms): showApp finished. Total Duration: ${(finalTime - appStartTime).toFixed(0)}ms`);
 }
 
 
@@ -1877,6 +1961,8 @@ const result = await postToAction('registerUser', payload);
 // ⭐ Clear local cache on new registration to ensure they get fresh data
 localStorage.removeItem(getDuckDataCacheKey());
 localStorage.removeItem(getClaimedDucksCacheKey());
+// ⭐ Also clear any pending initial scan from a previous user/attempt
+localStorage.removeItem(getPendingInitialDuckKey()); // Use current user ID placeholder if needed
 const userResult = await postToAction('getUser', { studentId: payload.studentId });
 showApp(userResult.user, 'hunt-page', submitBtn, originalContent);
 } catch (error) {
@@ -1891,8 +1977,28 @@ function displaySuccessPopup(message, isGolden = false, force = false) {
     // 'force' = true will show the popup even if the scanner isn't "active"
     // (e.g., for the initial duck scan)
     const container = document.getElementById('qr-reader-container');
-    if (!container && !force) return; // Don't show if container isn't there
+    // ⭐ Allow showing even if container isn't ready, attach to body as fallback
+    if (!container && !force) {
+         console.warn("displaySuccessPopup: Container not found and force=false. Popup skipped.");
+         return; 
+    }
     
+    // ⭐ If it's the generic message, remove any existing generic popups first
+    if (message === "DUCK CLAIMED!") {
+        document.querySelectorAll('.point-pop').forEach(pop => {
+            if (pop.textContent === "DUCK CLAIMED!") {
+                pop.remove();
+            }
+        });
+    } else {
+         // If it's a specific points message, remove any old generic popups
+         document.querySelectorAll('.point-pop').forEach(pop => {
+            if (pop.textContent === "DUCK CLAIMED!") {
+                 pop.remove();
+            }
+        });
+    }
+
     const successPop = document.createElement('div');
     successPop.className = 'point-pop';
     if (isGolden) {
@@ -1905,13 +2011,32 @@ function displaySuccessPopup(message, isGolden = false, force = false) {
     appendTarget.appendChild(successPop);
     
     if (!container) {
-        // Fallback if container doesn't exist yet
+        // Fallback styling if container doesn't exist yet
+        console.log("displaySuccessPopup: Attaching popup to body as fallback.");
         successPop.style.position = 'fixed';
         successPop.style.zIndex = '9999';
+         // Adjust position slightly if attached to body
+         successPop.style.top = 'auto';
+         successPop.style.bottom = 'calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px)';
+         // Override animation slightly
+         successPop.style.animation = 'float-up-body 3s ease-out forwards';
     }
     
+    // ⭐ Make generic popup last slightly shorter? No, keep duration consistent.
     setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
 }
+
+// ⭐ New animation for body fallback
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+@keyframes float-up-body { 
+    0% { bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px); opacity: 1; } 
+    50% { bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 100px); opacity: 1; } 
+    100% { bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 100px); opacity: 0; } 
+}`;
+document.head.appendChild(styleSheet);
+
+
 function displayErrorPopup(message) {
 const errorPop = document.createElement('div');
 errorPop.className = 'point-pop';
@@ -1924,6 +2049,9 @@ appendTarget.appendChild(errorPop);
 if (!container) {
     errorPop.style.position = 'fixed';
     errorPop.style.zIndex = '9999';
+     errorPop.style.top = 'auto';
+     errorPop.style.bottom = 'calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px)';
+     errorPop.style.animation = 'float-up-body 3s ease-out forwards';
 }
 setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
 }
@@ -1939,6 +2067,9 @@ appendTarget.appendChild(revertPop);
 if (!container) {
     revertPop.style.position = 'fixed';
     revertPop.style.zIndex = '9999';
+     revertPop.style.top = 'auto';
+     revertPop.style.bottom = 'calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px)';
+     revertPop.style.animation = 'float-up-body 3s ease-out forwards';
 }
 setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
 }
@@ -2134,6 +2265,8 @@ try {
 // --- UTILITY & NAVIGATION ---
 // ⭐ MODIFIED: Only start scanner if data is ready
 function startScanner() {
+    const startTime = performance.now(); // Log timing
+    console.log(`TIME (${startTime.toFixed(0)}ms): Attempting startScanner...`);
     // ⭐ Primary Gate: Don't start if data isn't loaded
     if (!isDataLoaded) {
         console.log("QR SCANNER LOG: Data not loaded. Scanner start aborted.");
@@ -2154,14 +2287,15 @@ function startScanner() {
     html5QrCode = new Html5Qrcode("qr-reader");
     const config = { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
     const torchButton = document.getElementById('torch-toggle-btn');
-    console.log("QR SCANNER LOG: Data loaded. Attempting to start scanner...");
+    console.log("QR SCANNER LOG: Data loaded. Attempting to start camera...");
     scannerLoadingMessage.classList.remove('hidden'); // Keep message visible while camera starts
 
     html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, (errorMessage) => {
         // console.log("QR Error:", errorMessage);
     })
     .then(() => {
-        console.log("QR SCANNER LOG: Scanner started successfully. Checking torch...");
+        const cameraStartedTime = performance.now();
+        console.log(`TIME (${cameraStartedTime.toFixed(0)}ms): Scanner camera started successfully. Duration: ${(cameraStartedTime - startTime).toFixed(0)}ms. Checking torch...`);
         scannerLoadingMessage.classList.add('hidden'); // ⭐ Hide loading message
         setTimeout(() => { // Check torch after delay
             try {
@@ -2183,7 +2317,8 @@ function startScanner() {
         }, 500);
     })
     .catch(err => {
-        console.error("QR SCANNER LOG: CRITICAL - Scanner failed to start.", err);
+         const cameraFailTime = performance.now();
+        console.error(`TIME (${cameraFailTime.toFixed(0)}ms): CRITICAL - Scanner camera failed to start. Duration: ${(cameraFailTime - startTime).toFixed(0)}ms`, err);
         scannerLoadingMessage.innerHTML = `<p style="color: #ffaaaa;">Camera Failed!</p><p style="font-size: 0.9rem; font-weight: normal;">Please check permissions and refresh.</p>`;
         // Don't hide the message, it now contains the error
     });
@@ -2255,11 +2390,11 @@ async function logout() {
     stopScanner();
     currentUser = null;
     isDataLoaded = false; // Reset data flag on logout
-    // 🚀 We no longer remove the item from localStorage.
-    // We leave it there in case the final send failed,
-    // so it can be synced by the next user (if it's a shared device)
-    // or the same user if they log back in.
-    // The getQueueKey() is user-specific, so this is safe.
+    // Clear pending initial duck just in case
+    try { localStorage.removeItem(getPendingInitialDuckKey()); } catch(e){} 
+    
+    // 🚀 We no longer remove the main queue from localStorage on logout.
+    // The getQueueKey() is user-specific.
     // localStorage.removeItem(getQueueKey());
     location.reload();
 }
@@ -2312,9 +2447,7 @@ function checkForInitialDuck() {
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('duckId')) {
 initialDuckId = urlParams.get('duckId');
-// ⭐ Don't show this notification, it's confusing.
-// We will show the success popup instead once logged in.
-// showNotification("Duck found! Sign in or register to claim it.");
+// ⭐ Don't show this notification here. Show generic popup in showApp.
 }
 }
 function showNotification(message) {
