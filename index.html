@@ -1814,7 +1814,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
     updateOptimisticDisplay(); // Show initial numbers/pending
     document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-    // ⭐ NEW: Save initialDuckId immediately and show generic popup
+    // ⭐ NEW: Save initialDuckId immediately and set loading text
     const currentInitialDuckId = initialDuckId; // Capture value before clearing
     if (currentInitialDuckId) {
         try {
@@ -1822,9 +1822,7 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
             localStorage.setItem(getPendingInitialDuckKey(), currentInitialDuckId);
             console.log(`TIME (${performance.now().toFixed(0)}ms): Saved pending initial duck ID to localStorage.`);
             
-            // ⭐ Show generic feedback immediately
-            console.log(`TIME (${performance.now().toFixed(0)}ms): Displaying initial generic 'DUCK CLAIMED!' popup.`);
-            displaySuccessPopup("DUCK CLAIMED!", false, true); // Generic, non-golden, force display
+            // ⭐ REMOVED: Generic popup removed per user request
             
             // ⭐ Set scanner text to "Awarding Points"
             scannerLoadingText1.textContent = "Please Wait";
@@ -2382,9 +2380,15 @@ if (html5QrCode && html5QrCode.isScanning) {
 }
 // ⭐ Show loading message again when scanner stops
 if (scannerLoadingMessage) {
-    // ⭐ MODIFIED: Reset to default text
-    scannerLoadingText1.textContent = "Quack Quack!";
-    scannerLoadingText2.textContent = "The Scanner Is Loading!";
+    // ⭐ MODIFIED: Reset to default text (or "Awarding Points" if pending)
+    const pendingDuckKey = getPendingInitialDuckKey();
+    if (localStorage.getItem(pendingDuckKey)) {
+        scannerLoadingText1.textContent = "Please Wait";
+        scannerLoadingText2.textContent = "As We Award Your Points!";
+    } else {
+        scannerLoadingText1.textContent = "Quack Quack!";
+        scannerLoadingText2.textContent = "The Scanner Is Loading!";
+    }
     scannerLoadingMessage.querySelector('.spinner').style.display = 'block'; // Ensure spinner is visible
     scannerLoadingMessage.classList.remove('hidden');
 }
@@ -2468,7 +2472,8 @@ function checkForInitialDuck() {
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('duckId')) {
 initialDuckId = urlParams.get('duckId');
-// ⭐ Don't show this notification here. Show generic popup in showApp.
+// ⭐ Show this notification on login screen
+showNotification("Duck found! Sign in or register to claim it.");
 }
 }
 function showNotification(message) {
