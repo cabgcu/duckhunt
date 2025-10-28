@@ -498,23 +498,23 @@ animation-delay: -8s;
 /* === END LAVA STYLES === */
 .screen { opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
 .screen.visible { opacity: 1; pointer-events: auto; }
+/* ⭐ MODIFIED: Login Screen Centering Fix */
 #login-screen {
-position: fixed; /* Changed to fixed */
+position: fixed;
 top: 0;
 left: 0;
 width: 100%;
-/* ⭐ Set height to dynamic viewport height */
 height: 100svh;
 display: flex;
 flex-direction: column;
-/* ⭐ Changed justify-content back to center */
-justify-content: center; /* ⭐ WAS: flex-start */
+justify-content: center; /* Center content vertically */
 align-items: center;
-padding-top: calc(var(--safe-padding) + var(--safe-area-top));
-/* ⭐ Add bottom padding back */
-padding-bottom: calc(var(--safe-padding) + var(--safe-area-bottom));
-overflow-y: auto; /* ⭐ WAS: hidden */
-box-sizing: border-box; /* Include padding in height calculation */
+/* ⭐ REMOVED padding-top and padding-bottom that broke centering */
+overflow-y: auto; /* Allow scrolling on small screens */
+box-sizing: border-box;
+/* ⭐ Add padding to the top/bottom of the *content* instead */
+padding-top: calc(var(--safe-area-top) + 20px);
+padding-bottom: calc(var(--safe-area-bottom) + 20px);
 }
 /* ⭐ UPDATED: Background Video Style for edge-to-edge cover */
 #login-bg-video {
@@ -548,12 +548,13 @@ position: relative; /* Ensure card is above video */
 z-index: 1; /* Ensure card is above video */
 width: 85%;
 max-width: 300px;
-/* ⭐ Adjusted margin-top/bottom for centering */
-margin-top: 0; /* ⭐ WAS: 100px. Let flexbox handle it */
+margin-top: 0; 
 margin-bottom: 20px; /* Space above footer */
 margin-left: auto;
 margin-right: auto;
 flex-shrink: 0;
+/* ⭐ Add top margin to account for fixed instructions card */
+margin-top: 80px; 
 }
 #login-view, #registration-view { display: flex; flex-direction: column; gap: 1.5rem; }
 .input-group { display: flex; flex-direction: column; gap: 1rem; }
@@ -566,26 +567,26 @@ flex-shrink: 0;
 .prize-list-small li { margin: 3px 0; }
 /* ⭐ MODIFIED: Footer Styling */
 footer {
-position: relative; /* ⭐ WAS: absolute */
-bottom: auto; /* ⭐ WAS: 0 */
-left: auto; /* ⭐ WAS: 50% */
-transform: none; /* ⭐ WAS: translateX(-50%) */
-padding: 10px 10px calc(15px + var(--safe-area-bottom)) 10px; /* Adjust padding */
+position: relative; 
+bottom: auto; 
+left: auto; 
+transform: none; 
+padding: 10px; /* Simpler padding */
 color: rgba(255, 255, 255, 0.7);
 font-size: 0.8rem;
 display: flex;
 flex-direction: column;
 justify-content: center;
 align-items: center;
-margin: 0; /* Remove top/bottom margin */
+margin: 0; 
 background: none;
 border-radius: 0;
 width: 90%;
 max-width: 450px;
 box-shadow: none;
 z-index: 1;
-margin-top: 0; /* ⭐ WAS: auto */
-flex-shrink: 0; /* ⭐ NEW: Prevents footer from shrinking */
+margin-top: 0; 
+flex-shrink: 0; 
 }
 .footer-logo {
 height: 50px;
@@ -695,6 +696,12 @@ font-size: 12px;
 font-size: 10px;
 padding-top: 2px;
 }
+/* ⭐ Fix for very short screens */
+@media (max-height: 700px) {
+    #header-card {
+        margin-top: 80px; /* Ensure space from top instructions */
+    }
+}
 }
 /* --- NEW STYLES FOR TORCH AND LOGOUT --- */
 #torch-toggle-btn {
@@ -767,6 +774,7 @@ transform: translateY(-2px);
 <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p> <!-- Reverted Icon -->
 <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
 </div>
+<!-- ⭐ Content is now centered by flexbox -->
 <div class="glass-card" id="header-card">
 <div id="login-view">
 <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
@@ -1419,10 +1427,10 @@ function updateOptimisticDisplay() {
 async function handleInitialDuckScan() {
     if (!initialDuckId) return;
 
-    // We need duckDataCache for this to work
+    // This function is now called *after* isDataLoaded is true
     if (!isDataLoaded) {
-        console.warn("Initial duck scan: Data not loaded yet, will try again after load.");
-        return; // This function will be called again after data loads
+        console.error("handleInitialDuckScan called but isDataLoaded is false. This shouldn't happen.");
+        return; 
     }
 
     const duckIdToProcess = initialDuckId;
@@ -1430,12 +1438,6 @@ async function handleInitialDuckScan() {
 
     console.log(`Processing initial duck scan from URL: ${duckIdToProcess}`);
     
-    // Run the same logic as onScanSuccess
-    const triggerVisualError = () => {
-        // No scanner to flash, just show a popup
-        displayErrorPopup("Initial duck scan failed.");
-    };
-
     let finalDuckId = duckIdToProcess;
     try {
         const url = new URL(duckIdToProcess);
@@ -1444,18 +1446,17 @@ async function handleInitialDuckScan() {
     
     const lookupId = finalDuckId.trim().toLowerCase();
 
-    // ⭐ MODIFIED: Check *both* server cache and session processing set
+    // ⭐ Check server cache and session processing set
     if (claimedDucksCache.has(lookupId) || processingDucks.has(lookupId)) {
         console.warn(`Initial duck scan: ${lookupId} already claimed or being processed.`);
         displayErrorPopup("Quack! Already claimed."); // ⭐ Show duplicate message
-        triggerVisualError();
         return;
     }
 
     const duckInfo = duckDataCache[lookupId];
     if (!duckInfo) {
         console.error(`Initial duck scan: ${lookupId} is not a valid duck ID.`);
-        triggerVisualError();
+        displayErrorPopup("Invalid Duck Code");
         return;
     }
 
@@ -1466,7 +1467,6 @@ async function handleInitialDuckScan() {
         const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
         localVirtualScanTimestamps = localVirtualScanTimestamps.filter(ts => ts > oneDayAgo);
         if (localVirtualScanTimestamps.length >= VIRTUAL_LIMIT) {
-            triggerVisualError();
             displayErrorPopup(`Daily limit of ${VIRTUAL_LIMIT} Virtual Ducks reached.`);
             triggerFrostAnimation();
             processingDucks.delete(lookupId); // Remove from processing
@@ -1484,7 +1484,7 @@ async function handleInitialDuckScan() {
     updateOptimisticDisplay(); // Update numbers and start pulsing
 
     const isGoldenDuck = duckInfo.type === 'Golden Duck';
-    // ⭐ Show popup on the scanner page, even if scanner isn't visible yet
+    // ⭐ Show popup on the scanner page
     displaySuccessPopup(`+${points}`, isGoldenDuck, true); 
     
     if (isGoldenDuck) {
@@ -1670,56 +1670,18 @@ function periodicDataRefresh() {
             updateRibbon('');
         });
 }
-// --- APP INITIALIZATION & LOGIN ---
-// ⭐ MODIFIED: Re-architected loading flow
-async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
-    currentUser = user;
-    currentUser.duckCount = user.duckCount || 0;
-    sessionStorage.setItem('currentUserStudentId', user.studentId);
-    isDataLoaded = false; // Reset flag
 
-    // --- Phase 1: Show UI Immediately ---
-    if (loginButtonEl) {
-        loginButtonEl.innerHTML = loginButtonContent;
-        loginButtonEl.disabled = false;
-    }
-    loginScreen.classList.remove('visible');
-    appWrapper.classList.add('visible');
-    
-    // ⭐ Show loading message on scanner page
-    scannerLoadingMessage.classList.remove('hidden');
-
-    loadScanQueue(); // Load pending scans
-
-    // Setup timers
-    if (batchSendTimer) clearInterval(batchSendTimer);
-    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
-    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
-    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
-
-    switchPage(initialPageId); // Show the initial page
-
-    updateOptimisticDisplay(); // Show initial numbers/pending
-    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
-
-
-    // --- Phase 2: Load CRITICAL Data (or use cache) ---
-    let criticalDataLoaded = false;
+// ⭐ NEW: Centralized function to load critical data
+async function loadCriticalDataAndProcessInitialScan() {
     if (loadCriticalDataFromCache()) {
         // CACHE HIT: Data loaded instantly
         isDataLoaded = true;
         console.log("LOAD: Using cached critical data.");
-        // ⭐ Hide scanner loading message immediately
-        scannerLoadingMessage.classList.add('hidden');
-        // ⭐ Attempt to start scanner if on hunt page
-        if (document.getElementById('hunt-page').classList.contains('active')) {
-             startScanner();
-        }
-        // ⭐ Process initial duck scan if it exists
-        handleInitialDuckScan();
+        
+        // ⭐ Process initial duck scan if it exists (using cache)
+        await handleInitialDuckScan();
         
         // ⭐ Trigger background sync to get *fresh* data
-        criticalDataLoaded = true; // Mark as loaded
         postToAction('getDuckData').then(duckResult => {
              if (duckResult && duckResult.ducks) { 
                  duckDataCache = duckResult.ducks; 
@@ -1751,76 +1713,124 @@ async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
             else { throw new Error("Failed to load claimed ducks."); }
             
             isDataLoaded = true;
-            criticalDataLoaded = true;
             console.log("LOAD: Critical data fetched successfully.");
             
             // ⭐ Save this data to cache for next time
             saveCriticalDataToCache();
 
-            // ⭐ Hide scanner loading message
-            scannerLoadingMessage.classList.add('hidden');
-            
-            // ⭐ Start scanner if we're on that page
-            if (document.getElementById('hunt-page').classList.contains('active')) {
-                startScanner();
-            }
-            // ⭐ Process initial duck scan if it exists
-            handleInitialDuckScan();
+            // ⭐ Process initial duck scan if it exists (using fresh data)
+            await handleInitialDuckScan();
 
         } catch (e) {
             console.error("LOAD: CRITICAL ERROR loading essential data:", e);
             alert(`Error loading game data: ${e.message}\n\nPlease refresh.`);
             stopScanner();
-            return; // Stop app load
+            throw e; // Re-throw error to stop showApp
         }
-    }
-
-
-    // --- Phase 3: Load NON-CRITICAL Data (in background) ---
-    console.log("LOAD: Fetching non-critical data (history, ribbon)...");
-    try {
-        const [historyResult, infoResult] = await Promise.all([
-            postToAction('getScanHistory', { studentId: currentUser.studentId }),
-            postToAction('getInfoData')
-        ]);
-
-        // Process history
-        if (Array.isArray(historyResult)) {
-            scanHistoryCache = historyResult;
-            const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
-            localVirtualScanTimestamps = historyResult
-                .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
-                .map(scan => new Date(scan.timestamp).getTime());
-        }
-        // Process ribbon
-        if (infoResult && infoResult.ribbonText !== undefined) { 
-            updateRibbon(infoResult.ribbonText); 
-            infoDataFetchTime = new Date(); 
-        } else { updateRibbon(''); }
-        
-        console.log("LOAD: Non-critical data loaded.");
-
-        // Recalculate pending if needed... (e.g., from loaded queue)
-        if (scanQueue.length > 0 && criticalDataLoaded) {
-            pendingPoints = 0; pendingDucks = 0;
-            scanQueue.forEach(scan => {
-                const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
-                if (duckInfo) {
-                    pendingPoints += duckInfo.points || 0;
-                    pendingDucks += 1;
-                }
-            });
-            updateOptimisticDisplay();
-        }
-        
-        // Final dashboard update
-        updateUserDashboard(false); 
-
-    } catch (e) {
-        console.error("LOAD: Error loading non-critical background data:", e);
-        // Don't stop the app, just log the error
     }
 }
+
+
+// --- APP INITIALIZATION & LOGIN ---
+// ⭐ MODIFIED: Re-architected loading flow
+async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
+    currentUser = user;
+    currentUser.duckCount = user.duckCount || 0;
+    sessionStorage.setItem('currentUserStudentId', user.studentId);
+    isDataLoaded = false; // Reset flag
+
+    // --- Phase 1: Show UI Immediately ---
+    if (loginButtonEl) {
+        loginButtonEl.innerHTML = loginButtonContent;
+        loginButtonEl.disabled = false;
+    }
+    loginScreen.classList.remove('visible');
+    appWrapper.classList.add('visible');
+    
+    // ⭐ Show loading message on scanner page
+    scannerLoadingMessage.classList.remove('hidden');
+
+    loadScanQueue(); // Load pending scans (populates pendingPoints/Ducks)
+
+    // Setup timers
+    if (batchSendTimer) clearInterval(batchSendTimer);
+    batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+    if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+    dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+
+    switchPage(initialPageId); // Show the initial page
+
+    updateOptimisticDisplay(); // Show initial numbers/pending
+    document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+
+
+    // --- Phase 2: Load CRITICAL Data & Process URL Scan ---
+    try {
+        // This function handles cache/network and processes the initialDuckId
+        await loadCriticalDataAndProcessInitialScan();
+    } catch (e) {
+        console.error("Failed to load critical data. App load stopped.");
+        return; // Stop loading
+    }
+    
+    // --- Phase 3: Start Scanner & Load Non-Critical Data ---
+    console.log("LOAD: Critical data loaded. Starting scanner and loading non-critical data.");
+    
+    // ⭐ Hide scanner loading message
+    scannerLoadingMessage.classList.add('hidden');
+    
+    // ⭐ Start scanner if we're on that page
+    if (document.getElementById('hunt-page').classList.contains('active')) {
+        startScanner();
+    }
+
+    // ⭐ Load non-critical data in the background
+    (async () => {
+        try {
+            const [historyResult, infoResult] = await Promise.all([
+                postToAction('getScanHistory', { studentId: currentUser.studentId }),
+                postToAction('getInfoData')
+            ]);
+
+            // Process history
+            if (Array.isArray(historyResult)) {
+                scanHistoryCache = historyResult;
+                const oneDayAgo = new Date().getTime() - (24 * 60 * 60 * 1000);
+                localVirtualScanTimestamps = historyResult
+                    .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() > oneDayAgo)
+                    .map(scan => new Date(scan.timestamp).getTime());
+            }
+            // Process ribbon
+            if (infoResult && infoResult.ribbonText !== undefined) { 
+                updateRibbon(infoResult.ribbonText); 
+                infoDataFetchTime = new Date(); 
+            } else { updateRibbon(''); }
+            
+            console.log("LOAD: Non-critical data loaded.");
+
+            // Recalculate pending if needed... (e.g., from loaded queue)
+            if (scanQueue.length > 0) {
+                pendingPoints = 0; pendingDucks = 0;
+                scanQueue.forEach(scan => {
+                    const duckInfo = duckDataCache[scan.duckId.trim().toLowerCase()];
+                    if (duckInfo) {
+                        pendingPoints += duckInfo.points || 0;
+                        pendingDucks += 1;
+                    }
+                });
+                updateOptimisticDisplay();
+            }
+            
+            // Final dashboard update
+            updateUserDashboard(false); 
+
+        } catch (e) {
+            console.error("LOAD: Error loading non-critical background data:", e);
+            // Don't stop the app, just log the error
+        }
+    })();
+}
+
 
 async function signIn(studentId) {
 const signinBtn = document.getElementById('signin-btn');
@@ -1890,11 +1900,12 @@ function displaySuccessPopup(message, isGolden = false, force = false) {
     }
     successPop.textContent = message;
     
-    if(container) {
-         container.appendChild(successPop);
-    } else {
-        // Fallback if container doesn't exist yet (shouldn't happen, but safe)
-        document.body.appendChild(successPop);
+    // ⭐ Try to append to container first, fallback to body
+    const appendTarget = container || document.body;
+    appendTarget.appendChild(successPop);
+    
+    if (!container) {
+        // Fallback if container doesn't exist yet
         successPop.style.position = 'fixed';
         successPop.style.zIndex = '9999';
     }
@@ -1907,10 +1918,10 @@ errorPop.className = 'point-pop';
 errorPop.style.background = '#d9534f';
 errorPop.textContent = message;
 const container = document.getElementById('qr-reader-container');
-if(container) {
-    container.appendChild(errorPop);
-} else {
-    document.body.appendChild(errorPop);
+const appendTarget = container || document.body;
+appendTarget.appendChild(errorPop);
+
+if (!container) {
     errorPop.style.position = 'fixed';
     errorPop.style.zIndex = '9999';
 }
@@ -1922,10 +1933,10 @@ revertPop.className = 'point-pop';
 revertPop.style.background = '#f0ad4e';
 revertPop.innerHTML = `<strong>Sync Issue</strong><br><small>${message}</small>`; // Modified text
 const container = document.getElementById('qr-reader-container');
-if(container) {
-    container.appendChild(revertPop);
-} else {
-    document.body.appendChild(revertPop);
+const appendTarget = container || document.body;
+appendTarget.appendChild(revertPop);
+
+if (!container) {
     revertPop.style.position = 'fixed';
     revertPop.style.zIndex = '9999';
 }
