@@ -3,51 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Duck Hunt - Paused</title>
-    <link rel="icon" type="image/png" href="https://i.imgur.com/oH4ccQq.png">
-    
+    <title>Duck Hunt 2025</title>
+    <!-- Favicon and Home Screen Icons -->
+    <link rel="icon" type="image/png" href="https://i.imgur.com/oH4ccQq.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="https://i.imgur.com/oH4ccQq.png">
+    <link rel="icon" type="image/png" href="https://i.imgur.com/oH4ccQq.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="https://i.imgur.com/oH4ccQq.png" sizes="512x512">
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
-            --green: #60A34D; /* Kept for modal button/link colors */
+            --green: #60A34D;
+            --pink: #ff69b4;
             --gold: #FFD700;
+            --background-start: #1c0f29;
+            --background-end: #0c0a15;
             --glass-bg: rgba(0, 0, 0, 0.4);
             --glass-blur: 24px;
             --glass-border-top: rgba(255, 255, 255, 0.15);
             --glass-border-bottom: rgba(255, 255, 255, 0.03);
             --glass-shadow: none;
             --inset-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+            --highlight-color: #ffffff;
+            --glow-color: rgba(96, 163, 77, 0.8);
+            --active-glow: 0 0 12px rgba(96, 163, 77, 0.9);
+            --tab-bar-height: 65px;
+            --safe-padding: 1rem;
+            --ribbon-height: 40px;
+            --frosted-black: rgba(0, 0, 0, 0.85);
             --safe-area-top: env(safe-area-inset-top, 0px);
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-area-left: env(safe-area-inset-left, 0px);
+            --safe-area-right: env(safe-area-inset-right, 0px);
         }
 
         body {
             margin: 0;
-            padding: 0;
             background-color: #000;
+            overflow-x: hidden;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            color: white; /* All text is white by default */
+            color: white;
             text-align: center;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             position: relative;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* Video Background */
-        #login-bg-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -10;
+        .hidden {
+            display: none !important;
         }
 
-        /* Glass Card Base Style */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .button-group button .spinner {
+            width: 18px;
+            height: 18px;
+            border-width: 3px;
+        }
+
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(var(--glass-blur));
@@ -59,62 +90,451 @@
             padding: 1.5rem;
         }
 
-        /* Main Content Container */
-        .container {
-            width: 90%;
+        .transparent-heading-box {
+            background: none;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 0;
+            margin: 0 auto 1.5rem auto;
+            width: 100%;
             max-width: 450px;
             box-sizing: border-box;
-            
-            /* Vertical layout */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem; /* Space between elements */
-
-            padding-top: calc(2rem + var(--safe-area-top));
-            padding-bottom: calc(2rem + var(--safe-area-bottom));
+            text-align: center;
         }
 
-        .header-image {
+        #app-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-top: var(--safe-area-top);
+            transition: padding-top 0.3s ease;
+            z-index: 1;
+        }
+
+        #app-wrapper.ribbon-active {
+            padding-top: calc(var(--ribbon-height) + var(--safe-area-top));
+        }
+
+        #ribbon-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(var(--ribbon-height) + var(--safe-area-top));
+            padding-top: var(--safe-area-top);
+            background-color: rgba(30, 30, 30, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            z-index: 1000;
+            box-sizing: border-box;
+            transition: transform 0.3s ease-out;
+            transform: translateY(-100%);
+        }
+
+        #ribbon-message.visible {
+            transform: translateY(0);
+        }
+
+        #ribbon-content {
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            will-change: transform;
+            color: var(--gold);
+            height: 100%;
+        }
+
+        #ribbon-content span {
+            color: white;
+            font-weight: normal;
+            padding-left: 8px;
+        }
+
+        .marquee-start {
+            animation-name: marquee-scroll;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes marquee-scroll {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(var(--marquee-distance));
+            }
+        }
+
+        #app-container {
+            flex: 1;
+            overflow-y: auto;
+            height: calc(100svh - var(--tab-bar-height) - var(--ribbon-height));
+            padding-bottom: calc(var(--safe-padding) + var(--tab-bar-height) + var(--safe-area-bottom));
+        }
+
+        .app-page {
+            width: 100%;
+            min-height: 100%;
+            box-sizing: border-box;
+            padding-top: 0;
+            padding-bottom: 0;
+            padding-left: max(var(--safe-padding), var(--safe-area-left));
+            padding-right: max(var(--safe-padding), var(--safe-area-right));
+            display: none;
+            flex-direction: column;
+            gap: 0;
+            align-items: center;
+        }
+
+        .app-page.active {
+            display: flex;
+        }
+
+        .app-page h2 {
+            margin: 0;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .app-page .header-image-top {
+            width: 70%;
+            max-width: 250px;
+            margin: 0.2rem auto 0.2rem auto;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        #hunt-page {
+            justify-content: flex-start;
+            padding-top: 0;
+        }
+
+        #info-page,
+        #map-page,
+        #leaderboard-page,
+        #log-page {
+            justify-content: flex-start;
+            padding-top: 0;
+        }
+
+        #hunt-content-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+            margin-top: 0;
+            margin-left: auto;
+            margin-right: auto;
+            flex-shrink: 0;
+        }
+
+        #qr-reader-container {
+            padding: 0;
+            display: flex;
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
             max-width: 300px;
         }
 
-        h1 {
-            font-size: 1.8rem;
-            margin: 0;
-            color: white; /* Explicitly white */
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5); /* Subtle white glow */
+        #qr-reader {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            overflow: hidden;
         }
 
-        p {
+        #scanner-loading-message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            z-index: 10;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        #scanner-loading-message p {
             font-size: 1.1rem;
-            line-height: 1.6;
-            margin: 0;
-            color: rgba(255, 255, 255, 0.9); /* Slightly off-white for body text */
-        }
-        
-        .info-link {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: underline;
-            transition: color 0.2s;
-            margin-top: 1rem;
-        }
-        
-        .info-link:hover {
+            font-weight: bold;
             color: white;
+            margin: 0;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        #qr-reader-container.error-flash {
+            animation: flash-red 0.5s ease;
+        }
+
+        @keyframes flash-red {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            }
+
+            50% {
+                box-shadow: var(--glass-shadow), 0 0 25px rgba(255, 0, 0, 0.9);
+            }
+        }
+
+        .point-pop {
+            position: absolute;
+            top: 85%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+            padding: 0.5rem 1.5rem;
+            border-radius: 5px;
+            min-width: 250px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: float-up-short 3s ease-out forwards;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        @keyframes float-up-short {
+            0% {
+                top: 85%;
+                opacity: 1;
+            }
+
+            50% {
+                top: 70%;
+                opacity: 1;
+            }
+
+            100% {
+                top: 70%;
+                opacity: 0;
+            }
+        }
+
+        #golden-flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--gold);
+            z-index: 1001;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes gold-flash {
+            0% {
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.9;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .golden-point-pop {
+            border-color: var(--gold) !important;
+            color: var(--gold) !important;
+            background: rgba(10, 10, 10, 0.9) !important;
+            box-shadow: 0 0 15px var(--gold), 0 0 5px rgba(255, 215, 0, 0.5) !important;
+            text-shadow: 0 0 8px #fff !important;
+            font-size: 1.8rem !important;
         }
 
         .footer-logo {
-            height: 50px;
-            margin-top: 1rem;
+            height: 60px;
+            margin: 0 auto 15px auto;
+            display: block;
             object-fit: contain;
-            opacity: 0.7;
         }
 
-        /* --- Modal Styles --- */
+        #scanner-footer-details {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        #scan-history-link {
+            font-size: 1.1rem;
+            color: var(--green);
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 0;
+            font-weight: bold;
+        }
+
+        #player-rank-display {
+            margin-top: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* --- MAP STYLES --- */
+        #map-page {
+            padding-top: var(--safe-padding);
+            justify-content: flex-start;
+        }
+
+        #map-card-container {
+            width: 100%;
+            max-width: 450px;
+            height: 65vh;
+            overflow: scroll;
+            padding: 0;
+            border-radius: 20px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #map-wrapper {
+            position: relative;
+            width: 250vw;
+            height: auto;
+        }
+
+        #campus-map-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        #map-markers-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .map-label {
+            position: absolute;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            pointer-events: auto;
+            background: var(--frosted-black);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 3px 6px;
+            min-width: 90px;
+            text-align: center;
+            white-space: normal;
+            line-height: 1.2;
+            transition: transform 0.2s ease-out, z-index 0s 0.2s;
+        }
+
+        .map-label.on-top {
+            z-index: 20;
+            transform: translate(-50%, -50%) scale(1.1);
+            transition: transform 0.2s ease-out, z-index 0s;
+        }
+
+        .map-label h4 {
+            margin: 0;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .map-label p {
+            margin: 0;
+            padding-top: 2px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .map-label.cleared {
+            border-color: #ff4d4d;
+            background-color: rgba(50, 50, 50, 0.85);
+            opacity: 0.8;
+        }
+
+        /* --- End Map Styles --- */
+        #log-container,
+        #leaderboard-container,
+        #info-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding: var(--safe-padding) 0;
+            background: none;
+            border: none;
+            box-shadow: none;
+            gap: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        #info-page {
+            padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+        }
+
+        #leaderboard-page {
+            padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+        }
+
+        #log-page {
+            padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+        }
+
+        #map-page {
+            padding-bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + var(--safe-padding));
+        }
+
+        #leaderboard-list,
+        #log-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
         #info-modal-backdrop {
             position: fixed;
             top: 0;
@@ -124,7 +544,7 @@
             background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(10px);
             z-index: 200;
-            display: none; /* Hidden by default */
+            display: none;
             align-items: center;
             justify-content: center;
         }
@@ -168,6 +588,16 @@
             font-weight: bold;
         }
 
+        #modal-content ul {
+            list-style-type: disc;
+            padding-left: 25px;
+            text-align: left;
+        }
+
+        #modal-content li {
+            margin-bottom: 0.5rem;
+        }
+
         #modal-content p,
         #modal-content h5,
         #modal-content h4 {
@@ -178,43 +608,2284 @@
             font-size: 0.95rem;
         }
 
+        .info-card-button {
+            padding: 1rem 1.5rem;
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 0.75rem;
+            box-sizing: border-box;
+        }
+
+        .info-card-button:hover {
+            transform: scale(1.03);
+        }
+
+        .info-card-button h4 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        #leaderboard-list .list-item>div:first-child {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .list-item .rank-text {
+            font-weight: bold;
+            font-size: 1.2rem;
+            white-space: nowrap;
+        }
+
+        #leaderboard-list .list-item span {
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: var(--green);
+        }
+
+        #log-list .list-item>div:first-child {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        #log-list .list-item .primary-text {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+
+        #log-list .list-item .secondary-text {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .button-group button,
+        .full-width-btn {
+            flex: 1;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid var(--glass-border-bottom);
+            border-top-color: var(--glass-border-top);
+            transition: all 0.2s ease;
+            box-shadow: var(--inset-shadow);
+            min-height: 44px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .primary-btn {
+            background-color: var(--green);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .secondary-btn {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .primary-btn:hover,
+        .secondary-btn:hover,
+        .full-width-btn:hover {
+            box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color);
+            border-color: var(--green);
+            transform: translateY(-2px);
+        }
+
+        #lava-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        #login-screen.visible~#lava-container::before,
+        #login-screen.visible~#lava-container::after {
+            display: none;
+        }
+
+        #lava-container::before,
+        #lava-container::after {
+            content: '';
+            position: absolute;
+            width: 70vmax;
+            height: 70vmax;
+            border-radius: 50%;
+            opacity: 0.8;
+            mix-blend-mode: lighten;
+            filter: blur(120px);
+        }
+
+        #lava-container::before {
+            background-color: var(--pink);
+            top: -35vmax;
+            left: -35vmax;
+            animation: move-pink 14s infinite linear;
+        }
+
+        #lava-container::after {
+            background-color: var(--green);
+            bottom: -35vmax;
+            right: -35vmax;
+            animation: move-green 12s infinite linear;
+            animation-delay: -8s;
+        }
+
+        .screen {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        .screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100svh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding-top: calc(var(--safe-area-top) + 20px);
+            padding-bottom: calc(var(--safe-area-bottom) + 20px);
+        }
+
+        #login-bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -10;
+        }
+
+        .reg-input,
+        #login-studentid {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border-bottom);
+            border-top-color: var(--glass-border-top);
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            color: white;
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: var(--inset-shadow);
+        }
+
+        .reg-input:focus,
+        #login-studentid:focus {
+            outline: none;
+            border-color: var(--green);
+            box-shadow: var(--inset-shadow), 0 0 10px var(--glow-color);
+        }
+
+        #instructions-card {
+            position: fixed;
+            top: calc(20px + var(--safe-area-top));
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 101;
+        }
+
+        #header-card {
+            position: relative;
+            z-index: 1;
+            width: 85%;
+            max-width: 300px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-shrink: 0;
+            margin-top: 80px;
+        }
+
+        #login-view,
+        #registration-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .terms-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            margin-top: -0.5rem;
+        }
+
+        .terms-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .terms-group label a {
+            color: var(--green);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .login-link-container {
+            margin-top: 1rem;
+        }
+
+        .login-link-container a {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .prize-list-small {
+            text-align: center;
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0 0;
+            font-size: 0.9rem;
+        }
+
+        .prize-list-small li {
+            margin: 3px 0;
+        }
+
+        footer {
+            position: relative;
+            bottom: auto;
+            left: auto;
+            transform: none;
+            padding: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            background: none;
+            border-radius: 0;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: none;
+            z-index: 1;
+            margin-top: 0;
+            flex-shrink: 0;
+        }
+
+        .footer-logo {
+            height: 50px;
+            margin: 0 auto 10px auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        footer p {
+            margin: 2px 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        #scanner-overlay-stats {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid var(--glass-border-top);
+            padding: 0.8rem;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat h4 {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .stat p {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        #player-ducks.pending-update {
+            animation: pulse-green 1.5s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                color: white;
+                text-shadow: none;
+            }
+
+            50% {
+                color: var(--green);
+                text-shadow: 0 0 8px var(--green);
+            }
+
+            100% {
+                color: white;
+                text-shadow: none;
+            }
+        }
+
+        #tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 150;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-top: 1px solid var(--glass-border-top);
+            display: flex;
+            justify-content: space-around;
+            height: calc(var(--tab-bar-height) + var(--safe-area-bottom));
+            padding-bottom: var(--safe-area-bottom);
+            box-sizing: content-box;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            cursor: pointer;
+            flex-grow: 1;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--highlight-color);
+            font-weight: bold;
+            text-shadow: 0 0 8px var(--green);
+        }
+
+        .duck-animation {
+            position: absolute;
+            top: 50%;
+            left: -50px;
+            font-size: 50px;
+            animation: fly-across 2s linear forwards;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .frost-animation {
+            position: absolute;
+            top: -20px;
+            font-size: 1.5rem;
+            color: white;
+            pointer-events: none;
+            z-index: 999;
+            animation: fall-and-fade linear forwards;
+        }
+
+        @keyframes fly-across {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateX(25vw) translateY(-40px) rotate(15deg);
+            }
+
+            50% {
+                transform: translateX(50vw) translateY(0) rotate(0deg);
+            }
+
+            75% {
+                transform: translateX(75vw) translateY(-40px) rotate(-15deg);
+            }
+
+            100% {
+                transform: translateX(110vw) translateY(0) rotate(0deg);
+            }
+        }
+
+        @keyframes fall-and-fade {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes move-pink {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(calc(100vw - 70vmax), 0);
+            }
+
+            50% {
+                transform: translate(calc(100vw - 70vmax), calc(100vh - 70vmax));
+            }
+
+            75% {
+                transform: translate(0, calc(100vh - 70vmax));
+            }
+        }
+
+        @keyframes move-green {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(calc(-100vw + 70vmax), 0);
+            }
+
+            50% {
+                transform: translate(calc(-100vw + 70vmax), calc(-100vh + 70vmax));
+            }
+
+            75% {
+                transform: translate(0, calc(-100vh + 70vmax));
+            }
+        }
+
+        #duck-feet-background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.5;
+        }
+
+        .fading-duck-feet {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('https://i.imgur.com/S23b6Wc.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0;
+            animation: fade-in-out linear forwards;
+            pointer-events: none;
+        }
+
+        @keyframes fade-in-out {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            20% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            80% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1.2);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .map-label {
+                min-width: 90px;
+                padding: 4px 8px;
+            }
+
+            .map-label h4 {
+                font-size: 12px;
+            }
+
+            .map-label p {
+                font-size: 10px;
+                padding-top: 2px;
+            }
+
+            @media (max-height: 700px) {
+                #header-card {
+                    margin-top: 80px;
+                }
+            }
+        }
+
+        #torch-toggle-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        #torch-toggle-btn:hover {
+            transform: scale(1.1);
+        }
+
+        #torch-toggle-btn.torch-on {
+            background-color: rgba(255, 255, 255, 0.85);
+        }
+
+        #torch-toggle-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+            transition: fill 0.2s;
+        }
+
+        #torch-toggle-btn.torch-on svg {
+            fill: #000;
+        }
+
+        #logout-btn {
+            background-color: rgba(100, 20, 20, 0.4);
+            border-color: rgba(255, 100, 100, 0.1);
+            color: rgba(255, 150, 150, 1);
+            margin: 0.75rem auto;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            max-width: 350px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        #logout-btn:hover {
+            background-color: rgba(255, 100, 100, 0.2);
+            border-color: rgba(255, 100, 100, 0.4);
+            box-shadow: var(--inset-shadow), 0 0 10px rgba(255, 100, 100, 0.4);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
+
 <body>
-    
-    <video autoplay loop muted playsinline id="login-bg-video"></video>
-
-    <div class="container glass-card">
-        <img src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header" class="header-image">
-        
-        <h1>The Ducks Are Taking A Nap! 😴</h1>
-        <p>
-            The hunt will resume at <strong>6:00 AM.</strong>
-            <br><br>
-            Please be sure to scan back starting at 6! Please do not search for ducks before then.
-        </p>
-
-        <a id="what-is-duck-hunt-link" class="info-link">What is Duck Hunt?</a>
-
-        <img src="https://ik.imagekit.io/cabgcu/Untitled%20design-3.png?updatedAt=1761432550912" alt="Canyon Activities Board Logo" class="footer-logo">
+    <div id="golden-flash-overlay" class="hidden"></div>
+    <div id="ribbon-message">
+        <div id="ribbon-content"></div>
     </div>
+    <div id="lava-container"></div>
+    <div id="duck-feet-background-container"></div>
 
-    <div id="info-modal-backdrop">
+    <div id="login-screen" class="screen visible">
+        <video autoplay loop muted playsinline id="login-bg-video">
+            <!-- Source will be set by JS -->
+        </video>
+        <div class="glass-card" id="instructions-card">
+            <p>Tap <img src="https://i.imgur.com/wFrSvUH.png" alt="Share Icon" style="height:1.2em; vertical-align:middle; margin: 0 0.2em;"> to Add to Home Screen!</p>
+            <button id="close-instructions" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="glass-card" id="header-card">
+            <div id="login-view">
+                <img class="header-image" style="width:100%;" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <input type="text" id="login-studentid" class="reg-input" placeholder="Student ID">
+                <div class="login-link-container">
+                    <a href="#" id="what-is-duck-hunt-link">What is Duck Hunt?</a>
+                </div>
+                <div class="button-group">
+                    <button id="signin-btn" class="secondary-btn">Sign In</button>
+                    <button id="register-btn" class="primary-btn">Register</button>
+                </div>
+            </div>
+            <div id="registration-view" class="hidden">
+                <h3 style="text-align: center;">Welcome To The Hunt!</h3>
+                <div class="input-group">
+                    <input type="text" id="reg-firstname" class="reg-input" placeholder="First Name">
+                    <input type="text" id="reg-lastname" class="reg-input" placeholder="Last Name">
+                    <input type="text" id="reg-studentid" class="reg-input" placeholder="Student ID">
+                    <input type="email" id="reg-email" class="reg-input" placeholder="Email @my.gcu.edu">
+                </div>
+                <div class="terms-group">
+                    <input type="checkbox" id="terms-checkbox">
+                    <label for="terms-checkbox">I agree to the <a href="#" id="view-terms-link">Terms & Conditions</a></label>
+                </div>
+                <div class="button-group">
+                    <button id="back-btn" class="secondary-btn">Back</button>
+                    <button id="submit-btn" class="primary-btn">Submit</button>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <img src="https://ik.imagekit.io/cabgcu/Untitled%20design-3.png?updatedAt=1761432550912" alt="Canyon Activities Board Logo" class="footer-logo">
+            <p>Follow Us At <b>@CABGCU</b> On Instagram</p>
+            <p>Hosted by the Canyon Activities Board at Grand Canyon University</p>
+        </footer>
+    </div>
+    <div id="app-wrapper" class="screen">
+        <main id="app-container">
+            <section id="hunt-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <div id="hunt-content-wrapper">
+                    <h2 class="transparent-heading-box" id="welcome-message"></h2>
+                    <div id="qr-reader-container" class="glass-card">
+                        <div id="scanner-overlay-stats">
+                            <div class="stat">
+                                <h4>POINTS</h4>
+                                <p id="player-points">0</p>
+                            </div>
+                            <div class="stat">
+                                <h4>DUCKS</h4>
+                                <p id="player-ducks">0</p>
+                            </div>
+                        </div>
+                        <div id="scanner-loading-message">
+                            <div class="spinner" style="width: 30px; height: 30px; margin-bottom: 1rem;"></div>
+                            <p id="scanner-loading-text-line1">Quack Quack!</p>
+                            <p id="scanner-loading-text-line2">The Scanner Is Loading!</p>
+                        </div>
+                        <div id="qr-reader"></div>
+                        <button id="torch-toggle-btn" class="hidden">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="currentColor" d="M9,2A1,1 0 0,0 8,3V4A1,1 0 0,0 9,5H15A1,1 0 0,0 16,4V3A1,1 0 0,0 15,2H9M9,6A1,1 0 0,0 8,7V8A1,1 0 0,0 9,9H15A1,1 0 0,0 16,8V7A1,1 0 0,0 15,6H9M8,10V20A2,2 0 0,0 10,22H14A2,2 0 0,0 16,20V10H8Z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="scanner-footer-details">
+                        <a id="scan-history-link" href="#" data-page="log-page">Scan History</a>
+                        <div id="player-rank-display"></div>
+                    </div>
+                </div>
+            </section>
+            <section id="map-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <div id="map-card-container">
+                    <div id="map-wrapper">
+                        <img id="campus-map-img" src="https://i.imgur.com/1aQCsPk.jpeg" alt="Interactive Campus Map">
+                        <div id="map-markers-overlay"></div>
+                    </div>
+                </div>
+            </section>
+            <section id="leaderboard-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <h2 class="transparent-heading-box">Leaderboard</h2>
+                <div id="leaderboard-container">
+                    <ul id="leaderboard-list"></ul>
+                </div>
+            </section>
+            <section id="log-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <h2 class="transparent-heading-box">Scan History</h2>
+                <div id="log-container">
+                    <ul id="log-list"></ul>
+                </div>
+            </section>
+            <section id="info-page" class="app-page">
+                <img class="header-image-top" src="https://i.imgur.com/piKjXSd.png" alt="Wicked Movie Header">
+                <h2 class="transparent-heading-box">Information</h2>
+                <div id="info-container"></div>
+                <button id="logout-btn" class="info-card-button glass-card full-width-btn">Logout</button>
+            </section>
+        </main>
+        <nav id="tab-bar">
+            <button class="tab-button" data-page="hunt-page">Scanner</button>
+            <button class="tab-button" data-page="leaderboard-page">Leaderboard</button>
+            <button class="tab-button" data-page="map-page">Map</button>
+            <button class="tab-button" data-page="info-page">Info</button>
+        </nav>
+    </div>
+    <div id="info-modal-backdrop" style="display: none;">
         <div id="info-modal" class="glass-card">
             <button id="modal-close-btn">&times;</button>
             <h3 id="modal-title"></h3>
             <div id="modal-content"></div>
         </div>
     </div>
-
-
     <script>
-        // --- Video Rotation ---
+        // --- CONFIGURATION ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbnznQi0UTSQVZP0qrZ0_MPUB4gAAehDkunbeAHeUVkyMAJhhuDDTg0pjcGHaA-srg/exec'; // Newest URL
+        const POPUP_DURATION_MS = 2000;
+        const BATCH_SEND_INTERVAL_MS = 10000; // 10 seconds
+        const DATA_REFRESH_INTERVAL_MS = 60000; // 1 minute
+        const VIRTUAL_LIMIT = 10;
+        const VIRTUAL_LOCATIONS = ['Commuter Lounge', 'Thunderground', 'Riverbed'];
+        const MAP_SPOTS = [{
+            name: 'The Grove',
+            dataKey: 'The Grove',
+            coords: '1295,758,1311,774'
+        }, {
+            name: 'Lopes Way',
+            dataKey: 'Lopes Way',
+            coords: '2270,1911,2286,1927'
+        }, {
+            name: 'Main Campus',
+            dataKey: 'Main Campus',
+            coords: '1763,2398,1779,2414'
+        }, {
+            name: 'North Campus',
+            dataKey: 'North Campus',
+            coords: '2738,1116,2754,1132'
+        }, {
+            name: 'East Campus',
+            dataKey: 'East Campus',
+            coords: '3882,2468,3898,2484'
+        }, {
+            name: 'The Rivers',
+            dataKey: 'The Rivers',
+            coords: '4757,1136,4773,1152'
+        }, {
+            name: 'Riverbed Virtual',
+            dataKey: 'Riverbed',
+            coords: '5125,817,5141,833'
+        }, {
+            name: 'Commuter Lounge Virtual',
+            dataKey: 'Commuter Lounge',
+            coords: '1355,1900,1371,1916'
+        }, {
+            name: 'Thunderground Virtual',
+            dataKey: 'Thunderground',
+            coords: '1514,1680,1530,1696'
+        }, ];
         const LOGIN_VIDEOS = [
             'https://i.imgur.com/Aqrg8yc.mp4', // Original
-            'https://i.imgur.com/YwNPfOg.mp4'  // New one
+            'https://i.imgur.com/YwNPfOg.mp4' // New one
         ];
         const VIDEO_SESSION_KEY = 'lastVideoIndex';
+
+        // --- GLOBAL STATE & DOM REFERENCES ---
+        let html5QrCode = null;
+        let currentUser = null;
+        let initialDuckId = null;
+        const PENDING_INITIAL_DUCK_KEY_PREFIX = 'duckHunt_pendingInitial_';
+        let infoDataFetchTime = null;
+        let mapResizeObserver = null;
+        let isTorchOn = false;
+        let cameraTrack = null;
+        let isDataLoaded = false;
+        const loginScreen = document.getElementById('login-screen');
+        const appWrapper = document.getElementById('app-wrapper');
+        const loginView = document.getElementById('login-view');
+        const registrationView = document.getElementById('registration-view');
+        const ribbonMessage = document.getElementById('ribbon-message');
+        const mapImageElement = document.getElementById('campus-map-img');
+        const scannerLoadingMessage = document.getElementById('scanner-loading-message');
+        const scannerLoadingText1 = document.getElementById('scanner-loading-text-line1');
+        const scannerLoadingText2 = document.getElementById('scanner-loading-text-line2');
+
+        // Pre-populated Info Data (Refactored)
+        const infoDataCache = [{
+            title: 'How to Play & Duck Types',
+            content: [
+                "**Get Started:** Use the **Scanner** tab to find and scan QR codes hidden around campus. The **Map** shows general areas where ducks are still available.",
+                "**Earn Points:** Each duck grants points depending on its type. Only the **first student** to scan a unique code earns the points; after that, the code is inactive (a 'dead code').",
+                "**Track Progress:** Check the **Leaderboard** for your rank and use **Scan History** to track your finds.",
+                "**Event Dates:** Virtual ducks start the week of **October 27th**. The physical hunt runs from **November 3rd to November 8th**.",
+                "",
+                "**Duck Values:**",
+                "🥇 Golden Duck (3 total): **2,000 pts**",
+                "👑 Student Engagement Duck: **1,000 pts**",
+                "🦆 Physical Ducks (3,000+ total): **100 pts**",
+                "💻 Virtual Ducks (Max " + VIRTUAL_LIMIT + "/day): **25 pts**"
+            ]
+        }, {
+            title: 'Prizes & Eligibility (The Stakes)',
+            content: [
+                "The **TOP THREE POINT EARNERS** on the final leaderboard will win massive prizes to celebrate Lip Sync 2025!",
+                "",
+                "### Grand Prizes:",
+                "🥇 **1st Place: VIP Lip Sync Experience!**",
+                "Get VIP tickets for up to four people.",
+                "🥈 **2nd Place: Stampede Fuel!**",
+                "Enjoy free Stampede for two months.",
+                "🥉 **3rd Place: Lope Shop Shopping Spree!**",
+                "Win a $200 Lope Shop shopping spree with Thunder.",
+                "",
+                "**Eligibility:** You must be a verified GCU student with a valid **@my.gcu.edu** email and only **one account** per student is permitted to claim a prize."
+            ]
+        }, {
+            title: 'Fair Play Rules',
+            content: [
+                "Play fair and respect all other participants and campus property.",
+                "Do **NOT** share duck links, screenshots, or QR codes online.",
+                "Do **NOT** hack, alter, or interfere with the website or QR system.",
+                "Do **NOT** enter restricted, staff-only, or unsafe areas.",
+                "Uphold GCU’s community standards and have fun promoting Lip Sync 2025!"
+            ]
+        }, {
+            title: 'Duck Hunt 2025 – Terms & Conditions',
+            content: [
+                "**1. Purpose**",
+                "Duck Hunt 2025 is a campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) at Grand Canyon University, created to promote and celebrate Lip Sync 2025. The event encourages students to explore campus, connect with others, and show school spirit through a fun, interactive competition. Participants will search for hidden ducks, scan their unique QR codes, and compete to reach the top of the leaderboard for prizes.",
+                "**2. Eligibility**",
+                "Participation is open exclusively to GCU traditional on-ground students and commuter traditional students. All participants must register using their Student ID and @my.gcu.edu email address. Each student may only have one account. Duplicate or shared accounts are not permitted.",
+                "**3. How to Play**",
+                "Visit cabgcuduckhunt.com and log in using your GCU student information. Find QR-coded “ducks” hidden around campus. Scan each duck through the Duck Hunt web app to earn points. Once a duck is scanned by any player, it becomes inactive (“dead code”) and cannot be reused.",
+                "**Duck Types & Point Values:** Golden Ducks (3 total): 2,000 points each. Student Engagement Ducks: 1,000 points each. Physical Ducks (3,000+ total): 100 points each. Virtual Ducks (10,000 total): 25 points each. Virtual Ducks can be found at the Commuter Lounge, Thunderground, The Riverbed, and the Multicultural Office, as well as at CAB events and on promotional flyers.",
+                "**4. Special Ducks**",
+                "Each Student Engagement group receives one Special Duck worth 1,000 points. Groups have complete freedom in how they distribute their duck—whether through an event, social media challenge, or creative campus placement. Groups are asked to release their Special Duck no earlier than November 3rd, when the physical hunt begins. The student who finds and scans the Special Duck first automatically earns 1,000 points and keeps the duck as a souvenir.",
+                "**5. Fair Play & Integrity**",
+                "Duck Hunt is meant to be a fun, fair, and community-focused event. The following actions are strictly prohibited: Hacking, altering, or exploiting the website or QR code system. Sharing duck links, screenshots, or QR codes online. Using bots, automation, or fake accounts to collect ducks. Registering under multiple names or providing false information. If cheating or manipulation is detected, the participant’s account and points may be removed.",
+                "**6. Safety & Conduct**",
+                "Participants are expected to play responsibly and respect the GCU campus community. Do not enter restricted, staff-only, or unsafe areas. Avoid disrupting classes, offices, or campus operations. Stay aware of your surroundings while exploring. Be courteous to others and uphold GCU’s community standards. Duck Hunt is designed to celebrate GCU spirit and promote Lip Sync 2025, not to interfere with campus life.",
+                "**7. Prizes**",
+                "The top three players on the final leaderboard will win the following prizes: 🥇 First Place: VIP Lip Sync tickets for up to four people. 🥈 Second Place: Free Stampede for two months. 🥉 Third Place: $200 Lope Shop shopping spree with Thunder. Winners will be contacted through cab@gcu.edu once results are finalized.",
+                "**8. Event Schedule**",
+                "Virtual Duck Launch: Week of October 27, 2025. Physical Hunt: November 3 – November 8, 2025.",
+                "**9. Privacy & Data**",
+                "By registering, participants agree to share limited information (name, Student ID, and GCU email) used only for event participation, leaderboard tracking, and prize notification. Leaderboard names will display as first name + last initial for privacy.",
+                "**10. Agreement**",
+                "By registering and participating in Duck Hunt 2025, you acknowledge that you have read and agree to these Terms & Conditions. Duck Hunt exists to build campus spirit, encourage friendly competition, and promote Lip Sync 2025 in a positive, engaging way."
+            ]
+        }, {
+            title: 'What is Duck Hunt?',
+            content: [
+                "Duck Hunt is the ultimate campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) to celebrate Lip Sync 2025!",
+                "Students find hidden QR-coded ducks, scan them to earn points, and compete for massive prizes at the top of the leaderboard.",
+                "",
+                "**Event Dates:** Virtual Hunt starts **October 27th**. Physical Hunt runs **November 3rd - November 8th**.",
+                "",
+                "### Prizes:",
+                "🥇 **1st Place:** VIP Lip Sync Tickets",
+                "🥈 **2nd Place:** 2 Months Free Stampede",
+                "🥉 **3rd Place:** $200 Lope Shop Spree",
+                "",
+                "### Check out the Lip Sync 2025 Promo Video!",
+                `<iframe width="100%" height="200" src="https://www.youtube.com/embed/6I-lgo3Vu_8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
+                "",
+                "Ready to hunt? Sign in above!"
+            ]
+        },
+        {
+            title: 'Duck Not Scanning?',
+            content: [
+                "We are sorry that your duck is not scanning or that you found a duck without a code.",
+                "Please let us know here where you found your duck so we can apply the points to your account:",
+                '<a href="https://docs.google.com/forms/d/e/1FAIpQLSe2ZyOLr5jdQKl-ucZTTQs47m2580iiRONCfqMrsaBNXhrn0g/viewform?usp=dialog" target="_blank" rel="noopener noreferrer">Report Scanning Issue</a>'
+            ]
+        }, {
+            title: 'Contact & Support',
+            content: "Duck Hunt is hosted by the Canyon Activities Board (CAB). For questions or support, please contact us on Instagram at @CABGCU."
+        }
+        ];
+        // --- CACHING & STATE ---
+        let claimedDucksCache = new Set();
+        let processingDucks = new Set();
+        let localVirtualScanTimestamps = [];
+        let scanQueue = [];
+        let batchSendTimer = null;
+        let dataRefreshTimer = null;
+        let locationCountsCache = {};
+        let pendingDucks = 0;
+        let scanHistoryCache = [];
+
+        // ⭐ NEW: Security and Cache Keys
+        const SESSION_TOKEN_KEY = 'duckHunt_sessionToken'; // ⭐ NEW: Key for secure session token
+        const OLD_STUDENT_ID_KEY = 'currentUserStudentId'; // ⭐ NEW: Key for old insecure ID
+        const PUBLIC_ACTIONS = new Set(['signInUser', 'registerUser', 'getInfoData']); // ⭐ NEW: Actions that DON'T need a token
+        const CLAIMED_DUCKS_KEY_PREFIX = 'duckHunt_claimedDucks_';
+
+        // --- PERSISTENCE FUNCTIONS ---
+        function getQueueKey() {
+            return 'scanQueue_' + (currentUser ? currentUser.studentId : 'guest');
+        }
+
+        function saveScanQueue() {
+            if (currentUser) {
+                localStorage.setItem(getQueueKey(), JSON.stringify(scanQueue));
+            }
+        }
+
+        function loadScanQueue() {
+            if (!currentUser) return;
+            const savedQueue = localStorage.getItem(getQueueKey());
+            if (savedQueue) {
+                try {
+                    const parsedQueue = JSON.parse(savedQueue);
+                    if (Array.isArray(parsedQueue) && parsedQueue.length > 0) {
+                        scanQueue = parsedQueue;
+                        pendingDucks = parsedQueue.length;
+                        updateOptimisticDisplay();
+                        showNotification(`Loaded ${scanQueue.length} pending scans from last session.`);
+                    }
+                } catch (e) {
+                    console.error("Error loading scan queue:", e);
+                    localStorage.removeItem(getQueueKey());
+                }
+            }
+        }
+
+        function getClaimedDucksCacheKey() {
+            return CLAIMED_DUCKS_KEY_PREFIX + (currentUser ? currentUser.studentId : 'guest');
+        }
+
+        function getPendingInitialDuckKey() {
+            // ⭐ MODIFIED: Use a passed ID if currentUser isn't set yet (for registration)
+            const id = currentUser ? currentUser.studentId : 'guest';
+            return PENDING_INITIAL_DUCK_KEY_PREFIX + id;
+        }
+
+        // ⭐ MODIFIED: Overloaded function for registration edge case
+        function getPendingInitialDuckKey(studentId) {
+            return PENDING_INITIAL_DUCK_KEY_PREFIX + (studentId || 'guest');
+        }
+
+
+        function loadCriticalDataFromCache() {
+            console.log("CACHE: Attempting to load critical data from localStorage...");
+            try {
+                const cachedClaimedDucks = localStorage.getItem(getClaimedDucksCacheKey());
+                if (cachedClaimedDucks) {
+                    claimedDucksCache = new Set(JSON.parse(cachedClaimedDucks));
+                    console.log(`CACHE: Success! Loaded ${claimedDucksCache.size} claimed ducks from cache.`);
+                    return true;
+                }
+                console.log("CACHE: No complete critical data found in localStorage.");
+                return false;
+            } catch (e) {
+                console.error("CACHE: Error loading from localStorage:", e);
+                localStorage.removeItem(getClaimedDucksCacheKey());
+                return false;
+            }
+        }
+
+        function saveCriticalDataToCache() {
+            console.log("CACHE: Saving critical data to localStorage...");
+            try {
+                if (claimedDucksCache) {
+                    localStorage.setItem(getClaimedDucksCacheKey(), JSON.stringify(Array.from(claimedDucksCache)));
+                }
+                console.log("CACHE: Save complete.");
+            } catch (e) {
+                console.error("CACHE: Error saving to localStorage:", e);
+            }
+        }
+
+        // --- MAP INTERACTION LOGIC ---
+        const mapCardContainer = document.getElementById('map-card-container');
+        let isPanning = false;
+
+        function updateLabelSizeOnPan() {
+            if (!isPanning) return;
+            const viewportCenterX = mapCardContainer.scrollLeft + mapCardContainer.clientWidth / 2;
+            const viewportCenterY = mapCardContainer.scrollTop + mapCardContainer.clientHeight / 2;
+            const maxDistance = Math.sqrt(Math.pow(mapCardContainer.clientWidth / 2, 2) + Math.pow(mapCardContainer.clientHeight / 2, 2));
+            document.querySelectorAll('.map-label').forEach(label => {
+                const labelCenterX = label.offsetLeft + (label.offsetWidth / 2);
+                const labelCenterY = label.offsetTop + (label.offsetHeight / 2);
+                const distance = Math.sqrt(Math.pow(labelCenterX - viewportCenterX, 2) + Math.pow(labelCenterY - viewportCenterY, 2));
+                let scale = 1.15 - (distance / maxDistance) * 0.25;
+                if (label.classList.contains('on-top')) {
+                    scale = 1.1;
+                } else {
+                    scale = Math.max(0.9, Math.min(scale, 1.15));
+                }
+                label.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            });
+            isPanning = false;
+        }
+
+        function positionMarkers() {
+            const overlay = document.getElementById('map-markers-overlay');
+            if (!overlay || !mapImageElement || !mapImageElement.naturalWidth) return;
+            overlay.innerHTML = '';
+            const locationData = locationCountsCache;
+            MAP_SPOTS.forEach(spot => {
+                const marker = document.createElement('div');
+                marker.className = 'map-label';
+                const [x1, y1, x2, y2] = spot.coords.split(',').map(Number);
+                const centerX = (x1 + x2) / 2;
+                const centerY = (y1 + y2) / 2;
+                marker.style.left = `${(centerX / mapImageElement.naturalWidth) * 100}%`;
+                marker.style.top = `${(centerY / mapImageElement.naturalHeight) * 100}%`;
+                const dataKey = spot.dataKey;
+                const displayName = spot.name;
+                let remainingText;
+                let spotData = locationData[dataKey];
+                if (!spotData) {
+                    remainingText = '<strong>N/A</strong> Codes Left';
+                    marker.style.borderColor = 'gray';
+                } else {
+                    const remaining = spotData.count;
+                    if (remaining > 0) {
+                        remainingText = `🦆 <strong>${remaining}</strong> Codes Left`;
+                        marker.style.borderColor = 'var(--green)';
+                    } else {
+                        remainingText = `❌ <strong>CLEARED</strong>`;
+                        marker.classList.add('cleared');
+                    }
+                }
+                marker.innerHTML = `<h4>${displayName}</h4><p>${remainingText}</p>`;
+                marker.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.map-label.on-top').forEach(lbl => {
+                        lbl.classList.remove('on-top');
+                    });
+                    marker.classList.add('on-top');
+                });
+                overlay.appendChild(marker);
+            });
+            isPanning = true;
+            updateLabelSizeOnPan();
+        }
+        async function updateDuckMapData() {
+            // ⭐ MODIFIED: postToAction now adds token automatically
+            const result = await postToAction('getDuckCounts');
+            if (result.status === 'success' && result.locations) {
+                locationCountsCache = {};
+                Object.keys(result.locations).forEach(name => {
+                    locationCountsCache[name] = {
+                        count: result.locations[name]
+                    };
+                });
+            }
+        }
+
+        function initializeMap() {
+            if (mapResizeObserver) {
+                mapResizeObserver.disconnect();
+                mapResizeObserver = null;
+            }
+            mapCardContainer.addEventListener('scroll', () => {
+                if (!isPanning) {
+                    isPanning = true;
+                    window.requestAnimationFrame(updateLabelSizeOnPan);
+                }
+            });
+            const imageLoadPromise = new Promise(resolve => {
+                if (mapImageElement.complete && mapImageElement.naturalWidth > 0) {
+                    resolve();
+                } else {
+                    mapImageElement.onload = resolve;
+                    mapImageElement.onerror = resolve;
+                }
+            });
+            Promise.all([imageLoadPromise, updateDuckMapData()]).then(() => {
+                if (mapImageElement.naturalWidth > 0) {
+                    positionMarkers();
+                    if (!mapResizeObserver) {
+                        mapResizeObserver = new ResizeObserver(positionMarkers);
+                        mapResizeObserver.observe(mapImageElement);
+                    }
+                } else {
+                    console.error("Map image failed to load or has zero dimensions.");
+                }
+            });
+        }
+        // --- END MAP INTERACTION LOGIC ---
+
+        // --- ⭐ MODIFIED: SECURE FETCH HELPER ---
+        async function postToAction(action, payload = {}) {
+            // ⭐ NEW: Add session token to all secure requests
+            if (!PUBLIC_ACTIONS.has(action)) {
+                const token = sessionStorage.getItem(SESSION_TOKEN_KEY);
+                if (!token) {
+                    console.error("No session token found for secure action:", action);
+                    logout(true); // Force logout with "session expired" message
+                    return Promise.reject(new Error("Session expired.")); // Stop this request
+                }
+                payload.sessionToken = token;
+            }
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action,
+                        ...payload
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await response.json();
+                    if (data.status === 'error') {
+                        console.error(`Server returned error for action "${action}":`, data.message);
+                        throw new Error(`Script Error: ${data.message || 'Unknown server error'}`);
+                    }
+                    return data;
+                } else {
+                    const text = await response.text();
+                    console.error(`Non-JSON response for action "${action}":`, text);
+                    throw new Error("Received non-JSON response from server.");
+                }
+            } catch (error) {
+                console.error(`Fetch error for action "${action}":`, error);
+                // ⭐ NEW: Handle session expiration
+                if (String(error.message).includes("Invalid or expired session")) {
+                    logout(true); // Force logout
+                }
+                throw error; // Propagate the error up
+            }
+        }
+        // --- RIBBON DISPLAY FUNCTION ---
+        function updateRibbon(ribbonText) {
+            const ribbonContent = document.getElementById('ribbon-content');
+            const scrollSpeed = 25;
+            ribbonContent.style.animation = 'none';
+            ribbonContent.style.transform = 'translateX(0)';
+            ribbonContent.style.paddingLeft = '100%';
+            if (ribbonText && ribbonText.trim() !== '') {
+                ribbonContent.innerHTML = `📢<span>${ribbonText}</span>`;
+                ribbonMessage.classList.add('visible');
+                appWrapper.classList.add('ribbon-active');
+                setTimeout(() => {
+                    const contentWidth = ribbonContent.scrollWidth;
+                    const viewWidth = ribbonMessage.clientWidth;
+                    if (contentWidth > viewWidth) {
+                        const totalDistance = contentWidth;
+                        const duration = totalDistance / scrollSpeed;
+                        ribbonContent.style.setProperty('--marquee-distance', `-${totalDistance}px`);
+                        ribbonContent.style.animation = `marquee-scroll ${duration}s linear infinite`;
+                        ribbonContent.style.paddingLeft = `${viewWidth}px`;
+                        ribbonContent.style.textAlign = 'left';
+                    } else {
+                        ribbonContent.style.paddingLeft = '0';
+                        ribbonContent.style.textAlign = 'center';
+                        const centeredPadding = (viewWidth - ribbonContent.offsetWidth) / 2;
+                        ribbonContent.style.paddingLeft = `${Math.max(0, centeredPadding)}px`;
+                        ribbonContent.style.transform = 'translateX(0)';
+                        ribbonContent.style.animation = 'none';
+                    }
+                }, 10);
+            } else {
+                ribbonContent.innerHTML = '';
+                ribbonMessage.classList.remove('visible');
+                appWrapper.classList.remove('ribbon-active');
+                ribbonContent.style.animation = 'none';
+            }
+        }
+        // --- ANIMATION FUNCTIONS ---
+        function startRandomFadingDuckFeet() {
+            const container = document.getElementById('duck-feet-background-container');
+            const maxFeetOnScreen = 7;
+            const minDelay = 1000;
+            const maxDelay = 3000;
+            const animationDuration = 6000;
+
+            function createFadingFeet() {
+                const currentFeet = container.querySelectorAll('.fading-duck-feet');
+                if (currentFeet.length >= maxFeetOnScreen) {
+                    currentFeet[0].remove();
+                }
+                const feet = document.createElement('div');
+                feet.className = 'fading-duck-feet';
+                const randomX = Math.random() * (window.innerWidth - 60);
+                const randomY = Math.random() * (window.innerHeight - 60);
+                feet.style.left = `${randomX}px`;
+                feet.style.top = `${randomY}px`;
+                const randomScale = 0.7 + Math.random() * 0.6;
+                feet.style.transform = `scale(${randomScale}) rotate(${Math.random() * 360}deg)`;
+                feet.style.animationDuration = `${animationDuration}ms`;
+                container.appendChild(feet);
+                setTimeout(() => {
+                    feet.remove();
+                }, animationDuration);
+                const nextDelay = Math.random() * (maxDelay - minDelay) + minDelay;
+                setTimeout(createFadingFeet, nextDelay);
+            }
+            createFadingFeet();
+        }
+
+        function triggerDuckAnimation() {
+            const duckCount = Math.floor(Math.random() * 5) + 3;
+            for (let i = 0; i < duckCount; i++) {
+                setTimeout(() => {
+                    const duck = document.createElement('div');
+                    duck.textContent = '🦆';
+                    duck.className = 'duck-animation';
+                    duck.style.top = `${30 + Math.random() * 40}%`;
+                    duck.style.animationDuration = `${1.5 + Math.random()}s`;
+                    document.body.appendChild(duck);
+                    setTimeout(() => duck.remove(), 2500);
+                }, i * 150);
+            }
+        }
+
+        function triggerGoldenDuckAnimation() {
+            const flash = document.getElementById('golden-flash-overlay');
+            flash.classList.remove('hidden');
+            flash.style.animation = 'gold-flash 0.8s ease-out forwards';
+            const emojis = ['🦆', '🥇', '💰', '✨'];
+            const count = 10;
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const item = document.createElement('div');
+                    item.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    item.className = 'frost-animation';
+                    item.style.fontSize = `${1.5 + Math.random() * 2.5}rem`;
+                    item.style.color = '#FFD700';
+                    item.style.left = `${Math.random() * 100}vw`;
+                    item.style.animationDuration = `${1.5 + Math.random() * 2.5}s`;
+                    item.style.animationDelay = `${Math.random() * 0.5}s`;
+                    document.body.appendChild(item);
+                    setTimeout(() => item.remove(), 5000);
+                }, 150 + i * 50);
+            }
+            setTimeout(() => {
+                flash.classList.add('hidden');
+                flash.style.animation = 'none';
+            }, 850);
+        }
+
+        function triggerFrostAnimation() {
+            const flakeCount = 15;
+            for (let i = 0; i < flakeCount; i++) {
+                const flake = document.createElement('div');
+                flake.textContent = '❄️';
+                flake.className = 'frost-animation';
+                flake.style.left = `${Math.random() * 100}vw`;
+                flake.style.animationDuration = `${2 + Math.random() * 3}s`;
+                flake.style.animationDelay = `${Math.random()}s`;
+                document.body.appendChild(flake);
+                setTimeout(() => flake.remove(), 5000);
+            }
+        }
+        // --- CORE SCANNING & SYNC LOGIC ---
+        function updateOptimisticDisplay() {
+            if (!currentUser) return;
+            const pointsEl = document.getElementById('player-points');
+            const ducksEl = document.getElementById('player-ducks');
+
+            pointsEl.textContent = (currentUser.points || 0);
+            pointsEl.classList.remove('pending-update');
+
+            ducksEl.textContent = (currentUser.duckCount || 0) + pendingDucks;
+
+            if (scanQueue.length > 0) {
+                ducksEl.classList.add('pending-update');
+            } else {
+                ducksEl.classList.remove('pending-update');
+
+                if (pendingDucks !== 0) {
+                    console.log("Queue empty & sync likely complete, resetting pending duck count.");
+                    pendingDucks = 0;
+                    ducksEl.textContent = currentUser.duckCount || 0;
+                }
+            }
+        }
+
+
+        async function processSavedInitialScan() {
+            const pendingDuckKey = getPendingInitialDuckKey();
+            const duckIdToProcess = localStorage.getItem(pendingDuckKey);
+
+            if (!duckIdToProcess) {
+                console.log(`TIME (${performance.now().toFixed(0)}ms): No pending initial duck scan found in localStorage.`);
+                return;
+            }
+
+            if (!isDataLoaded) {
+                console.error("LOGIC ERROR: processSavedInitialScan called before critical data loaded.");
+                return;
+            }
+
+            const startTime = performance.now();
+            console.log(`TIME (${startTime.toFixed(0)}ms): Processing SAVED initial duck scan from localStorage: ${duckIdToProcess}`);
+
+            let finalDuckId = duckIdToProcess;
+            try {
+                if (duckIdToProcess.includes('://') && duckIdToProcess.includes('?')) {
+                    const url = new URL(duckIdToProcess);
+                    if (url.searchParams.has('duckId')) {
+                        finalDuckId = url.searchParams.get('duckId');
+                    }
+                }
+            } catch (e) { /* ignore */ }
+
+            const lookupId = finalDuckId.trim().toLowerCase();
+
+            // Check caches
+            if (claimedDucksCache.has(lookupId)) {
+                console.warn(`Saved initial scan: ${lookupId} already claimed (in cache). Removing pending key.`);
+                localStorage.removeItem(pendingDuckKey);
+                displayErrorPopup("Quack! Already claimed.");
+                return;
+            }
+            if (scanQueue.some(scan => scan.duckId.trim().toLowerCase() === lookupId)) {
+                console.warn(`Saved initial scan: ${lookupId} already found in main scanQueue. Removing pending key.`);
+                localStorage.removeItem(pendingDuckKey);
+                return;
+            }
+            if (processingDucks.has(lookupId)) {
+                console.warn(`Saved initial scan: ${lookupId} is already being processed this session. Removing pending key.`);
+                localStorage.removeItem(pendingDuckKey);
+                return;
+            }
+
+            // Add to session processing
+            processingDucks.add(lookupId);
+
+            // Add to main scan queue
+            scanQueue.push({
+                duckId: finalDuckId
+                // ⭐ MODIFIED: studentId is no longer needed, token is used
+            });
+            saveScanQueue();
+
+            pendingDucks += 1;
+            updateOptimisticDisplay();
+
+            localStorage.removeItem(pendingDuckKey);
+            console.log(`TIME (${performance.now().toFixed(0)}ms): Removed pending initial duck key.`);
+
+            displaySuccessPopup("Duck Claimed!", false, true); // Force display
+            const endTime = performance.now();
+            console.log(`TIME (${endTime.toFixed(0)}ms): SAVED initial duck scan processed. Duration: ${(endTime - startTime).toFixed(0)}ms`);
+
+            triggerDuckAnimation();
+        }
+
+        async function onScanSuccess(decodedText) {
+            if (!currentUser) return;
+            if (!isDataLoaded) {
+                showNotification("Quack Quack! Still loading duck data!");
+                return;
+            }
+            const triggerVisualError = () => {
+                const qrContainer = document.getElementById('qr-reader-container');
+                qrContainer.classList.add('error-flash');
+                setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+            };
+            let finalDuckId = decodedText;
+            try {
+                const url = new URL(decodedText);
+                if (url.searchParams.has('duckId')) {
+                    finalDuckId = url.searchParams.get('duckId');
+                }
+            } catch (e) {}
+            const lookupId = finalDuckId.trim().toLowerCase();
+
+            if (claimedDucksCache.has(lookupId)) {
+                console.warn(`Scan attempt: ${lookupId} already claimed on server.`);
+                displayErrorPopup("Quack! Already claimed.");
+                triggerVisualError();
+                return;
+            }
+            if (processingDucks.has(lookupId)) {
+                console.log(`Scan attempt: ${lookupId} already in process this session. Ignoring.`);
+                return;
+            }
+
+            processingDucks.add(lookupId);
+
+            scanQueue.push({
+                duckId: finalDuckId
+                // ⭐ MODIFIED: studentId is no longer needed, token is used
+            });
+            saveScanQueue();
+            
+            pendingDucks += 1;
+            updateOptimisticDisplay();
+
+            displaySuccessPopup("Duck Claimed!");
+            
+            triggerDuckAnimation();
+        }
+
+        async function sendBatchScans() {
+            if (scanQueue.length === 0) return true;
+            const scansToSend = [...scanQueue];
+            scanQueue = [];
+            const sentDuckIds = new Set(scansToSend.map(s => s.duckId.trim().toLowerCase()));
+
+            let batchResult;
+            try {
+                // ⭐ MODIFIED: postToAction will add the token, this payload is correct.
+                // The studentId in the scansToSend array is now ignored by the server
+                // but we send it anyway as it's already in the queue.
+                batchResult = await postToAction('batchScanDucks', {
+                    scans: scansToSend
+                });
+            } catch (error) {
+                batchResult = {
+                    status: "error",
+                    message: error.message || "Network or script error."
+                };
+            }
+
+            sentDuckIds.forEach(id => processingDucks.delete(id));
+
+            if (batchResult.status === "success") {
+                localStorage.removeItem(getQueueKey());
+
+                if (batchResult.updatedUser) {
+                    currentUser.points = batchResult.updatedUser.points;
+                    currentUser.duckCount = batchResult.updatedUser.duckCount;
+                }
+
+                updateOptimisticDisplay();
+
+                if (batchResult.results) {
+                    let serverClaimedCount = 0;
+                    batchResult.results.forEach(result => {
+                        const resultLookupId = result.duckId.trim().toLowerCase();
+                        claimedDucksCache.add(resultLookupId);
+                        if (result.status === "success") {
+                            serverClaimedCount++;
+                            if (result.isGolden) {
+                                triggerGoldenDuckAnimation();
+                            }
+                        } else {
+                            console.warn(`Scan for ${result.duckId} failed server-side: ${result.message}`);
+                            if (result.message && result.message.includes("limit")) {
+                                triggerFrostAnimation();
+                            }
+                        }
+                    });
+                    console.log(`Batch success: ${serverClaimedCount} ducks accepted by server.`);
+                    saveCriticalDataToCache();
+                }
+                return true;
+            } else {
+                scanQueue = [...scansToSend, ...scanQueue]; // Put failed scans back
+                saveScanQueue();
+
+                pendingDucks = scanQueue.length;
+                updateOptimisticDisplay();
+
+                displayRevertPopup(batchResult.message || "Sync failed. Retrying later.");
+                return false;
+            }
+        }
+
+        function periodicDataRefresh() {
+            if (!currentUser) return;
+            console.log("BG REFRESH: Starting periodic data refresh...");
+            
+            // ⭐ MODIFIED: No longer need to fetch user, just update visuals.
+            // The batch-send/login is the source of truth for user data.
+            updateUserDashboard(false); // Passing false just updates visuals
+
+            // Refresh claimed ducks and ribbon in background
+            postToAction('getClaimedDucks')
+                .then(result => {
+                    if (result && Array.isArray(result.claimed)) {
+                        console.log("BG REFRESH: Updated claimed ducks list from server.");
+                        claimedDucksCache = new Set(result.claimed);
+                        saveCriticalDataToCache();
+                    }
+                })
+                .catch(error => console.error("BG REFRESH: Error refreshing claimed ducks:", error))
+                .then(() => {
+                    // This .then() runs after getClaimedDucks, regardless of success
+                    return postToAction('getInfoData'); // Now fetch info data
+                })
+                .then(result => {
+                    if (result && result.ribbonText !== undefined) {
+                        console.log("BG REFRESH: Updated ribbon text.");
+                        updateRibbon(result.ribbonText);
+                    } else {
+                        updateRibbon('');
+                    }
+                })
+                .catch(error => {
+                    console.error("BG REFRESH: Error refreshing info data:", error);
+                    updateRibbon('');
+                });
+        }
+
+        async function loadCriticalDataAndProcessSavedScan() {
+            const startTime = performance.now();
+            console.log(`TIME (${startTime.toFixed(0)}ms): Starting loadCriticalDataAndProcessSavedScan`);
+
+            if (loadCriticalDataFromCache()) {
+                isDataLoaded = true;
+                const cacheLoadTime = performance.now();
+                console.log(`TIME (${cacheLoadTime.toFixed(0)}ms): Using cached critical data. Duration: ${(cacheLoadTime - startTime).toFixed(0)}ms`);
+
+                await processSavedInitialScan(); 
+
+                console.log(`TIME (${performance.now().toFixed(0)}ms): Triggering background sync for cache update.`);
+                // ⭐ MODIFIED: postToAction handles token
+                postToAction('getClaimedDucks').then(claimedDucksResult => { 
+                    if (claimedDucksResult && Array.isArray(claimedDucksResult.claimed)) {
+                        claimedDucksCache = new Set(claimedDucksResult.claimed);
+                        saveCriticalDataToCache();
+                        console.log(`TIME (${performance.now().toFixed(0)}ms): Background sync of claimed ducks complete.`);
+                    }
+                }).catch(e => console.error("Background sync error (getClaimedDucks):", e));
+
+            } else {
+                console.log(`TIME (${performance.now().toFixed(0)}ms): No cache. Fetching critical data from server...`);
+                try {
+                    const fetchStartTime = performance.now();
+                    // ⭐ MODIFIED: postToAction handles token
+                    const claimedDucksResult = await postToAction('getClaimedDucks');
+                    const fetchEndTime = performance.now();
+                    console.log(`TIME (${fetchEndTime.toFixed(0)}ms): Network fetch complete. Duration: ${(fetchEndTime - fetchStartTime).toFixed(0)}ms`);
+
+                    if (claimedDucksResult && Array.isArray(claimedDucksResult.claimed)) {
+                        claimedDucksCache = new Set(claimedDucksResult.claimed);
+                    } else {
+                        throw new Error("Failed to load claimed ducks.");
+                    }
+
+                    isDataLoaded = true;
+                    console.log("LOAD: Critical data fetched successfully.");
+
+                    saveCriticalDataToCache();
+                    await processSavedInitialScan();
+
+                } catch (e) {
+                    console.error("LOAD: CRITICAL ERROR loading essential data:", e);
+                    // No alert here, let the handler in postToAction trigger logout
+                    stopScanner();
+                    throw e; 
+                }
+            }
+            const endTime = performance.now();
+            console.log(`TIME (${endTime.toFixed(0)}ms): loadCriticalDataAndProcessSavedScan finished. Total Duration: ${(endTime - startTime).toFixed(0)}ms`);
+        }
+
+
+        // --- APP INITIALIZATION & LOGIN ---
+        async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
+            const appStartTime = performance.now(); 
+            console.log(`TIME (${appStartTime.toFixed(0)}ms): showApp called for user ${user.studentId}`);
+
+            currentUser = user;
+            currentUser.duckCount = user.duckCount || 0;
+            // ⭐ MODIFIED: We no longer save the insecure studentId. Token is already in sessionStorage.
+            // sessionStorage.setItem('currentUserStudentId', user.studentId);
+            isDataLoaded = false; 
+
+            if (loginButtonEl) {
+                loginButtonEl.innerHTML = loginButtonContent;
+                loginButtonEl.disabled = false;
+            }
+            loginScreen.classList.remove('visible');
+            appWrapper.classList.add('visible');
+
+            scannerLoadingMessage.classList.remove('hidden');
+
+            loadScanQueue(); 
+
+            if (batchSendTimer) clearInterval(batchSendTimer);
+            batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
+            if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+            dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
+
+            switchPage(initialPageId); 
+
+            updateOptimisticDisplay(); 
+            document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+
+            const currentInitialDuckId = initialDuckId; 
+            if (currentInitialDuckId) {
+                try {
+                    localStorage.setItem(getPendingInitialDuckKey(), currentInitialDuckId);
+                    console.log(`TIME (${performance.now().toFixed(0)}ms): Saved pending initial duck ID to localStorage.`);
+                    
+                    displaySuccessPopup("Duck Claimed!", false, true);
+
+                    scannerLoadingText1.textContent = "Please Wait";
+                    scannerLoadingText2.textContent = "As We Award Your Points!";
+
+                } catch (e) {
+                    console.error("Error saving pending initial duck ID:", e);
+                }
+            }
+            initialDuckId = null; 
+
+            const uiSetupTime = performance.now();
+            console.log(`TIME (${uiSetupTime.toFixed(0)}ms): UI setup complete. Duration: ${(uiSetupTime - appStartTime).toFixed(0)}ms`);
+
+            try {
+                await loadCriticalDataAndProcessSavedScan();
+            } catch (e) {
+                console.error("Failed to load critical data. App load stopped.");
+                return; 
+            }
+
+            const criticalDataLoadedTime = performance.now();
+            console.log(`TIME (${criticalDataLoadedTime.toFixed(0)}ms): Critical data loaded. Starting scanner and loading non-critical data.`);
+
+            scannerLoadingMessage.classList.add('hidden');
+
+            if (document.getElementById('hunt-page').classList.contains('active')) {
+                startScanner(); 
+            }
+
+            (async () => {
+                const bgLoadStartTime = performance.now();
+                console.log(`TIME (${bgLoadStartTime.toFixed(0)}ms): Starting background load of non-critical data.`);
+                try {
+                    // ⭐ MODIFIED: postToAction adds token, payload is now empty
+                    const [historyResult, infoResult] = await Promise.all([
+                        postToAction('getScanHistory', {}),
+                        postToAction('getInfoData')
+                    ]);
+                    const bgLoadEndTime = performance.now();
+                    console.log(`TIME (${bgLoadEndTime.toFixed(0)}ms): Background network fetch complete. Duration: ${(bgLoadEndTime - bgLoadStartTime).toFixed(0)}ms`);
+
+                    if (Array.isArray(historyResult)) {
+                        scanHistoryCache = historyResult;
+                        const midnightTodayTimestamp = getMidnightTimestamp('America/Phoenix');
+                        localVirtualScanTimestamps = historyResult
+                            .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() >= midnightTodayTimestamp)
+                            .map(scan => new Date(scan.timestamp).getTime());
+                    }
+                    if (infoResult && infoResult.ribbonText !== undefined) {
+                        updateRibbon(infoResult.ribbonText);
+                        infoDataFetchTime = new Date();
+                    } else {
+                        updateRibbon('');
+                    }
+
+                    console.log("LOAD: Non-critical data processed.");
+                    
+                    updateUserDashboard(false);
+                    console.log(`TIME (${performance.now().toFixed(0)}ms): Background processing complete.`);
+
+                } catch (e) {
+                    console.error("LOAD: Error loading non-critical background data:", e);
+                }
+            })();
+            const finalTime = performance.now();
+            console.log(`TIME (${finalTime.toFixed(0)}ms): showApp finished. Total Duration: ${(finalTime - appStartTime).toFixed(0)}ms`);
+        }
+
+        // ⭐ MODIFIED: This is now signInUser
+        async function signIn(studentId) {
+            const signinBtn = document.getElementById('signin-btn');
+            const originalContent = signinBtn.innerHTML;
+            signinBtn.innerHTML = '<div class="spinner"></div>';
+            signinBtn.disabled = true;
+            try {
+                // ⭐ MODIFIED: Call new 'signInUser' action
+                const result = await postToAction('signInUser', {
+                    studentId
+                });
+
+                // ⭐ NEW: Save the secure token
+                if (result.sessionToken) {
+                    sessionStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
+                } else {
+                    throw new Error("No session token received from server.");
+                }
+                // ⭐ NEW: Clear old insecure key if it exists
+                sessionStorage.removeItem(OLD_STUDENT_ID_KEY);
+
+                showApp(result.user, 'hunt-page', signinBtn, originalContent);
+            } catch (error) {
+                signinBtn.innerHTML = originalContent;
+                signinBtn.disabled = false;
+                if (error.message && error.message.includes("User not found")) {
+                    alert("Welcome To Duck Hunt: Please Register First!");
+                } else {
+                    alert(error.message || "Server error! Please try again.");
+                }
+            }
+        }
+        
+        // ⭐ MODIFIED: This is now registerUser
+        async function registerUser() {
+            const submitBtn = document.getElementById('submit-btn');
+            const originalContent = submitBtn.innerHTML;
+            const termsCheckbox = document.getElementById('terms-checkbox');
+            if (!termsCheckbox.checked) {
+                return alert("You must agree to the Terms & Conditions to register.");
+            }
+            const payload = {
+                firstName: document.getElementById('reg-firstname').value.trim(),
+                lastName: document.getElementById('reg-lastname').value.trim(),
+                studentId: document.getElementById('reg-studentid').value.trim(),
+                email: document.getElementById('reg-email').value.trim()
+            };
+            if (!payload.firstName || !payload.studentId) {
+                return alert("First Name and Student ID are required.");
+            }
+            if (!payload.email.toLowerCase().endsWith('@my.gcu.edu')) {
+                return alert("Registration requires an @my.gcu.edu email address.");
+            }
+            submitBtn.innerHTML = '<div class="spinner"></div>';
+            submitBtn.disabled = true;
+            try {
+                // ⭐ MODIFIED: Call 'registerUser'
+                const result = await postToAction('registerUser', payload);
+                
+                // ⭐ NEW: Save the secure token
+                if (result.sessionToken) {
+                    sessionStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
+                } else {
+                    throw new Error("No session token received from server.");
+                }
+                // ⭐ NEW: Clear old insecure key if it exists
+                sessionStorage.removeItem(OLD_STUDENT_ID_KEY);
+
+                // Clear caches for new user
+                localStorage.removeItem(getClaimedDucksCacheKey());
+                localStorage.removeItem(getPendingInitialDuckKey(payload.studentId));
+
+                // ⭐ MODIFIED: showApp now gets user data directly from registration response
+                showApp(result.user, 'hunt-page', submitBtn, originalContent);
+            } catch (error) {
+                submitBtn.innerHTML = originalContent;
+                submitBtn.disabled = false;
+                alert(error.message || "Error registering. Please check details and try again.");
+            }
+        }
+        // --- UI & DATA DISPLAY FUNCTIONS ---
+        function displaySuccessPopup(message, isGolden = false, force = false) {
+            const container = document.getElementById('qr-reader-container');
+            if (!container && !force) {
+                console.warn("displaySuccessPopup: Container not found and force=false. Popup skipped.");
+                return;
+            }
+
+            document.querySelectorAll('.point-pop').forEach(pop => pop.remove());
+
+            const successPop = document.createElement('div');
+            successPop.className = 'point-pop';
+            if (isGolden) {
+                successPop.classList.add('golden-point-pop');
+            }
+            successPop.textContent = message;
+
+            const appendTarget = container || document.body;
+            appendTarget.appendChild(successPop);
+
+            if (!container) {
+                console.log("displaySuccessPopup: Attaching popup to body as fallback.");
+                successPop.style.position = 'fixed';
+                successPop.style.zIndex = '9999';
+                successPop.style.top = 'auto';
+                successPop.style.bottom = 'calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px)';
+                successPop.style.animation = 'float-up-body 3s ease-out forwards';
+            }
+
+            setTimeout(() => successPop.remove(), POPUP_DURATION_MS);
+        }
+
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+@keyframes float-up-body { 
+ 0% { bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px); opacity: 1; } 
+ 50% { bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 100px); opacity: 1; } 
+ 100% { bottom: calc(var(--tab-bar-height) + var(--safe-area-bottom) + 100px); opacity: 0; } 
+}`;
+        document.head.appendChild(styleSheet);
+
+
+        function displayErrorPopup(message) {
+            document.querySelectorAll('.point-pop').forEach(pop => pop.remove());
+            
+            const errorPop = document.createElement('div');
+            errorPop.className = 'point-pop';
+            errorPop.style.background = '#d9534f';
+            errorPop.textContent = message;
+            const container = document.getElementById('qr-reader-container');
+            const appendTarget = container || document.body;
+            appendTarget.appendChild(errorPop);
+
+            if (!container) {
+                errorPop.style.position = 'fixed';
+                errorPop.style.zIndex = '9999';
+                errorPop.style.top = 'auto';
+                errorPop.style.bottom = 'calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px)';
+                errorPop.style.animation = 'float-up-body 3s ease-out forwards';
+            }
+            setTimeout(() => errorPop.remove(), POPUP_DURATION_MS);
+        }
+
+        function displayRevertPopup(message) {
+            document.querySelectorAll('.point-pop').forEach(pop => pop.remove());
+
+            const revertPop = document.createElement('div');
+            revertPop.className = 'point-pop';
+            revertPop.style.background = '#f0ad4e';
+            revertPop.innerHTML = `<strong>Sync Issue</strong><br><small>${message}</small>`;
+            const container = document.getElementById('qr-reader-container');
+            const appendTarget = container || document.body;
+            appendTarget.appendChild(revertPop);
+
+            if (!container) {
+                revertPop.style.position = 'fixed';
+                revertPop.style.zIndex = '9999';
+                revertPop.style.top = 'auto';
+                revertPop.style.bottom = 'calc(var(--tab-bar-height) + var(--safe-area-bottom) + 20px)';
+                revertPop.style.animation = 'float-up-body 3s ease-out forwards';
+            }
+            setTimeout(() => revertPop.remove(), POPUP_DURATION_MS + 1000);
+        }
+
+        async function updateUserDashboard(shouldFetchUser = false) {
+            if (!currentUser) return;
+            try {
+                // ⭐ MODIFIED: This function no longer fetches user data,
+                // as that now happens *only* on signIn or register.
+                if (shouldFetchUser) {
+                     // This block is for periodic refresh.
+                     // We just update the display, as data is synced via batch/login.
+                     console.log("Periodic refresh: Updating visuals.");
+                     updateOptimisticDisplay();
+                } else {
+                    updateOptimisticDisplay();
+                }
+
+                document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
+
+                // Fetch leaderboard/history in background
+                // ⭐ MODIFIED: postToAction adds token, payload is now empty
+                Promise.all([
+                    postToAction('getLeaderboard', {}),
+                    postToAction('getScanHistory', {})
+                ]).then(([leaderboardResult, historyResult]) => {
+                    // Update Rank
+                    if (leaderboardResult && leaderboardResult.myRank !== undefined) {
+                        const myRank = leaderboardResult.myRank;
+                        let rankText = myRank > 0 ? `Rank: ${myRank}` : 'Not Yet Ranked';
+                        if (myRank === 1) rankText = '🥇 Rank 1';
+                        else if (myRank === 2) rankText = '🥈 Rank 2';
+                        else if (myRank === 3) rankText = '🥉 Rank 3';
+                        document.getElementById('player-rank-display').textContent = rankText;
+                    }
+                    // Update History Cache
+                    if (Array.isArray(historyResult)) {
+                        scanHistoryCache = historyResult;
+                        const midnightTodayTimestamp = getMidnightTimestamp('America/Phoenix');
+                        localVirtualScanTimestamps = historyResult
+                            .filter(scan => scan.duckType === 'Virtual Duck' && new Date(scan.timestamp).getTime() >= midnightTodayTimestamp)
+                            .map(scan => new Date(scan.timestamp).getTime());
+                    }
+                }).catch(e => console.error("Error fetching leaderboard/history:", e));
+
+            } catch (e) {
+                console.error("Failed to update user dashboard data:", e);
+            }
+        }
+        async function updateLeaderboard() {
+            const listElement = document.getElementById('leaderboard-list');
+            listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center;"><div class="spinner"></div></li>`;
+            try {
+                // ⭐ MODIFIED: postToAction adds token, payload is now empty
+                const result = await postToAction('getLeaderboard', {});
+                const leaderboardData = result.topPlayers;
+
+                if (!Array.isArray(leaderboardData) || leaderboardData.length === 0) {
+                    listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">No one has scanned any ducks yet.</li>';
+                    return;
+                }
+                let html = '';
+                leaderboardData.slice(0, 10).forEach((player, index) => {
+                    const rank = index + 1;
+                    const emoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+                    const displayName = `${player.firstName} ${player.lastNameInitial}`;
+                    html += `<li class="list-item glass-card"><div>${emoji}<div class="rank-text">${displayName}</div></div><span>${player.points} pts</span></li>`;
+                });
+                listElement.innerHTML = html;
+            } catch (error) {
+                listElement.innerHTML = `<li class="list-item glass-card" style="justify-content:center; color: #ffaaaa;">Error loading leaderboard.</li>`;
+                console.error("Error updating leaderboard:", error);
+            }
+        }
+
+        function updateScanHistory() {
+            const listElement = document.getElementById('log-list');
+            const scanData = scanHistoryCache; 
+            if (!scanData || scanData.length === 0) {
+                listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet (or history is loading).</li>';
+                return;
+            }
+            let html = '';
+            scanData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(scan => {
+                const scanDate = new Date(scan.timestamp);
+                const timeString = scanDate.toLocaleTimeString([], {
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+                const duckTypeDisplay = scan.duckType === 'Golden Duck' ? '🥇 Golden Duck' : scan.duckType || 'Duck';
+                html += `<li class="list-item glass-card"><div><div class="primary-text">${duckTypeDisplay}</div><div class="secondary-text">${scan.duckId} - ${timeString}</div></div><span>+${scan.points || 0}</span></li>`;
+            });
+            listElement.innerHTML = html;
+        }
+        // --- INFO PAGE FUNCTIONS ---
+        function showInfoModal(title, content) {
+            document.getElementById('modal-title').textContent = title || "Information Detail";
+            const contentEl = document.getElementById('modal-content');
+            let html = '';
+            if (typeof content === 'string') {
+                html = content.split('\n').map(p => `<p>${p}</p>`).join('');
+            } else if (Array.isArray(content)) {
+                html = content.map(item => {
+                    item = item.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                    item = item.replace(/<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>');
+                    if (item.startsWith('###')) {
+                        return `<h4 style="margin-top:1rem; margin-bottom: 0.5rem; color: var(--gold);">${item.substring(3).trim()}</h4>`;
+                    }
+                    if (item.includes(':')) {
+                        const parts = item.split(':');
+                        if (parts.length > 1 && parts[0].match(/^\d+\./)) {
+                            return `<h5 style="margin-top:1rem; margin-bottom: 0.25rem;">${parts[0].trim()}:</h5><p style="margin-top: 0;">${parts.slice(1).join(':').trim()}</p>`;
+                        }
+                    }
+                    if (item.includes('<iframe')) {
+                        return item;
+                    }
+                    if (item.trim() === '') return '<p></p>';
+                    return item.includes('•') ? `<li style="text-align:left; list-style-position: inside;">${item.replace('•', '').trim()}</li>` : `<p>${item}</p>`;
+                }).join('');
+                if (html.startsWith('<p></p>')) html = html.substring(3);
+            } else {
+                html = "<p>No content available.</p>";
+            }
+            contentEl.innerHTML = html;
+            document.getElementById('info-modal-backdrop').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function renderInfoCards(infoItems) {
+            const container = document.getElementById('info-container');
+            if (!infoItems || infoItems.length === 0) {
+                container.innerHTML = "<h4 style='text-align:center; color:rgba(255,255,255,0.7);'>No information available.</h4>";
+                return;
+            }
+            let html = '';
+            infoItems
+                .filter(item => item.title !== 'Duck Hunt 2025 – Terms & Conditions' && item.title !== 'What is Duck Hunt?')
+                .forEach((item) => {
+                    html += `
+                <div class="info-card-button glass-card">
+                <h4>${item.title || 'Untitled'}</h4>
+                </div>
+                `;
+                });
+            container.innerHTML = html;
+            document.querySelectorAll('#info-container .info-card-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const clickedTitle = e.currentTarget.querySelector('h4').textContent;
+                    const infoItem = infoDataCache.find(item => item.title === clickedTitle);
+                    if (infoItem) {
+                        showInfoModal(infoItem.title, infoItem.content);
+                    }
+                });
+            });
+        }
+        async function fetchAndRenderInfoData() {
+            renderInfoCards(infoDataCache); // Render cards from hardcoded data immediately
+            try {
+                // ⭐ MODIFIED: This is a public action, no token needed
+                const result = await postToAction('getInfoData'); 
+                if (result && result.ribbonText !== undefined) {
+                    updateRibbon(result.ribbonText);
+                } else {
+                    updateRibbon('');
+                }
+            } catch (error) {
+                console.error("Error fetching info data:", error);
+                updateRibbon(''); 
+            }
+        }
+        // --- UTILITY & NAVIGATION ---
+
+        function getMidnightTimestamp(timeZone) {
+            const now = new Date();
+            const dateString = now.toLocaleDateString('en-CA', {
+                timeZone
+            });
+            const midnightString = `${dateString}T00:00:00-07:00`;
+            return new Date(midnightString).getTime();
+        }
+
+        function startScanner() {
+            const startTime = performance.now(); 
+            console.log(`TIME (${startTime.toFixed(0)}ms): Attempting startScanner...`);
+            if (!isDataLoaded) { 
+                console.log("QR SCANNER LOG: Data not loaded. Scanner start aborted.");
+                scannerLoadingMessage.classList.remove('hidden');
+                return;
+            }
+            if (html5QrCode && html5QrCode.isScanning) {
+                console.log("QR SCANNER LOG: Scanner already running.");
+                scannerLoadingMessage.classList.add('hidden'); 
+                return;
+            }
+            if (!document.getElementById('hunt-page')?.classList.contains('active')) {
+                console.log("QR SCANNER LOG: Attempted to start scanner, but hunt page is not active.");
+                return;
+            }
+
+            html5QrCode = new Html5Qrcode("qr-reader");
+            const config = {
+                fps: 10,
+                qrbox: {
+                    width: 220,
+                    height: 220
+                },
+                aspectRatio: 1.0
+            };
+            const torchButton = document.getElementById('torch-toggle-btn');
+            console.log("QR SCANNER LOG: Data loaded. Attempting to start camera...");
+            scannerLoadingMessage.classList.remove('hidden'); 
+
+            html5QrCode.start({
+                    facingMode: "environment"
+                }, config, onScanSuccess, (errorMessage) => {})
+                .then(() => {
+                    const cameraStartedTime = performance.now();
+                    console.log(`TIME (${cameraStartedTime.toFixed(0)}ms): Scanner camera started successfully. Duration: ${(cameraStartedTime - startTime).toFixed(0)}ms. Checking torch...`);
+                    scannerLoadingMessage.classList.add('hidden');
+                    setTimeout(() => { 
+                        try {
+                            if (!html5QrCode || !html5QrCode.isScanning) {
+                                console.log("QR SCANNER LOG: Scanner stopped before torch check.");
+                                return;
+                            }
+                            cameraTrack = html5QrCode.getRunningTrack();
+                            if (cameraTrack && typeof cameraTrack.getCapabilities === 'function') {
+                                const capabilities = cameraTrack.getCapabilities();
+                                if (capabilities && capabilities.torch) {
+                                    torchButton.classList.remove('hidden');
+                                } else {
+                                    torchButton.classList.add('hidden');
+                                }
+                            } else {
+                                torchButton.classList.add('hidden');
+                            }
+                        } catch (e) {
+                            console.warn("QR SCANNER LOG: Error getting torch capabilities:", e);
+                            torchButton.classList.add('hidden');
+                        }
+                    }, 500);
+                })
+                .catch(err => {
+                    const cameraFailTime = performance.now();
+                    console.error(`TIME (${cameraFailTime.toFixed(0)}ms): CRITICAL - Scanner camera failed to start. Duration: ${(cameraFailTime - startTime).toFixed(0)}ms`, err);
+                    scannerLoadingText1.textContent = "Camera Failed!";
+                    scannerLoadingText2.textContent = "Please check permissions.";
+                    scannerLoadingMessage.querySelector('.spinner').style.display = 'none';
+                });
+        }
+
+        function stopScanner() {
+            const torchButton = document.getElementById('torch-toggle-btn');
+            if (cameraTrack && cameraTrack.readyState === 'live' && isTorchOn) {
+                cameraTrack.applyConstraints({
+                        advanced: [{
+                            torch: false
+                        }]
+                    })
+                    .then(() => {
+                        console.log("QR SCANNER LOG: Torch turned off during stop.");
+                        isTorchOn = false;
+                        torchButton?.classList.remove('torch-on'); 
+                    })
+                    .catch(err => console.warn("QR SCANNER LOG: Failed to turn off torch during stop:", err));
+            }
+            if (html5QrCode && html5QrCode.isScanning) {
+                console.log("QR SCANNER LOG: Attempting to stop scanner...");
+                html5QrCode.stop()
+                    .then(() => {
+                        console.log("QR SCANNER LOG: Scanner stopped successfully.");
+                        html5QrCode = null; 
+                        cameraTrack = null; 
+                        isTorchOn = false; 
+                        torchButton?.classList.add('hidden'); 
+                        torchButton?.classList.remove('torch-on');
+                    })
+                    .catch(err => {
+                        console.error("QR SCANNER LOG: Error stopping the scanner.", err);
+                        html5QrCode = null;
+                        cameraTrack = null;
+                        isTorchOn = false;
+                        torchButton?.classList.add('hidden');
+                        torchButton?.classList.remove('torch-on');
+                    });
+            } else {
+                html5QrCode = null;
+                cameraTrack = null;
+                isTorchOn = false;
+                torchButton?.classList.add('hidden');
+                torchButton?.classList.remove('torch-on');
+            }
+            if (scannerLoadingMessage) {
+                const pendingDuckKey = getPendingInitialDuckKey();
+                if (localStorage.getItem(pendingDuckKey)) {
+                    scannerLoadingText1.textContent = "Please Wait";
+                    scannerLoadingText2.textContent = "As We Award Your Points!";
+                } else {
+                    scannerLoadingText1.textContent = "Quack Quack!";
+                    scannerLoadingText2.textContent = "The Scanner Is Loading!";
+                }
+                scannerLoadingMessage.querySelector('.spinner').style.display = 'block'; 
+                scannerLoadingMessage.classList.remove('hidden');
+            }
+        }
+        
+        // ⭐ MODIFIED: Secure logout
+        async function logout(isSessionExpired = false) {
+            if (scanQueue.length > 0) {
+                showNotification("Syncing final scans before logout...");
+                await sendBatchScans();
+            }
+ 
+            // ⭐ NEW: Clear secure token
+            sessionStorage.removeItem(SESSION_TOKEN_KEY);
+            // ⭐ NEW: Clear old insecure ID just in case
+            sessionStorage.removeItem(OLD_STUDENT_ID_KEY);
+
+            if (batchSendTimer) clearInterval(batchSendTimer);
+            if (dataRefreshTimer) clearInterval(dataRefreshTimer);
+            stopScanner();
+
+            if (currentUser) {
+                try {
+                    localStorage.removeItem(getPendingInitialDuckKey());
+                } catch (e) {}
+            }
+
+            currentUser = null;
+            isDataLoaded = false; 
+
+            // ⭐ NEW: Show session expired message
+            if (isSessionExpired) {
+                 // We need to reload first to show the login screen, then show alert
+                 sessionStorage.setItem('sessionExpiredMessage', 'Your session expired. Please log in again.');
+            }
+            location.reload();
+        }
+
+        function switchPage(pageId) {
+            const isLeavingScanPage = document.getElementById('hunt-page')?.classList.contains('active');
+
+            stopScanner();
+
+            if (mapResizeObserver) {
+                mapResizeObserver.disconnect();
+                mapResizeObserver = null;
+            }
+
+            if (scanQueue.length > 0 && isLeavingScanPage) {
+                sendBatchScans();
+            }
+
+            document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId)?.classList.add('active');
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-button[data-page="${pageId}"]`)?.classList.add('active');
+            const appContainer = document.getElementById('app-container');
+            appContainer.scrollTop = 0;
+
+            if (pageId === 'hunt-page') {
+                updateUserDashboard(false); 
+                setTimeout(() => {
+                    startScanner();
+                }, 100);
+            } else if (pageId === 'leaderboard-page') {
+                updateLeaderboard(); 
+            } else if (pageId === 'log-page') {
+                updateScanHistory(); 
+            } else if (pageId === 'map-page') {
+                initializeMap();
+            } else if (pageId === 'info-page') {
+                fetchAndRenderInfoData();
+            }
+        }
+
+        function checkForInitialDuck() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('duckId')) {
+                initialDuckId = urlParams.get('duckId');
+                showNotification("Duck found! Sign in or register to claim it.");
+            }
+        }
+
+        function showNotification(message) {
+            const el = document.createElement('div');
+            el.className = 'glass-card';
+            el.style.position = 'fixed';
+            el.style.top = '-150px';
+            el.style.left = '50%';
+            el.style.transform = 'translateX(-50%)';
+            el.style.zIndex = '999';
+            el.style.width = '80%';
+            el.style.maxWidth = '350px';
+            el.style.transition = 'top 0.5s ease-out';
+            el.innerHTML = `<p style="margin:0;">${message}</p>`;
+            document.body.appendChild(el);
+            setTimeout(() => el.style.top = '20px', 10);
+            setTimeout(() => {
+                el.style.top = '-150px';
+                setTimeout(() => el.remove(), 500);
+            }, 3000);
+        }
 
         function setLoginVideo() {
             const videoEl = document.getElementById('login-bg-video');
@@ -232,85 +2903,145 @@
 
             sessionStorage.setItem(VIDEO_SESSION_KEY, nextIndex);
             videoEl.src = LOGIN_VIDEOS[nextIndex];
-            videoEl.load();
+            videoEl.load(); 
         }
-        
-        // --- Modal Data and Function ---
 
-        // Contains ONLY the data needed for the "What is" modal
-        const infoDataCache = [{
-            title: 'What is Duck Hunt?',
-            content: [
-                "Duck Hunt is the ultimate campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) to celebrate Lip Sync 2025!",
-                "Students find hidden QR-coded ducks, scan them to earn points, and compete for massive prizes at the top of the leaderboard.",
-                "",
-                "**Event Dates:** Virtual Hunt starts **October 27th**. Physical Hunt runs **November 3rd - November 8th**.",
-                "",
-                "### Prizes:",
-                "🥇 **1st Place:** VIP Lip Sync Tickets",
-                "🥈 **2nd Place:** 2 Months Free Stampede",
-                "🥉 **3rd Place:** $200 Lope Shop Spree",
-                "",
-                "### Check out the Lip Sync 2025 Promo Video!",
-                `<iframe width="100%" height="200" src="https://www.youtube.com/embed/6I-lgo3Vu_8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`,
-                "",
-                "The Hunt is paused right now, but it will be back!"
-            ]
-        }];
+        // --- ⭐ MODIFIED: DOMContentLoaded (Main startup logic) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setLoginVideo(); 
+            startRandomFadingDuckFeet();
+            checkForInitialDuck();
 
-        // Function to show the modal
-        function showInfoModal(title, content) {
-            document.getElementById('modal-title').textContent = title || "Information Detail";
-            const contentEl = document.getElementById('modal-content');
-            let html = '';
+            // ⭐ NEW: Check for session expired message
+            const expiredMessage = sessionStorage.getItem('sessionExpiredMessage');
+            if (expiredMessage) {
+                alert(expiredMessage);
+                sessionStorage.removeItem('sessionExpiredMessage');
+            }
+
+            // ⭐ NEW: Secure session check
+            const savedToken = sessionStorage.getItem(SESSION_TOKEN_KEY);
+            const oldSavedStudentId = sessionStorage.getItem(OLD_STUDENT_ID_KEY);
+
+            if (savedToken) {
+                // User has a secure token. We don't have user data yet,
+                // so we fetch it using the token in a special "re-login" way.
+                // We'll use the 'getLeaderboard' call, as it returns the user's rank
+                // and we can piggyback on it.
+                // A better way would be a 'getUserByToken' endpoint, but this works.
+                console.log("Found secure session token. Attempting to resume session...");
+                // We can't call showApp() yet because we don't have the `user` object.
+                // We'll call `signIn` with a special flag.
+                // Let's just try to get the user data by signing in with the old ID.
+                // A-HA! The user's OLD student ID is still in sessionStorage! We can use that
+                // to auto-upgrade them.
+                if (oldSavedStudentId) {
+                     console.log("Found old student ID. Upgrading to secure session...");
+                     signIn(oldSavedStudentId); // This will sign them in and save the new token
+                } else {
+                    // This is a problem. We have a token but no user data.
+                    // The best way to handle this is to fetch the user data.
+                    // Since we don't have a `getUserByToken` endpoint, we'll just log them out
+                    // and force a fresh login. This only happens if they close the tab
+                    // right after logging in.
+                    console.warn("Token found but no user data. Forcing re-login.");
+                    logout(true);
+                }
+
+            } else if (oldSavedStudentId) {
+                // ⭐ NEW: Auto-upgrade for existing users
+                // User has the OLD insecure studentId. Let's sign them in
+                // to get a NEW secure token.
+                console.log("Found old student ID. Upgrading to secure session...");
+                signIn(oldSavedStudentId);
             
-            if (Array.isArray(content)) {
-                html = content.map(item => {
-                    item = item.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-                    item = item.replace(/<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>');
-                    if (item.startsWith('###')) {
-                        return `<h4 style="margin-top:1rem; margin-bottom: 0.5rem; color: var(--gold);">${item.substring(3).trim()}</h4>`;
-                    }
-                    if (item.includes('<iframe')) {
-                        return item;
-                    }
-                    if (item.trim() === '') return '<p></p>';
-                    return `<p>${item}</p>`;
-                }).join('');
+            } else {
+                // No token, no old ID. User is fully logged out.
+                console.log("No session found. User is logged out.");
+                // Login screen is visible by default, so do nothing.
             }
             
-            contentEl.innerHTML = html;
-            document.getElementById('info-modal-backdrop').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
 
-        // This ensures no other app logic runs. Only the video and modal listeners.
-        document.addEventListener('DOMContentLoaded', () => {
-            // Start the video
-            setLoginVideo();
-
-            // Modal Listeners
-            const modalBackdrop = document.getElementById('info-modal-backdrop');
-            
-            document.getElementById('modal-close-btn').addEventListener('click', () => {
-                modalBackdrop.style.display = 'none';
-                document.body.style.overflow = '';
+            document.getElementById('signin-btn').addEventListener('click', () => {
+                const studentId = document.getElementById('login-studentid').value.trim();
+                if (studentId) signIn(studentId);
             });
-            
-            modalBackdrop.addEventListener('click', (e) => {
-                if (e.target.id === 'info-modal-backdrop') {
+            document.getElementById('submit-btn').addEventListener('click', registerUser);
+            document.getElementById('register-btn').addEventListener('click', () => {
+                const studentId = document.getElementById('login-studentid').value.trim();
+                if (studentId) {
+                    document.getElementById('reg-studentid').value = studentId;
+                }
+                loginView.classList.add('hidden');
+                registrationView.classList.remove('hidden');
+            });
+            document.getElementById('back-btn').addEventListener('click', () => {
+                registrationView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+            });
+            document.getElementById('close-instructions').addEventListener('click', () => {
+                document.getElementById('instructions-card').style.display = 'none';
+            });
+            document.getElementById('tab-bar').addEventListener('click', (e) => {
+                if (e.target.matches('.tab-button')) {
+                    switchPage(e.target.dataset.page);
+                }
+            });
+            document.getElementById('scan-history-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage(e.target.dataset.page);
+            });
+            document.getElementById('logout-btn').addEventListener('click', () => logout(false));
+            document.getElementById('torch-toggle-btn').addEventListener('click', () => {
+                if (cameraTrack) {
+                    try {
+                        const desiredState = !isTorchOn;
+                        cameraTrack.applyConstraints({
+                            advanced: [{
+                                torch: desiredState
+                            }]
+                        });
+                        isTorchOn = desiredState;
+                        document.getElementById('torch-toggle-btn').classList.toggle('torch-on', desiredState);
+                    } catch (e) {
+                        console.error("Failed to toggle torch:", e);
+                        alert("Sorry, the flashlight could not be controlled.");
+                    }
+                }
+            });
+            const modalBackdrop = document.getElementById('info-modal-backdrop');
+            if (modalBackdrop) {
+                document.getElementById('modal-close-btn').addEventListener('click', () => {
                     modalBackdrop.style.display = 'none';
                     document.body.style.overflow = '';
+                });
+                modalBackdrop.addEventListener('click', (e) => {
+                    if (e.target.id === 'info-modal-backdrop') {
+                        modalBackdrop.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
+                });
+                const viewTermsLink = document.getElementById('view-terms-link');
+                if (viewTermsLink) {
+                    viewTermsLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const infoItem = infoDataCache.find(item => item.title.includes('Terms & Conditions'));
+                        if (infoItem) {
+                            showInfoModal(infoItem.title, infoItem.content);
+                        }
+                    });
                 }
-            });
-
-            document.getElementById('what-is-duck-hunt-link').addEventListener('click', (e) => {
-                e.preventDefault();
-                const infoItem = infoDataCache.find(item => item.title === 'What is Duck Hunt?');
-                if (infoItem) {
-                    showInfoModal(infoItem.title, infoItem.content);
+                const whatIsDuckHuntLink = document.getElementById('what-is-duck-hunt-link');
+                if (whatIsDuckHuntLink) {
+                    whatIsDuckHuntLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const infoItem = infoDataCache.find(item => item.title === 'What is Duck Hunt?');
+                        if (infoItem) {
+                            showInfoModal(infoItem.title, infoItem.content);
+                        }
+                    });
                 }
-            });
+            }
         });
     </script>
 </body>
