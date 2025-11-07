@@ -1379,6 +1379,7 @@
     <script>
         // --- CONFIGURATION ---
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbnznQi0UTSQVZP0qrZ0_MPUB4gAAehDkunbeAHeUVkyMAJhhuDDTg0pjcGHaA-srg/exec'; // Newest URL
+        const HUNT_IS_OVER = true; // <-- HUNT IS OFFICIALLY OVER
         const POPUP_DURATION_MS = 2000;
         const BATCH_SEND_INTERVAL_MS = 10000; // 10 seconds
         const DATA_REFRESH_INTERVAL_MS = 60000; // 1 minute
@@ -1703,6 +1704,22 @@
             updateLabelSizeOnPan();
         }
         async function updateDuckMapData() {
+            // --- NEW: HUNT IS OVER MODIFICATION ---
+            if (HUNT_IS_OVER) {
+                console.log("MAP: Hunt is over. Setting all duck counts to 0.");
+                locationCountsCache = {};
+                // Loop through all defined map spots and set their count to 0
+                MAP_SPOTS.forEach(spot => {
+                    locationCountsCache[spot.dataKey] = {
+                        count: 0
+                    };
+                });
+                // We can resolve immediately since we're not fetching
+                return Promise.resolve();
+            }
+            // --- END NEW ---
+
+            // Original logic for when hunt is active
             // ⭐ MODIFIED: postToAction now adds token automatically
             const result = await postToAction('getDuckCounts');
             if (result.status === 'success' && result.locations) {
@@ -1714,6 +1731,7 @@
                 });
             }
         }
+
 
         function initializeMap() {
             if (mapResizeObserver) {
@@ -1951,6 +1969,14 @@
                 return;
             }
 
+            // --- NEW: HUNT IS OVER CHECK ---
+            if (HUNT_IS_OVER) {
+                console.log(`Hunt is over. Clearing pending initial scan: ${duckIdToProcess}`);
+                localStorage.removeItem(pendingDuckKey);
+                return;
+            }
+            // --- END NEW ---
+
             if (!isDataLoaded) {
                 console.error("LOGIC ERROR: processSavedInitialScan called before critical data loaded.");
                 return;
@@ -2013,6 +2039,16 @@
         }
 
         async function onScanSuccess(decodedText) {
+            // --- NEW: HUNT IS OVER CHECK ---
+            if (HUNT_IS_OVER) {
+                displayErrorPopup("The Hunt is Over!");
+                const qrContainer = document.getElementById('qr-reader-container');
+                qrContainer.classList.add('error-flash');
+                setTimeout(() => qrContainer.classList.remove('error-flash'), 500);
+                return;
+            }
+            // --- END NEW ---
+
             if (!currentUser) return;
             if (!isDataLoaded) {
                 showNotification("Quack Quack! Still loading duck data!");
@@ -2050,12 +2086,12 @@
                 // ⭐ MODIFIED: studentId is no longer needed, token is used
             });
             saveScanQueue();
-            
+
             pendingDucks += 1;
             updateOptimisticDisplay();
 
             displaySuccessPopup("Duck Claimed!");
-            
+
             triggerDuckAnimation();
         }
 
@@ -2128,7 +2164,7 @@
         function periodicDataRefresh() {
             if (!currentUser) return;
             console.log("BG REFRESH: Starting periodic data refresh...");
-            
+
             // ⭐ MODIFIED: No longer need to fetch user, just update visuals.
             // The batch-send/login is the source of truth for user data.
             updateUserDashboard(false); // Passing false just updates visuals
@@ -2170,11 +2206,11 @@
                 const cacheLoadTime = performance.now();
                 console.log(`TIME (${cacheLoadTime.toFixed(0)}ms): Using cached critical data. Duration: ${(cacheLoadTime - startTime).toFixed(0)}ms`);
 
-                await processSavedInitialScan(); 
+                await processSavedInitialScan();
 
                 console.log(`TIME (${performance.now().toFixed(0)}ms): Triggering background sync for cache update.`);
                 // ⭐ MODIFIED: postToAction handles token
-                postToAction('getClaimedDucks').then(claimedDucksResult => { 
+                postToAction('getClaimedDucks').then(claimedDucksResult => {
                     if (claimedDucksResult && Array.isArray(claimedDucksResult.claimed)) {
                         claimedDucksCache = new Set(claimedDucksResult.claimed);
                         saveCriticalDataToCache();
@@ -2207,7 +2243,7 @@
                     console.error("LOAD: CRITICAL ERROR loading essential data:", e);
                     // No alert here, let the handler in postToAction trigger logout
                     stopScanner();
-                    throw e; 
+                    throw e;
                 }
             }
             const endTime = performance.now();
@@ -2217,14 +2253,14 @@
 
         // --- APP INITIALIZATION & LOGIN ---
         async function showApp(user, initialPageId, loginButtonEl, loginButtonContent) {
-            const appStartTime = performance.now(); 
+            const appStartTime = performance.now();
             console.log(`TIME (${appStartTime.toFixed(0)}ms): showApp called for user ${user.studentId}`);
 
             currentUser = user;
             currentUser.duckCount = user.duckCount || 0;
             // ⭐ MODIFIED: We no longer save the insecure studentId. Token is already in sessionStorage.
             // sessionStorage.setItem('currentUserStudentId', user.studentId);
-            isDataLoaded = false; 
+            isDataLoaded = false;
 
             if (loginButtonEl) {
                 loginButtonEl.innerHTML = loginButtonContent;
@@ -2235,24 +2271,24 @@
 
             scannerLoadingMessage.classList.remove('hidden');
 
-            loadScanQueue(); 
+            loadScanQueue();
 
             if (batchSendTimer) clearInterval(batchSendTimer);
             batchSendTimer = setInterval(sendBatchScans, BATCH_SEND_INTERVAL_MS);
             if (dataRefreshTimer) clearInterval(dataRefreshTimer);
             dataRefreshTimer = setInterval(periodicDataRefresh, DATA_REFRESH_INTERVAL_MS);
 
-            switchPage(initialPageId); 
+            switchPage(initialPageId);
 
-            updateOptimisticDisplay(); 
+            updateOptimisticDisplay();
             document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.firstName}!`;
 
-            const currentInitialDuckId = initialDuckId; 
+            const currentInitialDuckId = initialDuckId;
             if (currentInitialDuckId) {
                 try {
                     localStorage.setItem(getPendingInitialDuckKey(), currentInitialDuckId);
                     console.log(`TIME (${performance.now().toFixed(0)}ms): Saved pending initial duck ID to localStorage.`);
-                    
+
                     displaySuccessPopup("Duck Claimed!", false, true);
 
                     scannerLoadingText1.textContent = "Please Wait";
@@ -2262,7 +2298,7 @@
                     console.error("Error saving pending initial duck ID:", e);
                 }
             }
-            initialDuckId = null; 
+            initialDuckId = null;
 
             const uiSetupTime = performance.now();
             console.log(`TIME (${uiSetupTime.toFixed(0)}ms): UI setup complete. Duration: ${(uiSetupTime - appStartTime).toFixed(0)}ms`);
@@ -2271,7 +2307,7 @@
                 await loadCriticalDataAndProcessSavedScan();
             } catch (e) {
                 console.error("Failed to load critical data. App load stopped.");
-                return; 
+                return;
             }
 
             const criticalDataLoadedTime = performance.now();
@@ -2280,7 +2316,7 @@
             scannerLoadingMessage.classList.add('hidden');
 
             if (document.getElementById('hunt-page').classList.contains('active')) {
-                startScanner(); 
+                startScanner();
             }
 
             (async () => {
@@ -2310,7 +2346,7 @@
                     }
 
                     console.log("LOAD: Non-critical data processed.");
-                    
+
                     updateUserDashboard(false);
                     console.log(`TIME (${performance.now().toFixed(0)}ms): Background processing complete.`);
 
@@ -2354,7 +2390,7 @@
                 }
             }
         }
-        
+
         // ⭐ MODIFIED: This is now registerUser
         async function registerUser() {
             const submitBtn = document.getElementById('submit-btn');
@@ -2380,7 +2416,7 @@
             try {
                 // ⭐ MODIFIED: Call 'registerUser'
                 const result = await postToAction('registerUser', payload);
-                
+
                 // ⭐ NEW: Save the secure token
                 if (result.sessionToken) {
                     sessionStorage.setItem(SESSION_TOKEN_KEY, result.sessionToken);
@@ -2446,7 +2482,7 @@
 
         function displayErrorPopup(message) {
             document.querySelectorAll('.point-pop').forEach(pop => pop.remove());
-            
+
             const errorPop = document.createElement('div');
             errorPop.className = 'point-pop';
             errorPop.style.background = '#d9534f';
@@ -2492,10 +2528,10 @@
                 // ⭐ MODIFIED: This function no longer fetches user data,
                 // as that now happens *only* on signIn or register.
                 if (shouldFetchUser) {
-                     // This block is for periodic refresh.
-                     // We just update the display, as data is synced via batch/login.
-                     console.log("Periodic refresh: Updating visuals.");
-                     updateOptimisticDisplay();
+                    // This block is for periodic refresh.
+                    // We just update the display, as data is synced via batch/login.
+                    console.log("Periodic refresh: Updating visuals.");
+                    updateOptimisticDisplay();
                 } else {
                     updateOptimisticDisplay();
                 }
@@ -2559,7 +2595,7 @@
 
         function updateScanHistory() {
             const listElement = document.getElementById('log-list');
-            const scanData = scanHistoryCache; 
+            const scanData = scanHistoryCache;
             if (!scanData || scanData.length === 0) {
                 listElement.innerHTML = '<li class="list-item glass-card" style="justify-content:center;">You haven\'t scanned any ducks yet (or history is loading).</li>';
                 return;
@@ -2622,10 +2658,10 @@
                 .filter(item => item.title !== 'Duck Hunt 2025 – Terms & Conditions' && item.title !== 'What is Duck Hunt?')
                 .forEach((item) => {
                     html += `
-                <div class="info-card-button glass-card">
-                <h4>${item.title || 'Untitled'}</h4>
-                </div>
-                `;
+                  <div class="info-card-button glass-card">
+                  <h4>${item.title || 'Untitled'}</h4>
+                  </div>
+                  `;
                 });
             container.innerHTML = html;
             document.querySelectorAll('#info-container .info-card-button').forEach(button => {
@@ -2642,7 +2678,7 @@
             renderInfoCards(infoDataCache); // Render cards from hardcoded data immediately
             try {
                 // ⭐ MODIFIED: This is a public action, no token needed
-                const result = await postToAction('getInfoData'); 
+                const result = await postToAction('getInfoData');
                 if (result && result.ribbonText !== undefined) {
                     updateRibbon(result.ribbonText);
                 } else {
@@ -2650,7 +2686,7 @@
                 }
             } catch (error) {
                 console.error("Error fetching info data:", error);
-                updateRibbon(''); 
+                updateRibbon('');
             }
         }
         // --- UTILITY & NAVIGATION ---
@@ -2665,16 +2701,28 @@
         }
 
         function startScanner() {
-            const startTime = performance.now(); 
+            const startTime = performance.now();
             console.log(`TIME (${startTime.toFixed(0)}ms): Attempting startScanner...`);
-            if (!isDataLoaded) { 
+
+            // --- NEW: HUNT IS OVER CHECK ---
+            if (HUNT_IS_OVER) {
+                console.log("QR SCANNER LOG: Hunt is over. Scanner start aborted.");
+                scannerLoadingText1.textContent = "The Hunt is Over!";
+                scannerLoadingText2.textContent = "Thank you for playing!";
+                scannerLoadingMessage.querySelector('.spinner').style.display = 'none';
+                scannerLoadingMessage.classList.remove('hidden');
+                return; // Do not start the scanner
+            }
+            // --- END NEW ---
+
+            if (!isDataLoaded) {
                 console.log("QR SCANNER LOG: Data not loaded. Scanner start aborted.");
                 scannerLoadingMessage.classList.remove('hidden');
                 return;
             }
             if (html5QrCode && html5QrCode.isScanning) {
                 console.log("QR SCANNER LOG: Scanner already running.");
-                scannerLoadingMessage.classList.add('hidden'); 
+                scannerLoadingMessage.classList.add('hidden');
                 return;
             }
             if (!document.getElementById('hunt-page')?.classList.contains('active')) {
@@ -2693,7 +2741,7 @@
             };
             const torchButton = document.getElementById('torch-toggle-btn');
             console.log("QR SCANNER LOG: Data loaded. Attempting to start camera...");
-            scannerLoadingMessage.classList.remove('hidden'); 
+            scannerLoadingMessage.classList.remove('hidden');
 
             html5QrCode.start({
                     facingMode: "environment"
@@ -2702,7 +2750,7 @@
                     const cameraStartedTime = performance.now();
                     console.log(`TIME (${cameraStartedTime.toFixed(0)}ms): Scanner camera started successfully. Duration: ${(cameraStartedTime - startTime).toFixed(0)}ms. Checking torch...`);
                     scannerLoadingMessage.classList.add('hidden');
-                    setTimeout(() => { 
+                    setTimeout(() => {
                         try {
                             if (!html5QrCode || !html5QrCode.isScanning) {
                                 console.log("QR SCANNER LOG: Scanner stopped before torch check.");
@@ -2745,7 +2793,7 @@
                     .then(() => {
                         console.log("QR SCANNER LOG: Torch turned off during stop.");
                         isTorchOn = false;
-                        torchButton?.classList.remove('torch-on'); 
+                        torchButton?.classList.remove('torch-on');
                     })
                     .catch(err => console.warn("QR SCANNER LOG: Failed to turn off torch during stop:", err));
             }
@@ -2754,10 +2802,10 @@
                 html5QrCode.stop()
                     .then(() => {
                         console.log("QR SCANNER LOG: Scanner stopped successfully.");
-                        html5QrCode = null; 
-                        cameraTrack = null; 
-                        isTorchOn = false; 
-                        torchButton?.classList.add('hidden'); 
+                        html5QrCode = null;
+                        cameraTrack = null;
+                        isTorchOn = false;
+                        torchButton?.classList.add('hidden');
                         torchButton?.classList.remove('torch-on');
                     })
                     .catch(err => {
@@ -2776,26 +2824,33 @@
                 torchButton?.classList.remove('torch-on');
             }
             if (scannerLoadingMessage) {
-                const pendingDuckKey = getPendingInitialDuckKey();
-                if (localStorage.getItem(pendingDuckKey)) {
-                    scannerLoadingText1.textContent = "Please Wait";
-                    scannerLoadingText2.textContent = "As We Award Your Points!";
+                // --- MODIFIED: Show "Hunt is over" message if hunt is over ---
+                if (HUNT_IS_OVER) {
+                    scannerLoadingText1.textContent = "The Hunt is Over!";
+                    scannerLoadingText2.textContent = "Thank you for playing!";
+                    scannerLoadingMessage.querySelector('.spinner').style.display = 'none';
                 } else {
-                    scannerLoadingText1.textContent = "Quack Quack!";
-                    scannerLoadingText2.textContent = "The Scanner Is Loading!";
+                    const pendingDuckKey = getPendingInitialDuckKey();
+                    if (localStorage.getItem(pendingDuckKey)) {
+                        scannerLoadingText1.textContent = "Please Wait";
+                        scannerLoadingText2.textContent = "As We Award Your Points!";
+                    } else {
+                        scannerLoadingText1.textContent = "Quack Quack!";
+                        scannerLoadingText2.textContent = "The Scanner Is Loading!";
+                    }
+                    scannerLoadingMessage.querySelector('.spinner').style.display = 'block';
                 }
-                scannerLoadingMessage.querySelector('.spinner').style.display = 'block'; 
                 scannerLoadingMessage.classList.remove('hidden');
             }
         }
-        
+
         // ⭐ MODIFIED: Secure logout
         async function logout(isSessionExpired = false) {
             if (scanQueue.length > 0) {
                 showNotification("Syncing final scans before logout...");
                 await sendBatchScans();
             }
- 
+
             // ⭐ NEW: Clear secure token
             sessionStorage.removeItem(SESSION_TOKEN_KEY);
             // ⭐ NEW: Clear old insecure ID just in case
@@ -2812,12 +2867,12 @@
             }
 
             currentUser = null;
-            isDataLoaded = false; 
+            isDataLoaded = false;
 
             // ⭐ NEW: Show session expired message
             if (isSessionExpired) {
-                 // We need to reload first to show the login screen, then show alert
-                 sessionStorage.setItem('sessionExpiredMessage', 'Your session expired. Please log in again.');
+                // We need to reload first to show the login screen, then show alert
+                sessionStorage.setItem('sessionExpiredMessage', 'Your session expired. Please log in again.');
             }
             location.reload();
         }
@@ -2844,14 +2899,14 @@
             appContainer.scrollTop = 0;
 
             if (pageId === 'hunt-page') {
-                updateUserDashboard(false); 
+                updateUserDashboard(false);
                 setTimeout(() => {
                     startScanner();
                 }, 100);
             } else if (pageId === 'leaderboard-page') {
-                updateLeaderboard(); 
+                updateLeaderboard();
             } else if (pageId === 'log-page') {
-                updateScanHistory(); 
+                updateScanHistory();
             } else if (pageId === 'map-page') {
                 initializeMap();
             } else if (pageId === 'info-page') {
@@ -2903,12 +2958,12 @@
 
             sessionStorage.setItem(VIDEO_SESSION_KEY, nextIndex);
             videoEl.src = LOGIN_VIDEOS[nextIndex];
-            videoEl.load(); 
+            videoEl.load();
         }
 
         // --- ⭐ MODIFIED: DOMContentLoaded (Main startup logic) ---
         document.addEventListener('DOMContentLoaded', () => {
-            setLoginVideo(); 
+            setLoginVideo();
             startRandomFadingDuckFeet();
             checkForInitialDuck();
 
@@ -2936,8 +2991,8 @@
                 // A-HA! The user's OLD student ID is still in sessionStorage! We can use that
                 // to auto-upgrade them.
                 if (oldSavedStudentId) {
-                     console.log("Found old student ID. Upgrading to secure session...");
-                     signIn(oldSavedStudentId); // This will sign them in and save the new token
+                    console.log("Found old student ID. Upgrading to secure session...");
+                    signIn(oldSavedStudentId); // This will sign them in and save the new token
                 } else {
                     // This is a problem. We have a token but no user data.
                     // The best way to handle this is to fetch the user data.
@@ -2954,13 +3009,13 @@
                 // to get a NEW secure token.
                 console.log("Found old student ID. Upgrading to secure session...");
                 signIn(oldSavedStudentId);
-            
+
             } else {
                 // No token, no old ID. User is fully logged out.
                 console.log("No session found. User is logged out.");
                 // Login screen is visible by default, so do nothing.
             }
-            
+
 
             document.getElementById('signin-btn').addEventListener('click', () => {
                 const studentId = document.getElementById('login-studentid').value.trim();
