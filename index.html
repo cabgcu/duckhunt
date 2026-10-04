@@ -668,7 +668,7 @@
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>If a duck "isn't in play yet," it hasn't been activated. Check back later.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>You can scan up to 10 hologram codes a day. The limit resets at midnight. Rebel ducks have no limit.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>The leaderboard ranks rescuers by points. Rescuers with equal points share a place.</span></li>
-                            <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>Broken code? Report it from the Info page. Up to 5 Rebel duck and 10 hologram code reports are honored per rescuer.</span></li>
+                            <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>Broken code? Report it from the Info page and we'll make it right.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>Play fair: one account per student, using your own Student ID.</span></li>
                         </ul>
                     </div>
@@ -688,8 +688,7 @@
                     <div class="glass-inner w-full p-5">
                         <p class="card-label">Damaged Intel</p>
                         <h3 class="text-lg font-bold font-tech tracking-wider text-white mb-2">Broken Code?</h3>
-                        <p class="text-[15px] text-gray-200 leading-snug">If a duck's QR code won't scan or got damaged, report it and you'll get the duck's points automatically. You can have up to <b class="text-white">5 Rebel duck</b> and <b class="text-white">10 hologram code</b> reports honored.</p>
-                        <p id="report-left" class="mt-2 text-[13px] text-[#ffe81f]"></p>
+                        <p class="text-[15px] text-gray-200 leading-snug">If a duck's QR code won't scan or got damaged, report it and you'll get the duck's points automatically.</p>
                         <button type="button" onclick="openReport()" class="mt-4 w-full bg-[#ffe81f]/10 border border-[#ffe81f]/40 hover:bg-[#ffe81f]/20 text-white font-bold text-[16px] py-3 rounded-xl transition-all duration-300 active:scale-[0.98]">Report a broken code</button>
                         <ul id="my-reports" class="mt-4 flex flex-col gap-2"></ul>
                     </div>
@@ -1446,19 +1445,30 @@
         // ---------- BROKEN CODE REPORTS ----------
         // Reports are resolved automatically by the database (report_code):
         // the rescuer gets the duck they report (or one from the same spot),
-        // up to 5 Rebel duck and 10 hologram code reports.
+        // up to a per-rescuer cap the player isn't shown.
         let reportKind = 'rebel';
-        let reportInfo = null; // { rebel_left, hologram_left, reports: [...] }
+        let reportInfo = null; // { reports: [...] }
 
         async function refreshReports() {
             if (!player) return;
+            const before = reportInfo;
             try {
                 reportInfo = await rpc('get_my_reports', { p_student_id: player.student_id });
             } catch (err) {
                 return; // database not updated yet
             }
-            const left = `${reportInfo.rebel_left} of ${reportInfo.rebel_limit} Rebel duck reports left · ${reportInfo.hologram_left} of ${reportInfo.hologram_limit} hologram reports left`;
-            document.getElementById('report-left').textContent = left;
+            // An admin just approved or denied a report that was under review
+            if (before && before.student_id === player.student_id) {
+                const wasReview = new Set((before.reports || []).filter(r => r.status === 'review').map(r => r.id));
+                const decided = (reportInfo.reports || []).find(r => wasReview.has(r.id) && r.status !== 'review');
+                if (decided && decided.status === 'honored') {
+                    scanFeedback('ok', 'Report approved!', `+${decided.points} pts`, 'An admin approved your broken-code report.');
+                    refreshHome();
+                } else if (decided && decided.status === 'denied') {
+                    scanFeedback('warn', 'Report not approved', null, 'An admin reviewed your broken-code report.');
+                }
+            }
+            reportInfo.student_id = player.student_id;
             renderMyReports();
             updateReportKindUI();
         }
@@ -1468,7 +1478,7 @@
             list.innerHTML = '';
             (reportInfo && reportInfo.reports || []).slice(0, 10).forEach(r => {
                 const tone = r.status === 'honored' ? ['border-green-500/40 bg-green-500/10', 'text-green-300', 'Honored']
-                    : r.status === 'review' ? ['border-amber-400/40 bg-amber-400/10', 'text-amber-300', 'With an admin']
+                    : r.status === 'review' ? ['border-amber-400/40 bg-amber-400/10', 'text-amber-300', 'Under review']
                     : r.status === 'reversed' ? ['border-white/15 bg-white/[0.03]', 'text-gray-400', 'Undone']
                     : ['border-red-500/40 bg-red-500/10', 'text-red-300', 'Not honored'];
                 const li = document.createElement('li');
@@ -1496,13 +1506,6 @@
         function updateReportKindUI() {
             document.querySelectorAll('[data-report-kind]').forEach(b => b.classList.toggle('on', b.dataset.reportKind === reportKind));
             document.getElementById('report-location-field').classList.toggle('hidden', reportKind !== 'rebel');
-            const leftText = document.getElementById('report-kind-left');
-            if (reportInfo) {
-                const left = reportKind === 'hologram' ? reportInfo.hologram_left : reportInfo.rebel_left;
-                leftText.textContent = left > 0 ? `You have ${left} ${reportKind === 'hologram' ? 'hologram code' : 'Rebel duck'} report${left === 1 ? '' : 's'} left.`
-                    : `You've used all your ${reportKind === 'hologram' ? 'hologram code' : 'Rebel duck'} reports.`;
-                leftText.className = 'mt-2 text-[12px] ' + (left > 0 ? 'text-gray-400' : 'text-red-300');
-            }
         }
 
         function setReportKind(kind) {
@@ -1565,7 +1568,7 @@
                     scanFeedback('ok', 'Report honored!', `+${result.points} pts`, 'Added to your score. Thanks for letting us know!');
                     refreshHome();
                 } else if (result.status === 'review') {
-                    scanFeedback('warn', 'Sent to an admin', null, result.message);
+                    scanFeedback('warn', 'Under review', null, 'Thanks! An admin will take a look and you\'ll see the result here.');
                 } else {
                     scanFeedback('err', 'Not honored', null, result.message);
                 }
@@ -2458,7 +2461,6 @@
                             <button type="button" data-report-kind="rebel" onclick="setReportKind('rebel')" class="report-kind py-3 rounded-xl border text-[15px] font-semibold">🦆 Rebel duck</button>
                             <button type="button" data-report-kind="hologram" onclick="setReportKind('hologram')" class="report-kind py-3 rounded-xl border text-[15px] font-semibold">💠 Hologram code</button>
                         </div>
-                        <p id="report-kind-left" class="mt-2 text-[12px] text-gray-400"></p>
                     </div>
 
                     <label id="report-location-field" class="flex flex-col gap-2">
