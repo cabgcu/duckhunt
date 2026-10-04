@@ -1,380 +1,978 @@
--- =====================================================================
--- Duck Hunt — Supabase schema
---
--- Run this whole file in Supabase Dashboard → SQL Editor. Safe to re-run.
---
--- Tables mirror the Google Sheet:
---   ducks     ⇄  "Master Ducks"  (Duck ID, Duck Type, Points, QR Code, Location, Claimed)
---   duck_log  →  "Duck Log"      (Duck ID, Student ID, Timestamp, Type)
---   players   ⇄  "Player"        (First Name, Last Name, Student ID, Email, Points, Codes Scanned)
---
--- The browser never touches these tables directly (RLS is on with no
--- policies). It only calls the security-definer functions below, so the
--- QR codes and player emails can't be read from the public API.
--- The Apps Script uses the secret (service_role) key, which bypasses RLS.
--- =====================================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Hunt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
-create extension if not exists pg_net;
-create schema if not exists private;
-revoke all on schema private from public, anon, authenticated;
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
 
+        .font-tech {
+            font-family: 'Rajdhani', sans-serif;
+        }
 
--- ---------------------------------------------------------------------
--- Tables
--- ---------------------------------------------------------------------
+        .shimmer-wrapper {
+            position: relative;
+            padding: 2px;
+            border-radius: 1.25rem; 
+            background: linear-gradient(
+                60deg, 
+                #000000 0%,    
+                #0a0a0a 25%,   
+                #171717 45%,   
+                #cbd5e1 50%,   
+                #171717 55%,   
+                #0a0a0a 75%,   
+                #000000 100%   
+            );
+            background-size: 300% 300%;
+            animation: glide-shimmer 7s ease-in-out infinite alternate;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
 
-create table if not exists public.players (
-    student_id    text primary key,
-    first_name    text not null default '',
-    last_name     text not null default '',
-    email         text,
-    points        integer not null default 0,
-    codes_scanned integer not null default 0,
-    created_at    timestamptz not null default now(),
-    updated_at    timestamptz not null default now()
-);
+        @keyframes glide-shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
 
-create table if not exists public.ducks (
-    duck_id    text primary key,
-    duck_type  text,
-    points     integer not null default 0,
-    qr_code    text not null unique,
-    location   text,
-    claimed    boolean not null default false,
-    claimed_by text references public.players (student_id) on delete set null,
-    claimed_at timestamptz,
-    updated_at timestamptz not null default now()
-);
+        .glass-inner {
+            background: rgba(0, 0, 0, 0.95); 
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: calc(1.25rem - 2px); 
+            box-shadow: 
+                inset 0 1px 1px rgba(255, 255, 255, 0.08), 
+                inset 1px 0 1px rgba(255, 255, 255, 0.03), 
+                inset 0 -1px 2px rgba(0, 0, 0, 0.9),       
+                inset -1px 0 2px rgba(0, 0, 0, 0.9),       
+                0 25px 50px -12px rgba(0, 0, 0, 1);       
+        }
 
-create table if not exists public.duck_log (
-    id         bigint generated always as identity primary key,
-    duck_id    text not null references public.ducks (duck_id) on delete cascade,
-    student_id text not null references public.players (student_id) on delete cascade,
-    scanned_at timestamptz not null default now(),
-    duck_type  text,
-    points     integer not null default 0
-);
+        .glass-input {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 
+                inset 0 0 15px rgba(255, 255, 255, 0.05),
+                0 4px 10px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.5);
+            outline: none;
+            box-shadow: 
+                inset 0 0 20px rgba(255, 255, 255, 0.1),
+                0 0 15px rgba(255,255,255,0.15);
+        }
 
-create index if not exists duck_log_student_idx on public.duck_log (student_id, scanned_at desc);
-create index if not exists players_points_idx on public.players (points desc);
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #0a0a0a inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
 
-alter table public.players  enable row level security;
-alter table public.ducks    enable row level security;
-alter table public.duck_log enable row level security;
+        /* Custom Checkbox styles */
+        .custom-checkbox {
+            appearance: none;
+            background-color: rgba(255, 255, 255, 0.05);
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
 
-revoke all on public.players, public.ducks, public.duck_log from anon, authenticated;
-grant all on public.players, public.ducks, public.duck_log to service_role;
-grant usage, select on all sequences in schema public to service_role;
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em #000;
+            background-color: #000;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
 
+        .custom-checkbox:checked {
+            background-color: #ffe81f;
+            border-color: #ffe81f;
+            box-shadow: 0 0 10px rgba(255, 232, 31, 0.5);
+        }
 
--- ---------------------------------------------------------------------
--- Housekeeping triggers
--- ---------------------------------------------------------------------
+        .custom-checkbox:checked::before {
+            transform: scale(1);
+        }
+        
+        /* ---------- HOME VIEW ---------- */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-create or replace function private.touch_row()
-returns trigger
-language plpgsql
-set search_path = ''
-as $$
-begin
-    new.updated_at := now();
-    return new;
-end;
-$$;
+        .card-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: rgba(203, 213, 225, 0.7);
+        }
 
-create or replace function private.touch_duck()
-returns trigger
-language plpgsql
-set search_path = ''
-as $$
-begin
-    new.updated_at := now();
-    -- Unchecking "Claimed" in the sheet re-opens the duck
-    if not new.claimed then
-        new.claimed_by := null;
-        new.claimed_at := null;
-    end if;
-    return new;
-end;
-$$;
+        /* Scanner viewport */
+        #qr-reader { border: none !important; }
+        #qr-reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+        #qr-reader img, #qr-reader__dashboard, #qr-reader__header_message { display: none !important; }
 
-drop trigger if exists players_touch on public.players;
-create trigger players_touch before update on public.players
-    for each row execute function private.touch_row();
+        .scan-corner {
+            position: absolute;
+            width: 34px;
+            height: 34px;
+            color: #ffe81f;
+            filter: drop-shadow(0 0 6px rgba(255, 232, 31, 0.6));
+            pointer-events: none;
+            z-index: 3;
+        }
+        .scan-corner.tl { top: 14px; left: 14px; border-top: 3px solid; border-left: 3px solid; border-top-left-radius: 10px; }
+        .scan-corner.tr { top: 14px; right: 14px; border-top: 3px solid; border-right: 3px solid; border-top-right-radius: 10px; }
+        .scan-corner.bl { bottom: 14px; left: 14px; border-bottom: 3px solid; border-left: 3px solid; border-bottom-left-radius: 10px; }
+        .scan-corner.br { bottom: 14px; right: 14px; border-bottom: 3px solid; border-right: 3px solid; border-bottom-right-radius: 10px; }
 
-drop trigger if exists ducks_touch on public.ducks;
-create trigger ducks_touch before insert or update on public.ducks
-    for each row execute function private.touch_duck();
-
-
--- ---------------------------------------------------------------------
--- Helpers
--- ---------------------------------------------------------------------
-
-create or replace function private.display_name(p_first text, p_last text)
-returns text
-language sql
-immutable
-set search_path = ''
-as $$
-    select case
-        when coalesce(trim(p_first), '') = '' then 'Rescuer'
-        when coalesce(trim(p_last), '') = '' then trim(p_first)
-        else trim(p_first) || ' ' || left(trim(p_last), 1) || '.'
-    end;
-$$;
-
-
--- ---------------------------------------------------------------------
--- API used by the app (callable with the publishable / anon key)
--- ---------------------------------------------------------------------
-
--- Create a rescuer. If the Student ID already exists, the existing
--- player is returned unchanged.
-create or replace function public.register_player(
-    p_student_id text,
-    p_first_name text,
-    p_last_name  text,
-    p_email      text
-)
-returns jsonb
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-    v_player public.players;
-    v_status text := 'created';
-begin
-    if coalesce(trim(p_student_id), '') = '' or coalesce(trim(p_first_name), '') = '' then
-        return jsonb_build_object('status', 'invalid');
-    end if;
-
-    insert into public.players (student_id, first_name, last_name, email)
-    values (trim(p_student_id), trim(p_first_name), coalesce(trim(p_last_name), ''), nullif(lower(trim(p_email)), ''))
-    on conflict (student_id) do nothing
-    returning * into v_player;
-
-    if v_player is null then
-        v_status := 'exists';
-        select * into v_player from public.players where student_id = trim(p_student_id);
-    end if;
-
-    return jsonb_build_object(
-        'status', v_status,
-        'student_id', v_player.student_id,
-        'first_name', v_player.first_name,
-        'last_name', v_player.last_name
-    );
-end;
-$$;
-
--- Sign in: returns the player's public profile, or nothing if unknown.
-create or replace function public.get_player(p_student_id text)
-returns table (student_id text, first_name text, last_name text, points integer, codes_scanned integer)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-    select p.student_id, p.first_name, p.last_name, p.points, p.codes_scanned
-    from public.players p
-    where p.student_id = trim(p_student_id);
-$$;
-
--- Claim a duck by its QR code. Each duck can be claimed once, by the
--- first rescuer to scan it.
---
--- status: claimed | already_yours | already_claimed | invalid | unknown_player
-create or replace function public.claim_duck(p_student_id text, p_qr_code text)
-returns jsonb
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-    v_player public.players;
-    v_duck   public.ducks;
-begin
-    select * into v_player from public.players
-    where student_id = trim(p_student_id)
-    for update;
-    if not found then
-        return jsonb_build_object('status', 'unknown_player');
-    end if;
-
-    select * into v_duck from public.ducks
-    where qr_code = trim(p_qr_code)
-    for update;
-    if not found then
-        return jsonb_build_object('status', 'invalid');
-    end if;
-
-    if v_duck.claimed then
-        return jsonb_build_object(
-            'status', case when v_duck.claimed_by = v_player.student_id then 'already_yours' else 'already_claimed' end,
-            'duck_id', v_duck.duck_id,
-            'duck_type', v_duck.duck_type
-        );
-    end if;
-
-    update public.ducks
-    set claimed = true, claimed_by = v_player.student_id, claimed_at = now()
-    where duck_id = v_duck.duck_id;
-
-    insert into public.duck_log (duck_id, student_id, duck_type, points)
-    values (v_duck.duck_id, v_player.student_id, v_duck.duck_type, v_duck.points);
-
-    update public.players
-    set points = points + v_duck.points, codes_scanned = codes_scanned + 1
-    where student_id = v_player.student_id
-    returning * into v_player;
-
-    return jsonb_build_object(
-        'status', 'claimed',
-        'duck_id', v_duck.duck_id,
-        'duck_type', v_duck.duck_type,
-        'points', v_duck.points,
-        'total_points', v_player.points
-    );
-end;
-$$;
-
--- The player's place on the leaderboard (ties share a place) and the
--- rescuer they need to pass next.
-create or replace function public.get_rescuer_rank(p_student_id text)
-returns table (
-    place          bigint,
-    total_rescuers bigint,
-    points         integer,
-    codes_scanned  integer,
-    next_name      text,
-    next_points    integer
-)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-    with ranked as (
-        select p.student_id, p.first_name, p.last_name, p.points, p.codes_scanned, p.created_at,
-               rank() over (order by p.points desc) as place,
-               count(*) over () as total
-        from public.players p
-    ),
-    me as (
-        select * from ranked where student_id = trim(p_student_id)
-    )
-    select me.place, me.total, me.points, me.codes_scanned, nxt.name, nxt.points
-    from me
-    left join lateral (
-        select private.display_name(r.first_name, r.last_name) as name, r.points
-        from ranked r
-        where r.points > me.points
-        order by r.points asc, r.created_at asc
-        limit 1
-    ) nxt on true;
-$$;
-
--- Top rescuers by points.
-create or replace function public.get_leaderboard(p_student_id text, p_limit integer default 5)
-returns table (place bigint, name text, points integer, codes_scanned integer, is_me boolean)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-    select rank() over (order by p.points desc),
-           private.display_name(p.first_name, p.last_name),
-           p.points,
-           p.codes_scanned,
-           p.student_id = trim(p_student_id)
-    from public.players p
-    order by p.points desc, p.created_at asc
-    limit least(greatest(coalesce(p_limit, 5), 1), 50);
-$$;
-
--- The player's own scans, newest first.
-create or replace function public.get_scan_history(p_student_id text)
-returns table (duck_id text, duck_type text, points integer, scanned_at timestamptz)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-    select l.duck_id, l.duck_type, l.points, l.scanned_at
-    from public.duck_log l
-    where l.student_id = trim(p_student_id)
-    order by l.scanned_at desc
-    limit 100;
-$$;
-
-revoke execute on all functions in schema public from public, anon, authenticated;
-grant execute on function
-    public.register_player(text, text, text, text),
-    public.get_player(text),
-    public.claim_duck(text, text),
-    public.get_rescuer_rank(text),
-    public.get_leaderboard(text, integer),
-    public.get_scan_history(text)
-to anon, authenticated;
+        .scan-line {
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ffe81f, transparent);
+            box-shadow: 0 0 12px rgba(255, 232, 31, 0.8);
+            animation: scan-sweep 2.2s ease-in-out infinite alternate;
+            z-index: 3;
+            pointer-events: none;
+        }
+        @keyframes scan-sweep {
+            0% { top: 10%; }
+            100% { top: 90%; }
+        }
 
 
--- ---------------------------------------------------------------------
--- Live updates → Google Sheet
---
--- Every change to ducks / players and every new scan is POSTed to the
--- Apps Script web app. Fill in the config row once the web app is
--- deployed (see backend/README.md):
---
---   insert into private.sheet_sync (webhook_url, secret)
---   values ('https://script.google.com/macros/s/XXXX/exec', 'your-webhook-secret')
---   on conflict (id) do update set webhook_url = excluded.webhook_url, secret = excluded.secret;
--- ---------------------------------------------------------------------
+        /* Bottom nav */
+        .nav-glass {
+            background: rgba(0, 0, 0, 0.94);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.08),
+                0 -10px 40px rgba(0, 0, 0, 0.9);
+        }
+        .nav-item { color: rgba(156, 163, 175, 1); transition: all 0.25s ease; }
+        .nav-item:hover { color: #fff; }
+        .nav-item.active { color: #ffe81f; filter: drop-shadow(0 0 8px rgba(255, 232, 31, 0.5)); }
 
-create table if not exists private.sheet_sync (
-    id          integer primary key default 1 check (id = 1),
-    webhook_url text not null,
-    secret      text not null
-);
+        .toast {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
 
-create or replace function private.notify_sheet()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-    v_cfg private.sheet_sync;
-begin
-    select * into v_cfg from private.sheet_sync where id = 1;
-    if v_cfg is null then
-        return null;
-    end if;
+        /* Utility for smooth transitions */
+        .fade-transition {
+            transition: opacity 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-white antialiased selection:bg-gray-500/30">
 
-    -- Apps Script can't read request headers, so the secret rides in the body
-    perform net.http_post(
-        url     := v_cfg.webhook_url,
-        body    := jsonb_build_object(
-            'secret', v_cfg.secret,
-            'table',  tg_table_name,
-            'op',     tg_op,
-            'record', case when tg_op = 'DELETE' then to_jsonb(old) else to_jsonb(new) end
-        ),
-        headers := '{"Content-Type": "application/json"}'::jsonb
-    );
-    return null;
-end;
-$$;
+    <canvas id="starfield"></canvas>
 
-drop trigger if exists ducks_to_sheet on public.ducks;
-create trigger ducks_to_sheet after insert or update or delete on public.ducks
-    for each row execute function private.notify_sheet();
+    <main class="relative z-10 min-h-screen w-full px-4 sm:px-6 flex justify-center items-center">
+        
+        <!-- LOGIN VIEW -->
+        <div id="login-view" class="fade-transition opacity-100 w-full max-w-sm flex justify-center">
+            <div class="shimmer-wrapper w-[380px]">
+                <div class="glass-inner w-full h-full p-8 sm:p-10 flex flex-col items-center">
+                    
+                    <div class="flex flex-col items-center mb-2 w-full">
+                        <img src="https://i.imgur.com/p2qZOL5.png" alt="Company Logo" class="w-20 h-auto -mb-4 object-contain relative z-10">
+                        <img src="https://i.imgur.com/f4kE3Fg.png" alt="Galactic Logo" class="h-44 w-auto max-w-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                    </div>
 
-drop trigger if exists players_to_sheet on public.players;
-create trigger players_to_sheet after insert or update or delete on public.players
-    for each row execute function private.notify_sheet();
+                    <form onsubmit="event.preventDefault();" class="flex flex-col w-full">
+                        <div class="relative w-full mb-6">
+                            <label for="student-id" class="sr-only">Student ID</label>
+                            <input 
+                                type="text" 
+                                id="student-id" 
+                                placeholder="Student ID" 
+                                class="glass-input w-full rounded-xl px-4 py-4 text-center text-[17px] text-white placeholder-gray-300/80 focus:placeholder-transparent"
+                                required
+                            >
+                        </div>
 
-drop trigger if exists duck_log_to_sheet on public.duck_log;
-create trigger duck_log_to_sheet after insert on public.duck_log
-    for each row execute function private.notify_sheet();
+                        <p id="login-error" class="hidden -mt-3 mb-4 text-center text-[14px] text-[#ffe81f]"></p>
+
+                        <div class="mb-8 text-center">
+                            <a href="#" class="text-[16px] text-gray-400 underline decoration-gray-500/50 underline-offset-[5px] hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)] transition-all duration-300">
+                                What is Duck Hunt?
+                            </a>
+                        </div>
+
+                        <div class="flex gap-3 w-full">
+                            <button 
+                                type="button" 
+                                onclick="signIn(this)"
+                                class="flex-1 bg-white/5 border border-white/20 backdrop-blur-md hover:bg-white/10 hover:border-white/40 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] text-white font-bold text-[17px] py-4 rounded-xl transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.8)] active:scale-[0.98]"
+                            >
+                                Sign In
+                            </button>
+                            <button 
+                                type="button" 
+                                onclick="navigate('login', 'register')"
+                                class="flex-1 bg-[#ffe81f]/10 border border-[#ffe81f]/40 backdrop-blur-md hover:bg-[#ffe81f]/20 hover:border-[#ffe81f]/60 hover:shadow-[0_0_15px_rgba(255,232,31,0.3)] text-white font-bold text-[17px] py-4 rounded-xl transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.8)] active:scale-[0.98]"
+                            >
+                                Register
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- REGISTER VIEW (Hidden Initially) -->
+        <div id="register-view" class="hidden fade-transition opacity-0 w-full max-w-sm flex justify-center absolute">
+            <div class="shimmer-wrapper w-[380px]">
+                <div class="glass-inner w-full h-full p-8 sm:p-10 flex flex-col items-center">
+                    
+                    <div class="flex flex-col items-center mb-6 w-full">
+                        <img src="https://i.imgur.com/f4kE3Fg.png" alt="Galactic Logo" class="h-16 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] mb-3">
+                        <h2 class="text-2xl font-bold text-white text-center font-tech tracking-wider">Welcome To The Rescue!</h2>
+                    </div>
+
+                    <form onsubmit="event.preventDefault();" class="flex flex-col w-full gap-4">
+                        
+                        <input id="reg-first" type="text" placeholder="First Name" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
+                        <input id="reg-last" type="text" placeholder="Last Name" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
+                        <input id="reg-id" type="text" placeholder="Student ID" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
+                        <input id="reg-email" type="email" placeholder="Email @my.gcu.edu" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
+
+                        <div class="flex items-center gap-3 mt-2 mb-1 px-2">
+                            <input type="checkbox" id="terms" class="custom-checkbox cursor-pointer" required>
+                            <label for="terms" class="text-[14px] text-gray-300 cursor-pointer select-none leading-tight">
+                                I agree to the <span class="text-white underline decoration-gray-500/50 underline-offset-2 hover:text-[#ffe81f] transition-colors">Terms & Conditions</span>
+                            </label>
+                        </div>
+
+                        <p id="register-error" class="hidden text-center text-[14px] text-[#ffe81f]"></p>
+
+                        <div class="flex gap-3 w-full">
+                            <button 
+                                type="button" 
+                                onclick="navigate('register', 'login')"
+                                class="flex-1 bg-white/5 border border-white/20 backdrop-blur-md hover:bg-white/10 hover:border-white/40 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] text-white font-bold text-[16px] py-3 rounded-xl transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.8)] active:scale-[0.98]"
+                            >
+                                Back
+                            </button>
+                            <button 
+                                type="button" 
+                                onclick="register(this)"
+                                class="flex-1 bg-[#ffe81f]/10 border border-[#ffe81f]/40 backdrop-blur-md hover:bg-[#ffe81f]/20 hover:border-[#ffe81f]/60 hover:shadow-[0_0_15px_rgba(255,232,31,0.3)] text-white font-bold text-[16px] py-3 rounded-xl transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.8)] active:scale-[0.98]"
+                            >
+                                Submit
+                            </button>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- HOME VIEW (Hidden Initially) -->
+        <div id="home-view" class="hidden fade-transition opacity-0 fixed inset-0 overflow-y-auto no-scrollbar">
+            <div class="w-full max-w-md mx-auto px-4 pt-6 pb-36 flex flex-col gap-5">
+
+                <!-- Header: Duck Hunt logo -->
+                <header class="relative flex flex-col items-center">
+                    <button
+                        type="button"
+                        onclick="signOut()"
+                        aria-label="Sign out"
+                        class="absolute right-0 top-1 p-2 rounded-xl bg-white/5 border border-white/15 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/10 transition-all duration-300"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+                    </button>
+                    <img src="https://i.imgur.com/f4kE3Fg.png" alt="Duck Hunt Logo" class="h-28 w-auto max-w-[75%] object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                </header>
+
+                <!-- Welcome -->
+                <section class="text-center -mt-1">
+                    <p class="card-label">Welcome back</p>
+                    <h1 id="welcome-name" class="text-[34px] leading-tight font-bold font-tech tracking-wider text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.35)]">Rescuer</h1>
+                </section>
+
+                <!-- Rank / Leaderboard -->
+                <section id="rank-section" class="shimmer-wrapper w-full scroll-mt-6">
+                    <div class="glass-inner w-full p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="card-label">Leaderboard</p>
+                                <h2 class="text-xl font-bold font-tech tracking-wider text-white">Top Rescuers</h2>
+                            </div>
+                            <span id="rank-total" class="text-[12px] px-3 py-1 rounded-full bg-white/5 border border-white/15 text-gray-400">0 rescuers</span>
+                        </div>
+
+                        <!-- Your position -->
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-[#ffe81f]/[0.06] border border-[#ffe81f]/30 shadow-[0_0_20px_rgba(255,232,31,0.08)]">
+                            <div class="shrink-0 w-16 h-16 rounded-2xl bg-[#ffe81f]/10 border border-[#ffe81f]/40 flex items-center justify-center shadow-[0_0_20px_rgba(255,232,31,0.2)]">
+                                <span id="rank-position" class="text-[26px] font-bold font-tech text-[#ffe81f]">#–</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="card-label">Your Rank</p>
+                                <p class="text-[15px] text-white"><span id="rank-points" class="text-[#ffe81f] font-semibold">0</span> pts · <span id="rank-ducks">0 ducks</span> rescued</p>
+                                <p id="rank-next" class="text-[12px] text-gray-400 truncate"></p>
+                            </div>
+                        </div>
+
+                        <ol id="leaderboard-list" class="mt-3 flex flex-col gap-1.5"></ol>
+                    </div>
+                </section>
+
+                <!-- QR Scanner -->
+                <section id="scan-section" class="shimmer-wrapper w-full scroll-mt-6">
+                    <div class="glass-inner w-full p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="card-label">Scanner</p>
+                                <h2 class="text-xl font-bold font-tech tracking-wider text-white">Scan a Duck</h2>
+                            </div>
+                            <span id="scan-status" class="text-[12px] px-3 py-1 rounded-full bg-white/5 border border-white/15 text-gray-400">Idle</span>
+                        </div>
+
+                        <div class="relative w-full aspect-square rounded-xl overflow-hidden bg-black/70 border border-white/15 shadow-[inset_0_0_30px_rgba(0,0,0,0.9)]">
+                            <div id="qr-reader" class="absolute inset-0"></div>
+
+                            <div id="scan-idle" class="absolute inset-0 flex flex-col items-center justify-center text-center px-8 z-[2]">
+                                <svg class="w-16 h-16 text-white/30 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z"/></svg>
+                                <p id="scan-idle-text" class="text-[14px] text-gray-400 leading-snug">Point your camera at a duck's QR code to log your rescue.</p>
+                            </div>
+
+                            <span class="scan-corner tl"></span>
+                            <span class="scan-corner tr"></span>
+                            <span class="scan-corner bl"></span>
+                            <span class="scan-corner br"></span>
+                            <div id="scan-line" class="scan-line hidden"></div>
+                        </div>
+
+                        <button
+                            id="scan-btn"
+                            type="button"
+                            onclick="toggleScanner()"
+                            class="mt-4 w-full bg-[#ffe81f]/10 border border-[#ffe81f]/40 backdrop-blur-md hover:bg-[#ffe81f]/20 hover:border-[#ffe81f]/60 hover:shadow-[0_0_15px_rgba(255,232,31,0.3)] text-white font-bold text-[17px] py-4 rounded-xl transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.8)] active:scale-[0.98]"
+                        >
+                            Start Scanning
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Scan History -->
+                <section id="history-section" class="shimmer-wrapper w-full scroll-mt-6">
+                    <div class="glass-inner w-full p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <p class="card-label">Log</p>
+                                <h2 class="text-xl font-bold font-tech tracking-wider text-white">Scan History</h2>
+                            </div>
+                            <span id="history-count" class="text-[12px] px-3 py-1 rounded-full bg-white/5 border border-white/15 text-gray-400">0 scans</span>
+                        </div>
+
+                        <ul id="history-list" class="flex flex-col divide-y divide-white/10"></ul>
+
+                        <div id="history-empty" class="py-8 text-center">
+                            <p class="text-gray-400 text-[15px]">No ducks rescued yet.</p>
+                            <p class="text-gray-500 text-[13px] mt-1">Your scans will show up here.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Bottom Nav -->
+            <nav class="fixed bottom-0 inset-x-0 z-20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <div class="nav-glass max-w-md mx-auto rounded-2xl h-[70px] px-2 grid grid-cols-5 items-center">
+                    <button type="button" data-nav="home" onclick="navTo('home')" class="nav-item active flex flex-col items-center gap-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg>
+                        <span class="text-[11px] font-tech tracking-wider">Home</span>
+                    </button>
+                    <button type="button" data-nav="rank" onclick="navTo('rank')" class="nav-item flex flex-col items-center gap-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"/></svg>
+                        <span class="text-[11px] font-tech tracking-wider">Rank</span>
+                    </button>
+                    <div class="flex justify-center">
+                        <button type="button" data-nav="scan" onclick="navTo('scan')" aria-label="Scan" class="-mt-8 w-16 h-16 rounded-full bg-[#ffe81f] text-black flex items-center justify-center shadow-[0_0_25px_rgba(255,232,31,0.55)] border-4 border-black hover:scale-105 active:scale-95 transition-transform duration-200">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7.5V5.25A1.5 1.5 0 015.25 3.75H7.5M16.5 3.75h2.25a1.5 1.5 0 011.5 1.5V7.5M20.25 16.5v2.25a1.5 1.5 0 01-1.5 1.5H16.5M7.5 20.25H5.25a1.5 1.5 0 01-1.5-1.5V16.5M3.75 12h16.5"/></svg>
+                        </button>
+                    </div>
+                    <button type="button" data-nav="history" onclick="navTo('history')" class="nav-item flex flex-col items-center gap-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="text-[11px] font-tech tracking-wider">History</span>
+                    </button>
+                    <button type="button" data-nav="profile" onclick="navTo('profile')" class="nav-item flex flex-col items-center gap-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                        <span class="text-[11px] font-tech tracking-wider">Profile</span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Toast -->
+            <div id="toast" class="toast fixed left-1/2 -translate-x-1/2 bottom-28 z-30 opacity-0 translate-y-2 pointer-events-none px-5 py-3 rounded-xl bg-black/90 border border-[#ffe81f]/40 text-[14px] text-white shadow-[0_0_20px_rgba(255,232,31,0.25)] whitespace-nowrap"></div>
+        </div>
+
+    </main>
+
+    <script>
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+
+        let width, height, stars = [];
+        const numStars = 400; 
+        
+        // Hyperspeed state
+        let hyperspeedFactor = 0;
+        let isHyperspeed = false;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+            initStars();
+        });
+
+        class Star {
+            constructor() {
+                this.reset(true);
+            }
+
+            reset(initial = false) {
+                this.x = Math.random() * width;
+                this.y = initial ? Math.random() * height : -100; // Spawn higher up in case of warp
+                this.z = Math.random() * 2 + 0.1; 
+                this.radius = this.z * 0.7; 
+                this.speed = (this.z * 0.5) + 0.1; 
+                this.baseAlpha = (Math.random() * 0.5) + 0.3; 
+                this.twinkleSpeed = (Math.random() * 0.02) + 0.005;
+                this.alphaPhase = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                // Incorporate hyperspeed multiplier (up to 80x speed based on depth)
+                let currentSpeed = this.speed + (hyperspeedFactor * 80 * this.z);
+                this.y += currentSpeed;
+
+                // Normal twinkling when not in max hyperspeed
+                if (hyperspeedFactor < 0.2) {
+                    this.alphaPhase += this.twinkleSpeed;
+                    this.currentAlpha = this.baseAlpha + (Math.sin(this.alphaPhase) * 0.2);
+                    this.currentAlpha = Math.max(0, Math.min(1, this.currentAlpha));
+                } else {
+                    this.currentAlpha = 1; // Full brightness during warp
+                }
+
+                if (this.y > height + 10) {
+                    this.reset();
+                    // Spawn further back if warping to prevent blank gaps
+                    if (hyperspeedFactor > 0.5) {
+                        this.y = - (Math.random() * height);
+                    }
+                }
+            }
+
+            draw() {
+                // Calculate stretch length for hyperspeed
+                let stretch = hyperspeedFactor * 150 * this.z;
+
+                if (stretch > 2) {
+                    // Draw lines for hyperspeed effect
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x, this.y - stretch);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${this.currentAlpha})`;
+                    ctx.lineWidth = this.radius * 1.5;
+                    ctx.lineCap = "round";
+                    ctx.stroke();
+                } else {
+                    // Draw standard dots
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.currentAlpha})`;
+                    ctx.fill();
+                }
+            }
+        }
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < numStars; i++) {
+                stars.push(new Star());
+            }
+        }
+
+        function animate() {
+            // Lower trail opacity for faster fading during warp
+            let trail = isHyperspeed ? 0.4 : 0.8;
+            ctx.fillStyle = `rgba(0, 0, 0, ${trail})`;
+            ctx.fillRect(0, 0, width, height);
+
+            for (let i = 0; i < stars.length; i++) {
+                stars[i].update();
+                stars[i].draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Hyperspeed animation trigger
+        function triggerHyperspeed(onComplete) {
+            isHyperspeed = true;
+            const duration = 2200; // 2.2 seconds total warp
+            const startTime = performance.now();
+            
+            function animateHyper(time) {
+                const elapsed = time - startTime;
+                if (elapsed < duration) {
+                    // Smooth ease-in (power 3) and ease-out
+                    if (elapsed < duration / 2) {
+                        hyperspeedFactor = Math.pow(elapsed / (duration / 2), 3); 
+                    } else {
+                        hyperspeedFactor = Math.pow(1 - ((elapsed - duration / 2) / (duration / 2)), 3);
+                    }
+                    requestAnimationFrame(animateHyper);
+                } else {
+                    hyperspeedFactor = 0;
+                    isHyperspeed = false;
+                    if (onComplete) onComplete();
+                }
+            }
+            requestAnimationFrame(animateHyper);
+        }
+
+        // ---------- SUPABASE ----------
+        // Project Settings → API in the Supabase dashboard. The publishable
+        // (anon) key is safe to ship in the page; never put the secret key here.
+        const SUPABASE_URL = 'https://cvfzoxlqozmopavmlaxt.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_VKivvEek6IsBq6GrsLp1bw_39zjVpbA';
+
+        const db = (window.supabase && !SUPABASE_URL.startsWith('YOUR_'))
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            : null;
+
+        async function rpc(name, params) {
+            if (!db) throw new Error('Supabase isn\'t configured yet.');
+            const { data, error } = await db.rpc(name, params);
+            if (error) throw error;
+            return data;
+        }
+
+        // ---------- SESSION ----------
+        const SESSION_KEY = 'duckhunt.session';
+        let player = null; // { student_id, first_name, last_name }
+
+        function loadSession() {
+            try { player = JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { player = null; }
+        }
+
+        function saveSession() {
+            try {
+                if (player) localStorage.setItem(SESSION_KEY, JSON.stringify(player));
+                else localStorage.removeItem(SESSION_KEY);
+            } catch (e) {}
+        }
+
+        function showFormError(id, message) {
+            const el = document.getElementById(id);
+            el.textContent = message || '';
+            el.classList.toggle('hidden', !message);
+        }
+
+        async function withBusy(button, task) {
+            if (button.disabled) return;
+            const label = button.textContent;
+            button.disabled = true;
+            button.classList.add('opacity-60');
+            button.textContent = 'Loading…';
+            try {
+                await task();
+            } finally {
+                button.disabled = false;
+                button.classList.remove('opacity-60');
+                button.textContent = label;
+            }
+        }
+
+        function signIn(button) {
+            const id = document.getElementById('student-id').value.trim();
+            if (!id) return showFormError('login-error', 'Enter your Student ID.');
+            withBusy(button, async () => {
+                try {
+                    const rows = await rpc('get_player', { p_student_id: id });
+                    if (!rows || !rows.length) {
+                        return showFormError('login-error', 'No rescuer with that Student ID. Register first!');
+                    }
+                    showFormError('login-error', '');
+                    player = rows[0];
+                    saveSession();
+                    navigate('login', 'home');
+                } catch (err) {
+                    showFormError('login-error', err.message || 'Couldn\'t sign in. Try again.');
+                }
+            });
+        }
+
+        function register(button) {
+            const first = document.getElementById('reg-first').value.trim();
+            const last = document.getElementById('reg-last').value.trim();
+            const id = document.getElementById('reg-id').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+
+            if (!first || !last || !id || !email) return showFormError('register-error', 'Fill in every field.');
+            if (!/@my\.gcu\.edu$/i.test(email)) return showFormError('register-error', 'Use your @my.gcu.edu email.');
+            if (!document.getElementById('terms').checked) return showFormError('register-error', 'Agree to the Terms & Conditions to continue.');
+
+            withBusy(button, async () => {
+                try {
+                    const result = await rpc('register_player', {
+                        p_student_id: id, p_first_name: first, p_last_name: last, p_email: email
+                    });
+                    if (result.status === 'invalid') return showFormError('register-error', 'Fill in every field.');
+                    showFormError('register-error', '');
+                    player = { student_id: result.student_id, first_name: result.first_name, last_name: result.last_name };
+                    saveSession();
+                    navigate('register', 'home');
+                    if (result.status === 'exists') setTimeout(() => showToast('Welcome back! You were already registered.'), 3000);
+                } catch (err) {
+                    showFormError('register-error', err.message || 'Couldn\'t register. Try again.');
+                }
+            });
+        }
+
+        function signOut() {
+            stopScanner();
+            player = null;
+            saveSession();
+            navigate('home', 'login');
+        }
+
+        // ---------- LEADERBOARD ----------
+        const LEADERBOARD_SIZE = 5;
+
+        function leaderboardRow(rescuer) {
+            const medal = ['text-[#ffe81f]', 'text-slate-300', 'text-amber-600'][rescuer.place - 1] || 'text-gray-500';
+            const li = document.createElement('li');
+            li.className = 'flex items-center gap-3 px-3 py-2.5 rounded-xl border ' +
+                (rescuer.is_me ? 'bg-[#ffe81f]/10 border-[#ffe81f]/40' : 'bg-white/[0.03] border-white/10');
+
+            const pos = document.createElement('span');
+            pos.className = 'w-8 text-center font-tech font-bold text-[18px] ' + medal;
+            pos.textContent = rescuer.place;
+
+            const name = document.createElement('span');
+            name.className = 'flex-1 min-w-0 truncate text-[15px] ' + (rescuer.is_me ? 'text-white font-semibold' : 'text-gray-200');
+            name.textContent = rescuer.is_me ? rescuer.name + ' (You)' : rescuer.name;
+
+            const points = document.createElement('span');
+            points.className = 'text-[14px] font-semibold ' + (rescuer.is_me ? 'text-[#ffe81f]' : 'text-gray-300');
+            points.textContent = rescuer.points + ' pts';
+
+            li.append(pos, name, points);
+            return li;
+        }
+
+        // ---------- HOME RENDERING ----------
+        function renderHome() {
+            if (!player) return;
+            document.getElementById('welcome-name').textContent = player.first_name || 'Rescuer';
+            refreshHome();
+        }
+
+        async function refreshHome() {
+            if (!player) return;
+            const id = player.student_id;
+            try {
+                const [rankRows, board, history] = await Promise.all([
+                    rpc('get_rescuer_rank', { p_student_id: id }),
+                    rpc('get_leaderboard', { p_student_id: id, p_limit: LEADERBOARD_SIZE }),
+                    rpc('get_scan_history', { p_student_id: id })
+                ]);
+                if (!player || player.student_id !== id) return; // signed out meanwhile
+                const me = rankRows && rankRows[0];
+                if (!me) {
+                    // Player was removed from Supabase / the sheet
+                    showToast('Your rescuer profile wasn\'t found. Please sign in again.');
+                    return signOut();
+                }
+                renderRank(me, board || []);
+                renderHistory(history || []);
+                return me;
+            } catch (err) {
+                showToast(err.message || 'Couldn\'t load your stats.');
+            }
+        }
+
+        function renderRank(me, board) {
+            document.getElementById('rank-total').textContent = `${me.total_rescuers} rescuer${me.total_rescuers === 1 ? '' : 's'}`;
+            document.getElementById('rank-position').textContent = '#' + me.place;
+            document.getElementById('rank-points').textContent = me.points;
+            document.getElementById('rank-ducks').textContent = `${me.codes_scanned} duck${me.codes_scanned === 1 ? '' : 's'}`;
+            document.getElementById('rank-next').textContent = me.next_name
+                ? `${me.next_points - me.points + 1} more points to pass ${me.next_name}`
+                : 'You\'re the top rescuer!';
+
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+            board.forEach(r => list.appendChild(leaderboardRow(r)));
+            if (!board.some(r => r.is_me)) {
+                const gap = document.createElement('li');
+                gap.className = 'text-center text-gray-500 leading-none py-0.5';
+                gap.textContent = '···';
+                list.appendChild(gap);
+                list.appendChild(leaderboardRow({
+                    place: me.place,
+                    name: player.first_name + (player.last_name ? ' ' + player.last_name[0] + '.' : ''),
+                    points: me.points,
+                    is_me: true
+                }));
+            }
+        }
+
+        function renderHistory(scans) {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            document.getElementById('history-count').textContent = `${scans.length} scan${scans.length === 1 ? '' : 's'}`;
+            document.getElementById('history-empty').classList.toggle('hidden', scans.length > 0);
+
+            scans.forEach((scan, i) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center gap-3 py-3';
+
+                const icon = document.createElement('div');
+                icon.className = 'shrink-0 w-10 h-10 rounded-xl bg-[#ffe81f]/10 border border-[#ffe81f]/30 flex items-center justify-center font-tech font-bold text-[#ffe81f]';
+                icon.textContent = '#' + (scans.length - i);
+
+                const body = document.createElement('div');
+                body.className = 'flex-1 min-w-0';
+                const title = document.createElement('p');
+                title.className = 'text-[15px] text-white font-semibold truncate';
+                title.textContent = scan.duck_type ? `${scan.duck_type} Duck` : 'Duck';
+                const meta = document.createElement('p');
+                meta.className = 'text-[12px] text-gray-400 truncate';
+                meta.textContent = `${scan.duck_id} · ${formatTime(scan.scanned_at)}`;
+                body.append(title, meta);
+
+                const points = document.createElement('span');
+                points.className = 'text-[15px] font-bold font-tech text-[#ffe81f]';
+                points.textContent = '+' + scan.points;
+
+                li.append(icon, body, points);
+                list.appendChild(li);
+            });
+        }
+
+        function formatTime(ts) {
+            const d = new Date(ts);
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' · ' +
+                d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 2500);
+        }
+
+        // ---------- QR SCANNER ----------
+        let qrScanner = null;
+        let scanning = false;
+
+        function setScanUI(active, message) {
+            scanning = active;
+            document.getElementById('scan-idle').classList.toggle('hidden', active);
+            document.getElementById('scan-line').classList.toggle('hidden', !active);
+            document.getElementById('scan-btn').textContent = active ? 'Stop Scanning' : 'Start Scanning';
+            const status = document.getElementById('scan-status');
+            status.textContent = active ? 'Live' : 'Idle';
+            status.classList.toggle('text-[#ffe81f]', active);
+            status.classList.toggle('border-[#ffe81f]/40', active);
+            if (message) document.getElementById('scan-idle-text').textContent = message;
+        }
+
+        async function startScanner() {
+            if (scanning) return;
+            if (typeof Html5Qrcode === 'undefined') {
+                setScanUI(false, 'Scanner failed to load. Check your connection and try again.');
+                return;
+            }
+            if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader', { verbose: false });
+            setScanUI(true);
+            try {
+                await qrScanner.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, aspectRatio: 1 },
+                    onScanSuccess,
+                    () => {}
+                );
+            } catch (err) {
+                setScanUI(false, 'Camera unavailable. Allow camera access and make sure the page is served over HTTPS.');
+            }
+        }
+
+        async function stopScanner() {
+            if (!scanning || !qrScanner) return;
+            setScanUI(false);
+            try { await qrScanner.stop(); } catch (e) {}
+        }
+
+        function toggleScanner() {
+            scanning ? stopScanner() : startScanner();
+        }
+
+        async function onScanSuccess(decodedText) {
+            if (!scanning) return;
+            stopScanner();
+            if (!player) return;
+
+            try {
+                const before = document.getElementById('rank-position').textContent;
+                const result = await rpc('claim_duck', { p_student_id: player.student_id, p_qr_code: decodedText });
+                const name = result.duck_type ? `${result.duck_type} Duck` : 'this duck';
+
+                if (result.status === 'claimed') {
+                    const me = await refreshHome();
+                    const after = me ? '#' + me.place : before;
+                    const rankUp = me && before.startsWith('#') && me.place < parseInt(before.slice(1), 10);
+                    showToast(rankUp ? `+${result.points} pts! You're now ${after}` : `${name} rescued! +${result.points} pts 🦆`);
+                } else if (result.status === 'already_yours') {
+                    showToast(`You already rescued ${name}!`);
+                } else if (result.status === 'already_claimed') {
+                    showToast(`Another rescuer already claimed ${name}.`);
+                } else if (result.status === 'unknown_player') {
+                    showToast('Your rescuer profile wasn\'t found. Please sign in again.');
+                    signOut();
+                } else {
+                    showToast('That\'s not a Duck Hunt code.');
+                }
+            } catch (err) {
+                showToast(err.message || 'Couldn\'t claim that duck. Try again.');
+            }
+        }
+
+        // ---------- BOTTOM NAV ----------
+        function navTo(tab) {
+            const container = document.getElementById('home-view');
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.nav === tab);
+            });
+
+            if (tab === 'home') {
+                container.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (tab === 'rank') {
+                document.getElementById('rank-section').scrollIntoView({ behavior: 'smooth' });
+            } else if (tab === 'history') {
+                document.getElementById('history-section').scrollIntoView({ behavior: 'smooth' });
+            } else if (tab === 'scan') {
+                document.getElementById('scan-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                startScanner();
+            } else if (tab === 'profile') {
+                showToast('Profile coming soon');
+            }
+        }
+
+        // Handle card transitions
+        function navigate(fromTarget, toTarget) {
+            const currentView = document.getElementById(fromTarget + '-view');
+            const targetView = document.getElementById(toTarget + '-view');
+            
+            if (fromTarget === 'home') stopScanner();
+            if (toTarget === 'home') renderHome();
+
+            // 1. Fade out current view
+            currentView.classList.remove('opacity-100');
+            currentView.classList.add('opacity-0');
+            
+            // 2. Wait for fade, then hide it and start hyperspeed
+            setTimeout(() => {
+                currentView.classList.add('hidden');
+                
+                triggerHyperspeed(() => {
+                    // 3. After hyperspeed, show target view
+                    targetView.classList.remove('hidden');
+                    
+                    // Small delay to allow display:block to apply before animating opacity
+                    setTimeout(() => {
+                        targetView.classList.remove('opacity-0');
+                        targetView.classList.add('opacity-100');
+                    }, 50);
+                });
+
+            }, 500); // 500ms matches CSS transition duration
+        }
+
+        window.onload = function() {
+            resize();
+            initStars();
+            animate();
+
+            // Returning user: skip straight to home
+            loadSession();
+            if (player) {
+                document.getElementById('login-view').classList.add('hidden');
+                renderHome();
+                const home = document.getElementById('home-view');
+                home.classList.remove('hidden', 'opacity-0');
+                home.classList.add('opacity-100');
+            }
+
+            // Keep the leaderboard live while the home screen is open
+            setInterval(() => {
+                const homeOpen = !document.getElementById('home-view').classList.contains('hidden');
+                if (player && homeOpen && !document.hidden) refreshHome();
+            }, 30000);
+        };
+    </script>
+</body>
+</html>
