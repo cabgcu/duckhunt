@@ -1426,6 +1426,7 @@
                 from.classList.add('hidden');
                 to.classList.remove('hidden');
                 to.scrollTop = 0;
+                if (toId === 'home-view') autoStartScanner();
                 setTimeout(() => {
                     to.classList.remove('opacity-0');
                     to.classList.add('opacity-100');
@@ -2259,8 +2260,19 @@
                     () => {}
                 );
             } catch (err) {
-                setScanUI(false, 'Camera unavailable. Allow camera access and make sure the page is served over HTTPS.');
+                const denied = err && (err.name === 'NotAllowedError' || /permission|denied/i.test(String(err)));
+                setScanUI(false, denied
+                    ? 'Camera access was blocked. Allow camera access in your browser settings, then tap Start Scanning.'
+                    : 'Camera unavailable. Allow camera access and make sure the page is served over HTTPS.');
             }
+        }
+
+        // Turns the camera on as soon as the home screen shows, so the browser asks
+        // for camera permission right away and the scanner is ready to go.
+        function autoStartScanner() {
+            if (!player || !huntOpen || scanning) return;
+            if (document.getElementById('home-view').classList.contains('hidden')) return;
+            startScanner();
         }
 
         async function stopScanner() {
@@ -2510,7 +2522,8 @@
                 triggerHyperspeed(() => {
                     // 3. After hyperspeed, show target view
                     targetView.classList.remove('hidden');
-                    
+                    if (toTarget === 'home') autoStartScanner();
+
                     // Small delay to allow display:block to apply before animating opacity
                     setTimeout(() => {
                         targetView.classList.remove('opacity-0');
@@ -2538,6 +2551,7 @@
                 const home = document.getElementById('home-view');
                 home.classList.remove('hidden', 'opacity-0');
                 home.classList.add('opacity-100');
+                autoStartScanner();
                 claimPendingDuck(600);
             } else if (pendingDuck()) {
                 showFormError('login-error', 'You found a duck! Sign in or register to rescue it.');
