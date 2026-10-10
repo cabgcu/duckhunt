@@ -523,11 +523,20 @@
         }
 
         /* Scanner viewport */
-        #qr-reader { border: none !important; }
+        /* html5-qrcode sets position: relative on the container and a pixel width
+           on the video; pin both so the feed fills the frame, centered */
+        #qr-reader {
+            border: none !important;
+            position: absolute !important;
+            inset: 0;
+        }
         #qr-reader video {
+            position: absolute;
+            inset: 0;
             width: 100% !important;
             height: 100% !important;
             object-fit: cover;
+            object-position: center;
         }
         #qr-reader img, #qr-reader__dashboard, #qr-reader__header_message { display: none !important; }
 
