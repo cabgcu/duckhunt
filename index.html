@@ -643,7 +643,7 @@
                         <p id="login-error" class="hidden -mt-3 mb-4 text-center text-[14px] text-[#ffe81f]"></p>
 
                         <div class="mb-8 text-center">
-                            <a href="#" class="text-[16px] text-gray-400 underline decoration-gray-500/50 underline-offset-[5px] hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)] transition-all duration-300">
+                            <a href="#" onclick="event.preventDefault(); openAbout();" class="text-[16px] text-gray-400 underline decoration-gray-500/50 underline-offset-[5px] hover:text-white hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)] transition-all duration-300">
                                 What is Duck Hunt?
                             </a>
                         </div>
@@ -1704,6 +1704,22 @@
             if (event.key === 'Escape' && !document.getElementById('report-overlay').classList.contains('hidden')) closeReport();
         });
 
+        // ---------- WHAT IS DUCK HUNT ----------
+        // The promo video only loads while the overlay is open, so closing it stops playback.
+        function openAbout() {
+            document.getElementById('about-video').src = 'https://www.youtube-nocookie.com/embed/mJ2pgUYJsNg?rel=0&playsinline=1';
+            document.getElementById('about-overlay').classList.remove('hidden');
+        }
+
+        function closeAbout() {
+            document.getElementById('about-overlay').classList.add('hidden');
+            document.getElementById('about-video').src = 'about:blank';
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !document.getElementById('about-overlay').classList.contains('hidden')) closeAbout();
+        });
+
         // ---------- GOLDEN DUCK ALERTS ----------
         // Someone else rescued a golden duck: a banner drops in for everyone.
         const myGoldenClaims = new Set(); // duck IDs this player just claimed (no alert for your own)
@@ -2627,6 +2643,51 @@
                     <p class="text-[12px] text-gray-500 text-center leading-snug">Reports are checked automatically. If you're awarded a duck, its points are added right away.</p>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- What is Duck Hunt? -->
+    <div id="about-overlay" class="hidden fixed inset-0 z-[88] overflow-y-auto bg-black/85 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="about-title">
+        <div class="min-h-full w-full max-w-md mx-auto px-5 py-8 flex flex-col justify-center">
+            <div class="shimmer-wrapper w-full">
+                <div class="glass-inner w-full p-5 flex flex-col gap-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="card-label">Lip Sync 2026</p>
+                            <h2 id="about-title" class="text-xl font-bold font-tech tracking-wider text-white">What is Duck Hunt?</h2>
+                        </div>
+                        <button type="button" onclick="closeAbout()" aria-label="Close" class="p-2 rounded-xl bg-white/5 border border-white/15 text-gray-300 hover:text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <p class="text-[15px] text-gray-300 leading-relaxed">Duck Hunt is the ultimate campus-wide scavenger hunt hosted by the Canyon Activities Board (CAB) to celebrate Lip Sync 2026!</p>
+                    <p class="text-[15px] text-gray-300 leading-relaxed">Students find hidden QR-coded ducks, scan them to earn points, and compete for massive prizes at the top of the leaderboard.</p>
+
+                    <div class="rounded-xl border border-[#ffe81f]/40 bg-[#ffe81f]/10 px-4 py-3 text-center">
+                        <p class="text-[13px] text-gray-300">Duck Hunt Ends</p>
+                        <p class="text-[17px] font-bold text-[#ffe81f]">November 13th at 3pm!</p>
+                    </div>
+
+                    <div>
+                        <p class="card-label mb-2">Prizes</p>
+                        <ul class="flex flex-col gap-2 text-[15px] text-gray-200 leading-snug">
+                            <li class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">🥇 <span class="font-bold">1st Place:</span> Two Disneyland Park Hopper Tickets &amp; 2 VIP Lip Sync Tickets</li>
+                            <li class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">🥈 <span class="font-bold">2nd Place:</span> $500 to the Lope Shop &amp; VIP Lip Sync Tickets</li>
+                            <li class="rounded-xl bg-white/5 border border-white/10 px-4 py-3">🥉 <span class="font-bold">3rd Place:</span> Free Laundry for the Rest of the School Year! &amp; 2 VIP Lip Sync Tickets</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="card-label mb-2">Lip Sync 2026 Promo Video</p>
+                        <div class="relative w-full aspect-video rounded-xl overflow-hidden border border-white/15 bg-black">
+                            <iframe id="about-video" src="about:blank" title="Lip Sync 2026 Promo Video" class="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="closeAbout()" class="w-full bg-[#ffe81f]/15 border border-[#ffe81f]/50 hover:bg-[#ffe81f]/25 text-white font-bold text-[17px] py-4 rounded-xl transition-all duration-300 active:scale-[0.98]">Got it</button>
+                </div>
+            </div>
         </div>
     </div>
 
