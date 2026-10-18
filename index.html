@@ -137,20 +137,6 @@
             pointer-events: none;
         }
 
-        /* Looping video behind the login screen only; it fades away when
-           the user leaves so the hyperspace jump plays on the starfield */
-        #login-video {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            z-index: 1;
-            pointer-events: none;
-            transition: opacity 0.5s ease-in-out;
-        }
-        #login-video.video-off { opacity: 0; }
-
         .font-tech {
             font-family: 'Rajdhani', sans-serif;
         }
@@ -629,7 +615,6 @@
 <body class="text-white antialiased selection:bg-gray-500/30">
 
     <canvas id="starfield"></canvas>
-    <video id="login-video" src="https://i.imgur.com/JpKXVo8.mp4" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
 
     <main class="relative z-10 min-h-screen w-full px-4 sm:px-6 flex justify-center items-center">
         
@@ -1151,18 +1136,6 @@
             }
 
             requestAnimationFrame(animate);
-        }
-
-        // Login background video: shown on the login screen, faded out (and
-        // paused) everywhere else so the starfield takes over
-        function setLoginVideo(show) {
-            const video = document.getElementById('login-video');
-            video.classList.toggle('video-off', !show);
-            if (show) {
-                video.play().catch(() => {}); // autoplay can be refused; stars show instead
-            } else {
-                setTimeout(() => { if (video.classList.contains('video-off')) video.pause(); }, 500);
-            }
         }
 
         // Hyperspeed animation trigger
@@ -2546,7 +2519,6 @@
             
             if (fromTarget === 'home') stopScanner();
             if (toTarget === 'home') renderHome();
-            if (fromTarget === 'login') setLoginVideo(false); // fades out with the login card
 
             // 1. Fade out current view
             currentView.classList.remove('opacity-100');
@@ -2560,7 +2532,6 @@
                     // 3. After hyperspeed, show target view
                     targetView.classList.remove('hidden');
                     if (toTarget === 'home') autoStartScanner();
-                    if (toTarget === 'login') setLoginVideo(true);
 
                     // Small delay to allow display:block to apply before animating opacity
                     setTimeout(() => {
@@ -2585,7 +2556,6 @@
             loadSession();
             if (player) {
                 document.getElementById('login-view').classList.add('hidden');
-                setLoginVideo(false);
                 renderHome();
                 const home = document.getElementById('home-view');
                 home.classList.remove('hidden', 'opacity-0');
