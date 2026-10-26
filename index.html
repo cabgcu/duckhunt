@@ -991,6 +991,7 @@
                         <ul id="coords-list" class="flex flex-col gap-1.5"></ul>
 
                         <p id="coords-empty" class="hidden py-6 text-center text-gray-400 text-[15px]">Every duck has been rescued. Stand by for new coordinates.</p>
+                        <p id="coords-classified" class="hidden py-6 text-center text-gray-400 text-[15px]">Coordinates are classified for now. Locations will be revealed soon.</p>
                     </div>
                 </section>
 
@@ -1912,6 +1913,9 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'game_settings' }, () => {
                     if (player) refreshHuntStatus();
                 })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'location_settings' }, () => {
+                    if (player) refreshCoordinates();
+                })
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'duck_alerts' }, payload => {
                     showDuckAlert(payload && payload.new);
                 })
@@ -1972,9 +1976,15 @@
                 return section.classList.add('hidden');
             }
             rows = rows || [];
+            // Admins can hide locations: the server then sends only a marker, no
+            // locations or counts
+            const classified = rows.some(r => r.hidden);
+            document.getElementById('coords-classified').classList.toggle('hidden', !classified);
+            document.getElementById('coords-total').classList.toggle('hidden', classified);
+            if (classified) rows = [];
             const total = rows.reduce((sum, r) => sum + Number(r.ducks), 0);
             document.getElementById('coords-total').textContent = `${total} duck${total === 1 ? '' : 's'}`;
-            document.getElementById('coords-empty').classList.toggle('hidden', rows.length > 0);
+            document.getElementById('coords-empty').classList.toggle('hidden', classified || rows.length > 0);
 
             const max = Math.max(1, ...rows.map(r => Number(r.ducks)));
             const list = document.getElementById('coords-list');
