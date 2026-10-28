@@ -2373,12 +2373,24 @@
                 const constraints = await scannerVideoConstraints();
                 await qrScanner.start(
                     constraints.deviceId ? { deviceId: constraints.deviceId } : { facingMode: 'environment' },
-                    { fps: 15, videoConstraints: constraints },
+                    legacyCamera ? { fps: 15, aspectRatio: 1 } : { fps: 15, videoConstraints: constraints },
                     onScanSuccess,
                     () => {}
                 );
+                // The scanner reads frames as if they were as square as the box. A
+                // camera that ignored the square request would hand it squashed
+                // codes it can't read, so fall back to the plain camera setup.
+                const track = scannerTrack();
+                const settings = (track && track.getSettings && track.getSettings()) || {};
+                if (!legacyCamera && settings.width && Math.abs(settings.width / settings.height - 1) > 0.05) {
+                    return fallBackToLegacyCamera();
+                }
                 tuneCamera();
             } catch (err) {
+                // This camera can't give a square feed at all
+                if (!legacyCamera && err && /Overconstrained/i.test(err.name || String(err))) {
+                    return fallBackToLegacyCamera();
+                }
                 // The picked iPhone lens wouldn't open; go back to the default camera
                 if (iosCameraId && !(err && err.name === 'NotAllowedError')) {
                     iosCameraId = null;
@@ -2392,19 +2404,37 @@
             }
         }
 
+        async function fallBackToLegacyCamera() {
+            legacyCamera = true;
+            // Stopping before the feed is playing leaves the scanner half-started
+            await new Promise(resolve => {
+                const video = document.querySelector('#qr-reader video');
+                if (!video || video.readyState >= 3) return resolve();
+                video.addEventListener('playing', resolve, { once: true });
+                setTimeout(resolve, 3000);
+            });
+            await new Promise(resolve => setTimeout(resolve, 100));
+            try { await qrScanner.stop(); } catch (e) {}
+            scanning = false;
+            return startScanner();
+        }
+
         // Without these, many phones open the camera at a low resolution with the
         // focus locked at a distance, so a duck held close stays blurry.
         const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
             || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         let iosCameraId; // undefined = not looked up yet, null = use the default
+        let legacyCamera = false; // true once a camera wouldn't give a square feed
+        // The camera's base settings. Every later change (focus, zoom) re-sends
+        // these too: applyConstraints replaces the whole set, and dropping the
+        // square shape would squash the frames again.
+        const CAMERA_BASE = {
+            height: { ideal: 1080 },
+            aspectRatio: { exact: 1 }
+        };
 
         async function scannerVideoConstraints() {
-            const hd = 'BarcodeDetector' in window; // native decoding keeps up with 1080p
-            const constraints = {
-                width: { ideal: hd ? 1920 : 1280 },
-                height: { ideal: hd ? 1080 : 720 },
-                advanced: [{ focusMode: 'continuous' }]
-            };
+            const constraints = { ...CAMERA_BASE, advanced: [{ focusMode: 'continuous' }] };
             const id = await pickIosCamera();
             if (id) constraints.deviceId = { exact: id };
             else constraints.facingMode = 'environment';
@@ -2428,13 +2458,30 @@
             return iosCameraId;
         }
 
+        function scannerTrack() {
+            const video = document.querySelector('#qr-reader video');
+            const stream = video && video.srcObject;
+            return stream && stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+        }
+
         let cameraCaps = {};
+        let cameraZoom = null;
+        // Applies focus/zoom on top of the base settings
+        function applyCamera(extra) {
+            const track = scannerTrack();
+            if (!track || !track.applyConstraints) return Promise.resolve();
+            const advanced = {};
+            if ((cameraCaps.focusMode || []).includes('continuous')) advanced.focusMode = 'continuous';
+            if (cameraZoom !== null) advanced.zoom = cameraZoom;
+            Object.assign(advanced, extra);
+            const base = legacyCamera ? { aspectRatio: 1 } : CAMERA_BASE;
+            return track.applyConstraints({ ...base, advanced: [advanced] }).catch(() => {});
+        }
+
         function tuneCamera() {
-            try { cameraCaps = qrScanner.getRunningTrackCapabilities() || {}; } catch (e) { cameraCaps = {}; }
-            const modes = cameraCaps.focusMode || [];
-            if (modes.includes('continuous')) {
-                qrScanner.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
-            }
+            const track = scannerTrack();
+            try { cameraCaps = (track && track.getCapabilities && track.getCapabilities()) || {}; } catch (e) { cameraCaps = {}; }
+            cameraZoom = null;
             const zoomRow = document.getElementById('scan-zoom');
             const zoom = cameraCaps.zoom;
             if (zoom && zoom.max > zoom.min) {
@@ -2443,22 +2490,24 @@
                 slider.max = Math.min(zoom.max, 5);
                 slider.step = zoom.step || 0.1;
                 let current = zoom.min;
-                try { current = qrScanner.getRunningTrackSettings().zoom || zoom.min; } catch (e) {}
+                try { current = track.getSettings().zoom || zoom.min; } catch (e) {}
                 slider.value = current;
                 zoomRow.classList.remove('hidden');
             } else {
                 zoomRow.classList.add('hidden');
             }
+            if ((cameraCaps.focusMode || []).includes('continuous')) applyCamera({});
         }
 
         function setScannerZoom(value) {
-            if (!scanning || !qrScanner) return;
-            qrScanner.applyVideoConstraints({ advanced: [{ zoom: Number(value) }] }).catch(() => {});
+            if (!scanning) return;
+            cameraZoom = Number(value);
+            applyCamera({});
         }
 
         // Tap the camera view to refocus where you tapped (where the phone allows it)
         async function focusScannerAt(event) {
-            if (!scanning || !qrScanner) return;
+            if (!scanning) return;
             const modes = cameraCaps.focusMode || [];
             const box = document.getElementById('scan-box').getBoundingClientRect();
             const point = {
@@ -2468,16 +2517,11 @@
             const refocus = {};
             if ('pointsOfInterest' in cameraCaps) refocus.pointsOfInterest = [point];
             if (modes.includes('single-shot')) refocus.focusMode = 'single-shot';
-            else if (modes.includes('continuous')) refocus.focusMode = 'continuous';
             if (!Object.keys(refocus).length) return;
-            try {
-                await qrScanner.applyVideoConstraints({ advanced: [refocus] });
-                if (refocus.focusMode === 'single-shot' && modes.includes('continuous')) {
-                    setTimeout(() => {
-                        if (scanning) qrScanner.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
-                    }, 1500);
-                }
-            } catch (e) {}
+            await applyCamera(refocus);
+            if (refocus.focusMode && modes.includes('continuous')) {
+                setTimeout(() => { if (scanning) applyCamera({}); }, 1500);
+            }
         }
 
         // Turns the camera on as soon as the home screen shows, so the browser asks
