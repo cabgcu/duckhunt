@@ -811,6 +811,7 @@
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>Different ducks are worth different points. See Duck Points above.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>If a duck "isn't in play yet," it hasn't been activated. Check back later.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>You can scan up to 10 hologram codes a day. The limit resets at midnight. Rebel ducks have no limit.</span></li>
+                            <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>You can rescue only one Haunted House code total. Once you have one, leave the rest for other rescuers.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>The leaderboard ranks rescuers by points. Rescuers with equal points share a place.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>Broken code? Report it from the Info page and we'll make it right.</span></li>
                             <li class="flex gap-3"><span class="mt-2 shrink-0 w-1.5 h-1.5 rounded-full bg-[#ffe81f]"></span><span>Play fair: one account per student, using your own Student ID.</span></li>
@@ -2593,6 +2594,8 @@
                 } else if (result.status === 'hologram_limit') {
                     scanFeedback('err', null);
                     freezeScreen(result.limit || 10);
+                } else if (result.status === 'haunted_limit') {
+                    scanFeedback('warn', 'One Haunted House only', null, 'You already rescued a Haunted House code. Leave this one for another rescuer!');
                 } else if (result.status === 'inactive') {
                     scanFeedback('warn', 'Not in play yet', null, `${name || 'This duck'} hasn't been activated. Check back soon!`);
                 } else if (result.status === 'unknown_player') {
