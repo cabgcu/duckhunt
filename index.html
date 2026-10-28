@@ -942,7 +942,7 @@
                             <span id="scan-status" class="text-[12px] px-3 py-1 rounded-full bg-white/5 border border-white/15 text-gray-400">Idle</span>
                         </div>
 
-                        <div id="scan-box" class="relative w-full aspect-square rounded-xl overflow-hidden bg-black/70 border border-white/15 shadow-[inset_0_0_30px_rgba(0,0,0,0.9)]">
+                        <div id="scan-box" onclick="focusScannerAt(event)" class="relative w-full aspect-square rounded-xl overflow-hidden bg-black/70 border border-white/15 shadow-[inset_0_0_30px_rgba(0,0,0,0.9)]">
                             <div id="qr-reader" class="absolute inset-0"></div>
 
                             <!-- Shown the moment a code is read, while it's being claimed -->
@@ -962,6 +962,12 @@
                             <span class="scan-corner br"></span>
                             <div id="scan-line" class="scan-line hidden"></div>
                         </div>
+
+                        <div id="scan-zoom" class="hidden mt-3 flex items-center gap-3">
+                            <span class="text-[12px] text-gray-400 font-tech tracking-wider">ZOOM</span>
+                            <input id="scan-zoom-input" type="range" class="flex-1 accent-[#ffe81f]" oninput="setScannerZoom(this.value)" aria-label="Camera zoom">
+                        </div>
+                        <p class="mt-3 text-[12px] text-gray-500 text-center leading-snug">Blurry? Hold the duck a little farther away or tap the camera to focus.</p>
 
                         <button
                             id="scan-btn"
@@ -1321,6 +1327,7 @@
                 home.classList.remove('hidden', 'opacity-0');
                 home.classList.add('opacity-100');
             }
+            untrackPresence();
             player = null;
             saveSession();
             navigate('home', 'login');
@@ -1355,6 +1362,7 @@
         function renderHome() {
             if (!player) return;
             listenForTransmissions();
+            trackPresence();
             document.getElementById('welcome-name').textContent = player.first_name || 'Rescuer';
             refreshHome();
         }
@@ -1922,6 +1930,28 @@
                 .subscribe();
         }
 
+        // Lets the admin page show how many players are online: each signed-in
+        // player joins a Realtime Presence channel keyed by student ID, so
+        // several tabs or devices count once.
+        let presenceChannel = null;
+        function trackPresence() {
+            if (!db || !player) return;
+            const key = String(player.student_id);
+            if (presenceChannel && presenceChannel.presenceKey === key) return;
+            untrackPresence();
+            const ch = presenceChannel = db.channel('online-players', { config: { presence: { key } } });
+            ch.presenceKey = key;
+            ch.subscribe(status => {
+                if (status === 'SUBSCRIBED') ch.track({ online_at: new Date().toISOString() });
+            });
+        }
+
+        function untrackPresence() {
+            if (!presenceChannel) return;
+            db.removeChannel(presenceChannel);
+            presenceChannel = null;
+        }
+
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && player) {
                 refreshAnnouncements();
@@ -2332,21 +2362,122 @@
                 setScanUI(false, 'Scanner failed to load. Check your connection and try again.');
                 return;
             }
-            if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader', { verbose: false });
+            if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader', {
+                verbose: false,
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                // Uses the phone's built-in decoder (Android Chrome) when there is one
+                experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+            });
             setScanUI(true);
             try {
+                const constraints = await scannerVideoConstraints();
                 await qrScanner.start(
-                    { facingMode: 'environment' },
-                    { fps: 10, aspectRatio: 1 },
+                    constraints.deviceId ? { deviceId: constraints.deviceId } : { facingMode: 'environment' },
+                    { fps: 15, videoConstraints: constraints },
                     onScanSuccess,
                     () => {}
                 );
+                tuneCamera();
             } catch (err) {
+                // The picked iPhone lens wouldn't open; go back to the default camera
+                if (iosCameraId && !(err && err.name === 'NotAllowedError')) {
+                    iosCameraId = null;
+                    scanning = false;
+                    return startScanner();
+                }
                 const denied = err && (err.name === 'NotAllowedError' || /permission|denied/i.test(String(err)));
                 setScanUI(false, denied
                     ? 'Camera access was blocked. Allow camera access in your browser settings, then tap Start Scanning.'
                     : 'Camera unavailable. Allow camera access and make sure the page is served over HTTPS.');
             }
+        }
+
+        // Without these, many phones open the camera at a low resolution with the
+        // focus locked at a distance, so a duck held close stays blurry.
+        const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+            || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        let iosCameraId; // undefined = not looked up yet, null = use the default
+
+        async function scannerVideoConstraints() {
+            const hd = 'BarcodeDetector' in window; // native decoding keeps up with 1080p
+            const constraints = {
+                width: { ideal: hd ? 1920 : 1280 },
+                height: { ideal: hd ? 1080 : 720 },
+                advanced: [{ focusMode: 'continuous' }]
+            };
+            const id = await pickIosCamera();
+            if (id) constraints.deviceId = { exact: id };
+            else constraints.facingMode = 'environment';
+            return constraints;
+        }
+
+        // iPhone Pro models' main lens can't focus closer than ~20cm. The native
+        // camera app switches to the macro lens for close-ups; Safari only does
+        // that when it's given the multi-lens camera instead of the default one.
+        async function pickIosCamera() {
+            if (!IS_IOS) return null;
+            if (iosCameraId !== undefined) return iosCameraId;
+            iosCameraId = null;
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                const best = ['back triple camera', 'back dual wide camera']
+                    .map(name => cameras.find(c => (c.label || '').toLowerCase() === name))
+                    .find(Boolean);
+                if (best) iosCameraId = best.id;
+            } catch (e) {}
+            return iosCameraId;
+        }
+
+        let cameraCaps = {};
+        function tuneCamera() {
+            try { cameraCaps = qrScanner.getRunningTrackCapabilities() || {}; } catch (e) { cameraCaps = {}; }
+            const modes = cameraCaps.focusMode || [];
+            if (modes.includes('continuous')) {
+                qrScanner.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+            }
+            const zoomRow = document.getElementById('scan-zoom');
+            const zoom = cameraCaps.zoom;
+            if (zoom && zoom.max > zoom.min) {
+                const slider = document.getElementById('scan-zoom-input');
+                slider.min = zoom.min;
+                slider.max = Math.min(zoom.max, 5);
+                slider.step = zoom.step || 0.1;
+                let current = zoom.min;
+                try { current = qrScanner.getRunningTrackSettings().zoom || zoom.min; } catch (e) {}
+                slider.value = current;
+                zoomRow.classList.remove('hidden');
+            } else {
+                zoomRow.classList.add('hidden');
+            }
+        }
+
+        function setScannerZoom(value) {
+            if (!scanning || !qrScanner) return;
+            qrScanner.applyVideoConstraints({ advanced: [{ zoom: Number(value) }] }).catch(() => {});
+        }
+
+        // Tap the camera view to refocus where you tapped (where the phone allows it)
+        async function focusScannerAt(event) {
+            if (!scanning || !qrScanner) return;
+            const modes = cameraCaps.focusMode || [];
+            const box = document.getElementById('scan-box').getBoundingClientRect();
+            const point = {
+                x: Math.min(Math.max((event.clientX - box.left) / box.width, 0), 1),
+                y: Math.min(Math.max((event.clientY - box.top) / box.height, 0), 1)
+            };
+            const refocus = {};
+            if ('pointsOfInterest' in cameraCaps) refocus.pointsOfInterest = [point];
+            if (modes.includes('single-shot')) refocus.focusMode = 'single-shot';
+            else if (modes.includes('continuous')) refocus.focusMode = 'continuous';
+            if (!Object.keys(refocus).length) return;
+            try {
+                await qrScanner.applyVideoConstraints({ advanced: [refocus] });
+                if (refocus.focusMode === 'single-shot' && modes.includes('continuous')) {
+                    setTimeout(() => {
+                        if (scanning) qrScanner.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+                    }, 1500);
+                }
+            } catch (e) {}
         }
 
         // Turns the camera on as soon as the home screen shows, so the browser asks
@@ -2360,6 +2491,7 @@
         async function stopScanner() {
             if (!scanning || !qrScanner) return;
             setScanUI(false);
+            document.getElementById('scan-zoom').classList.add('hidden');
             try { await qrScanner.stop(); } catch (e) {}
         }
 
