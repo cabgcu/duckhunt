@@ -1546,10 +1546,12 @@
             if (!player) return;
             const id = player.student_id;
             try {
-                const [rankRows, board, history] = await Promise.all([
+                const [rankRows, board, history, waiting] = await Promise.all([
                     rpc('get_rescuer_rank', { p_student_id: id }),
                     rpc('get_leaderboard', { p_student_id: id, p_limit: LEADERBOARD_SIZE }),
-                    rpc('get_scan_history', { p_student_id: id })
+                    rpc('get_scan_history', { p_student_id: id }),
+                    // Students an admin imported count as rescuers too (0 until sql/preregistrations.sql is run)
+                    rpc('get_waiting_rescuer_count').catch(() => 0)
                 ]);
                 if (!player || player.student_id !== id) return; // signed out meanwhile
                 const me = rankRows && rankRows[0];
@@ -1558,6 +1560,7 @@
                     showToast('Your rescuer profile wasn\'t found. Please sign in again.');
                     return signOut();
                 }
+                me.total_rescuers = (Number(me.total_rescuers) || 0) + (Number(waiting) || 0);
                 renderRank(me, board || []);
                 renderHistory(history || []);
                 refreshCoordinates();
