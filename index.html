@@ -763,10 +763,11 @@
 
                     <form onsubmit="event.preventDefault();" class="flex flex-col w-full gap-4">
                         
+                        <input id="reg-email" type="email" placeholder="Email @my.gcu.edu" autocomplete="email" oninput="lookUpPreregistration()" onchange="lookUpPreregistration()" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
+                        <p id="reg-found" class="hidden -my-1 text-center text-[13px] text-emerald-300">You're on the rescue list! Check your name, then Submit.</p>
                         <input id="reg-first" type="text" placeholder="First Name" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
                         <input id="reg-last" type="text" placeholder="Last Name" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
                         <input id="reg-id" type="text" placeholder="Student ID" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
-                        <input id="reg-email" type="email" placeholder="Email @my.gcu.edu" class="glass-input w-full rounded-xl px-4 py-3 text-center text-[15px] text-white placeholder-gray-300/80 focus:placeholder-transparent" required>
 
                         <div class="flex items-center gap-3 mt-2 mb-1 px-2">
                             <input type="checkbox" id="terms" class="custom-checkbox cursor-pointer" required>
@@ -1431,6 +1432,28 @@
             if (id) document.getElementById('reg-id').value = id;
             showFormError('login-error', '');
             navigate('login', 'register');
+        }
+
+        // Students an admin imported from a spreadsheet (name + email, no
+        // student ID yet): typing their email fills in their name. The
+        // database links the import to their student ID once they register.
+        let preregLookup = { email: '', timer: null };
+        function lookUpPreregistration() {
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            clearTimeout(preregLookup.timer);
+            if (!/^[^@\s]+@my\.gcu\.edu$/i.test(email) || email === preregLookup.email) return;
+            preregLookup.timer = setTimeout(async () => {
+                preregLookup.email = email;
+                let found = null;
+                try { found = await rpc('find_preregistration', { p_email: email }); } catch (e) { found = null; } // not set up yet
+                if (document.getElementById('reg-email').value.trim().toLowerCase() !== email) return; // typed on meanwhile
+                document.getElementById('reg-found').classList.toggle('hidden', !found);
+                if (!found) return;
+                const firstEl = document.getElementById('reg-first');
+                const lastEl = document.getElementById('reg-last');
+                if (!firstEl.value.trim()) firstEl.value = found.first_name || '';
+                if (!lastEl.value.trim()) lastEl.value = found.last_name || '';
+            }, 400);
         }
 
         function register(button) {
