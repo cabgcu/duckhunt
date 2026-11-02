@@ -177,6 +177,14 @@
             pointer-events: none;
         }
 
+        /* Home screen background video (shown once home is on screen) */
+        #home-bg {
+            position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover;
+            z-index: 0; pointer-events: none; opacity: 0; transition: opacity 0.8s ease;
+        }
+        body.home-bg-on.home-bg-playing #home-bg { opacity: 1; } /* only once frames are actually playing; otherwise the starfield stays */
+        body.in-galaxy #home-bg, body.solo-jump #home-bg { opacity: 0 !important; transition: opacity 0.4s; }
+
         .font-tech {
             font-family: 'Rajdhani', sans-serif;
         }
@@ -679,6 +687,7 @@
 <body class="text-white antialiased selection:bg-gray-500/30">
 
     <canvas id="starfield"></canvas>
+    <video id="home-bg" src="https://i.imgur.com/ofLocLq.mp4" muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true"></video>
 
     <main class="relative z-10 min-h-screen w-full px-4 sm:px-6 flex justify-center items-center">
         
@@ -3080,6 +3089,32 @@
 
             }, 500); // 500ms matches CSS transition duration
         }
+
+        // Home screen background: fade the looping video in whenever the home
+        // view is on screen (after the sign-in hyperspeed) and pause it otherwise
+        function syncHomeBg() {
+            const home = document.getElementById('home-view');
+            const video = document.getElementById('home-bg');
+            const on = !home.classList.contains('hidden') && !home.classList.contains('opacity-0');
+            document.body.classList.toggle('home-bg-on', on);
+            if (on) {
+                video.muted = true;
+                const p = video.play();
+                if (p && p.catch) p.catch(() => document.body.classList.remove('home-bg-playing'));
+            } else if (!video.paused) {
+                setTimeout(() => { if (!document.body.classList.contains('home-bg-on')) video.pause(); }, 800);
+            }
+        }
+        (function () {
+            const video = document.getElementById('home-bg');
+            const fail = () => document.body.classList.remove('home-bg-playing');
+            video.addEventListener('playing', () => document.body.classList.add('home-bg-playing'));
+            video.addEventListener('error', fail);
+            video.addEventListener('emptied', fail);
+            video.addEventListener('stalled', () => { if (video.readyState < 3) fail(); });
+        })();
+        new MutationObserver(syncHomeBg).observe(document.getElementById('home-view'), { attributes: true, attributeFilter: ['class'] });
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) syncHomeBg(); });
 
         window.onload = function() {
             if (window.DUCK_LOCKED) return; // banned by an admin
