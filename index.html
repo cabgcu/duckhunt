@@ -494,6 +494,7 @@
             background: rgba(0, 0, 0, 0.72); color: #fff; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 22px;
             letter-spacing: 0.12em; text-transform: uppercase; text-align: center; padding: 24px; border: 0; width: 100%;
         }
+        #judah-stage .judah-tap[hidden] { display: none; }
         #judah-stage .judah-tap .play {
             width: 88px; height: 88px; border-radius: 50%; border: 2px solid #ffe81f; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 30px rgba(255, 232, 31, 0.45); color: #ffe81f;
@@ -2345,7 +2346,7 @@
             stage.innerHTML = `
                 <video playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback
                     controlslist="nodownload nofullscreen noremoteplayback noplaybackrate" src="${JUDAH_VIDEO}"></video>
-                <button type="button" class="judah-tap hidden">
+                <button type="button" class="judah-tap" hidden>
                     <span class="play"><svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
                     <span class="label">Tap to play</span>
                 </button>
@@ -2361,10 +2362,9 @@
 
             const showTap = label => {
                 tapLabel.textContent = label;
-                tap.classList.remove('hidden');
+                tap.hidden = false;
             };
             const play = () => {
-                tap.classList.add('hidden');
                 video.muted = false;
                 video.volume = 1;
                 const p = video.play();
@@ -2397,6 +2397,8 @@
                 else furthest = Math.max(furthest, video.currentTime);
             });
             video.addEventListener('seeking', () => { if (video.currentTime > furthest + 1.5) video.currentTime = furthest; });
+            // Hide the tap button only once the video is really playing
+            video.addEventListener('playing', () => { tap.hidden = true; });
             video.addEventListener('ratechange', () => { if (video.playbackRate !== 1) video.playbackRate = 1; });
             video.addEventListener('pause', () => { if (!done && !video.ended && !document.hidden) play(); });
             video.addEventListener('ended', () => {
