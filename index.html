@@ -7,44 +7,130 @@
     <link rel="icon" type="image/png" href="https://i.imgur.com/Srn2y30.png">
     <link rel="apple-touch-icon" href="https://i.imgur.com/Srn2y30.png">
     <script>
-        // ---------- TAMPER LOCKOUT ----------
-        // Trying to inspect the page wipes it and reloads to an "Access denied"
-        // screen for a minute.
-        // These are deterrents; the real protection is in the database (locked
-        // tables, codes and student data never sent to the app).
+        // ---------- TAMPER BAN ----------
+        // Inspecting the app bans this device, and the rescuer's Student ID if
+        // they're signed in. It counts as inspecting when someone opens dev
+        // tools, uses a dev tools / view source / save page shortcut, or sends
+        // requests to the database that the app itself never sends.
+        // The ban is stored in the database (bans table, see bans.sql), which
+        // refuses every request from a banned device or Student ID. Admins
+        // lift bans on the admin page.
         (function () {
-            var LOCK_KEY = 'duckhunt.locked';
-            var LOCK_MS = 60 * 1000;
+            var SB_URL = 'https://cvfzoxlqozmopavmlaxt.supabase.co';
+            var SB_KEY = 'sb_publishable_VKivvEek6IsBq6GrsLp1bw_39zjVpbA';
+            var BAN_KEY = 'duckhunt.banned';
+            var DEVICE_KEY = 'duckhunt.device';
+            var SESSION_KEY = 'duckhunt.session';
+            var RECHECK_MS = 30 * 1000;
+            // Every database function the app calls. Anything else is tampering.
+            var ALLOWED_RPC = ['claim_duck', 'get_announcements', 'get_game_status', 'get_leaderboard',
+                'get_my_reports', 'get_player', 'get_rebel_coordinates', 'get_rescuer_rank',
+                'get_scan_history', 'register_player', 'report_code', 'check_ban', 'report_tamper'];
+
+            var realFetch = window.fetch.bind(window);
             var ua = navigator.userAgent || '';
             var claimsMobile = (navigator.userAgentData && navigator.userAgentData.mobile) ||
                 /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|Opera Mini|IEMobile/i.test(ua) ||
                 (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1); // iPadOS reports as a Mac
 
-            function lockedUntil() {
-                try { return Number(localStorage.getItem(LOCK_KEY)) || 0; } catch (e) { return 0; }
+            function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+            function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+            try { localStorage.removeItem('duckhunt.locked'); } catch (e) {} // the old 1-minute lock
+
+            // ----- Device ID: random, kept in local storage and a cookie -----
+            function readCookie(name) {
+                var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+                return m ? decodeURIComponent(m[1]) : null;
+            }
+            function newDeviceId() {
+                var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                var bytes = crypto.getRandomValues(new Uint8Array(12));
+                var s = '';
+                for (var i = 0; i < bytes.length; i++) s += (i && i % 4 === 0 ? '-' : '') + alphabet[bytes[i] % 32];
+                return s;
+            }
+            var validId = /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/;
+            var deviceId = lsGet(DEVICE_KEY);
+            if (!validId.test(deviceId || '')) deviceId = readCookie('duckhunt_device');
+            if (!validId.test(deviceId || '')) deviceId = newDeviceId();
+            lsSet(DEVICE_KEY, deviceId);
+            try { document.cookie = 'duckhunt_device=' + deviceId + '; max-age=315360000; path=/; SameSite=Lax'; } catch (e) {}
+            window.DUCK_DEVICE_ID = deviceId;
+
+            function sessionStudentId() {
+                try { return (JSON.parse(lsGet(SESSION_KEY)) || {}).student_id || ''; } catch (e) { return ''; }
+            }
+            function banState() {
+                try { return JSON.parse(lsGet(BAN_KEY)); } catch (e) { return null; }
+            }
+            function saveBanState(s) { lsSet(BAN_KEY, s ? JSON.stringify(s) : null); }
+
+            // Talk to the database directly (these two calls work even when banned)
+            function call(name, params) {
+                return realFetch(SB_URL + '/rest/v1/rpc/' + name, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SB_KEY,
+                        'Authorization': 'Bearer ' + SB_KEY,
+                        'Content-Type': 'application/json',
+                        'x-device-id': deviceId
+                    },
+                    body: JSON.stringify(params)
+                }).then(function (r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                });
             }
 
-            function showLockedScreen() {
+            // ----- Ban screen -----
+            function showBannedScreen() {
+                try {
+                    document.querySelectorAll('video').forEach(function (v) {
+                        if (v.srcObject) v.srcObject.getTracks().forEach(function (t) { t.stop(); });
+                    });
+                } catch (e) {}
                 document.body.innerHTML =
-                    '<div id="desktop-gate" class="locked"><div class="icon">⚠</div><h1>Access denied</h1>' +
-                    '<p>Inspecting Duck Hunt isn\'t allowed. The app is locked on this device for a minute.</p>' +
-                    '<p class="url" id="lock-count"></p></div>';
-                (function tick() {
-                    var left = Math.ceil((lockedUntil() - Date.now()) / 1000);
-                    var el = document.getElementById('lock-count');
-                    if (!el) return;
-                    if (left <= 0) { location.reload(); return; }
-                    el.textContent = 'Try again in ' + left + 's';
-                    setTimeout(tick, 1000);
-                })();
+                    '<div id="desktop-gate" class="locked"><div class="icon">⛔</div><h1>Access blocked</h1>' +
+                    '<p>This device has been banned from Duck Hunt for inspecting the app or sending commands it doesn\'t allow. ' +
+                    'If you were signed in, your Student ID is banned too.</p>' +
+                    '<p>Think this is a mistake? Show this device code to the Duck Hunt team:</p>' +
+                    '<p class="url">' + deviceId + '</p></div>';
             }
 
-            // Wipe the page, stop the camera, and reload to the locked screen
+            // Make sure the server has the ban, then keep checking in case an
+            // admin lifts it (the app comes back on its own)
+            function syncBan() {
+                var s = banState();
+                if (!s) return location.reload();
+                var student = s.student || sessionStudentId();
+                var report = s.reported ? Promise.resolve() : call('report_tamper', {
+                    p_device_id: deviceId,
+                    p_student_id: student,
+                    p_reason: s.reason || 'Tampering detected',
+                    p_details: (s.details || '') + ' [' + ua + ']'
+                }).then(function () { s.reported = true; saveBanState(s); });
+                report.then(function () {
+                    return call('check_ban', { p_device_id: deviceId, p_student_id: student });
+                }).then(function (res) {
+                    if (res && res.banned === false) {
+                        saveBanState(null);
+                        return location.reload();
+                    }
+                    setTimeout(syncBan, RECHECK_MS);
+                }).catch(function () { setTimeout(syncBan, RECHECK_MS); });
+            }
+
             var tripped = false;
-            function lockout() {
+            function ban(reason, details, student, reported) {
                 if (tripped) return;
                 tripped = true;
-                try { localStorage.setItem(LOCK_KEY, String(Date.now() + LOCK_MS)); } catch (e) {}
+                saveBanState({
+                    reason: reason,
+                    details: String(details || '').slice(0, 500),
+                    student: student || sessionStudentId(),
+                    reported: !!reported,
+                    at: new Date().toISOString()
+                });
                 try {
                     document.querySelectorAll('video').forEach(function (v) {
                         if (v.srcObject) v.srcObject.getTracks().forEach(function (t) { t.stop(); });
@@ -53,16 +139,26 @@
                 try { document.documentElement.innerHTML = '<head></head><body style="background:#000"></body>'; } catch (e) {}
                 location.reload();
             }
-            window.DUCK_LOCKOUT = lockout;
+            // Caught tampering in the app
+            window.DUCK_LOCKOUT = function (reason, details) { ban(reason || 'Tampering detected', details); };
+            // The database refused a request because this device or Student ID is banned
+            window.DUCK_BANNED = function (studentId) { ban('Banned', '', studentId, true); };
 
-            // While locked, the app doesn't start
-            window.DUCK_LOCKED = lockedUntil() > Date.now();
+            // Banned on this device: don't start the app
+            window.DUCK_LOCKED = !!banState();
             if (window.DUCK_LOCKED) {
+                tripped = true;
                 document.documentElement.classList.add('desktop-blocked');
-                document.addEventListener('DOMContentLoaded', showLockedScreen);
+                document.addEventListener('DOMContentLoaded', function () { showBannedScreen(); syncBan(); });
+            } else {
+                // Banned on another device, or by an admin
+                call('check_ban', { p_device_id: deviceId, p_student_id: sessionStudentId() })
+                    .then(function (res) { if (res && res.banned) window.DUCK_BANNED(); })
+                    .catch(function () {});
             }
 
-            // Shortcuts for dev tools / view source / save page trip the lockout
+            // ----- Detection -----
+            // Shortcuts for dev tools / view source / save page
             document.addEventListener('keydown', function (e) {
                 var k = (e.key || '').toLowerCase();
                 var mod = e.ctrlKey || e.metaKey;
@@ -72,19 +168,86 @@
                     (mod && (k === 'u' || k === 's'))) {
                     e.preventDefault();
                     e.stopPropagation();
-                    lockout();
+                    var combo = (e.ctrlKey ? 'Ctrl+' : '') + (e.metaKey ? 'Cmd+' : '') + (e.altKey ? 'Alt+' : '') +
+                        (e.shiftKey ? 'Shift+' : '') + (k.length === 1 ? k.toUpperCase() : e.key);
+                    ban('Used a developer shortcut', combo);
                 }
             }, true);
 
-            // Dev tools docked to the side or bottom shrink the page well below the
-            // window (pinch zoom excluded so phones never trip this)
+            // Dev tools docked to the side or bottom shrink the page well below
+            // the window (pinch zoom excluded so phones never trip this). It has
+            // to stay that way for 3 seconds, so a resize or rotation doesn't count.
+            var shrunk = 0;
             setInterval(function () {
                 if (tripped || !window.outerWidth || !window.outerHeight) return;
-                if (window.visualViewport && Math.abs(window.visualViewport.scale - 1) > 0.01) return;
+                if (window.visualViewport && Math.abs(window.visualViewport.scale - 1) > 0.01) { shrunk = 0; return; }
                 var w = window.outerWidth - window.innerWidth * (window.visualViewport ? window.visualViewport.scale : 1);
                 var h = window.outerHeight - window.innerHeight;
-                if (w > 200 || (h > 300 && !claimsMobile)) lockout();
+                if (w > 200 || (h > 300 && !claimsMobile)) {
+                    if (++shrunk >= 3) ban('Opened developer tools', 'Window ' + window.outerWidth + 'x' + window.outerHeight + ', page ' + window.innerWidth + 'x' + window.innerHeight);
+                } else {
+                    shrunk = 0;
+                }
             }, 1000);
+
+            // Open dev tools stop on this debugger statement. Without dev tools
+            // it does nothing; with them, the pause gives them away.
+            setInterval(function () {
+                if (tripped || document.hidden) return;
+                var started = Date.now();
+                debugger; // eslint-disable-line no-debugger
+                if (Date.now() - started > 1000 && !document.hidden) ban('Opened developer tools', 'Paused on the debugger');
+            }, 2000);
+
+            // ----- Requests -----
+            function urlOf(input) {
+                return typeof input === 'string' ? input : (input && (input.url || input.href)) || String(input || '');
+            }
+            function isDatabase(url) {
+                return url.indexOf(SB_URL + '/rest/') === 0;
+            }
+
+            // The app's own database client goes through here: only the app's
+            // functions are allowed, and each request is tagged with the device
+            // and Student ID so the database can refuse banned ones.
+            window.DUCK_DB_FETCH = function (input, init) {
+                var url = urlOf(input);
+                if (isDatabase(url)) {
+                    var m = url.match(/\/rest\/v1\/rpc\/([A-Za-z0-9_]+)/);
+                    if (!m || ALLOWED_RPC.indexOf(m[1]) === -1) {
+                        ban('Sent an unauthorized command', url.replace(SB_URL, ''));
+                        return Promise.reject(new Error('Blocked'));
+                    }
+                    var student = sessionStudentId();
+                    try {
+                        var body = init && typeof init.body === 'string' ? JSON.parse(init.body) : null;
+                        if (body && body.p_student_id) student = String(body.p_student_id).trim();
+                    } catch (e) {}
+                    var headers = new Headers((init && init.headers) || (input && input.headers) || undefined);
+                    headers.set('x-device-id', deviceId);
+                    headers.set('x-student-id', student);
+                    init = Object.assign({}, init, { headers: headers });
+                }
+                return realFetch(input, init);
+            };
+
+            // Database requests made any other way (typed into the console,
+            // a script) are tampering
+            window.fetch = function (input, init) {
+                if (isDatabase(urlOf(input))) {
+                    ban('Sent an unauthorized command', urlOf(input).replace(SB_URL, ''));
+                    return Promise.reject(new Error('Blocked'));
+                }
+                return realFetch(input, init);
+            };
+            var xhrOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function (method, url) {
+                if (isDatabase(String(url || ''))) {
+                    ban('Sent an unauthorized command', String(url).replace(SB_URL, ''));
+                    throw new Error('Blocked');
+                }
+                return xhrOpen.apply(this, arguments);
+            };
 
             // No right-click / long-press menus or dragging images out
             document.addEventListener('contextmenu', function (e) {
@@ -1212,13 +1375,22 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_VKivvEek6IsBq6GrsLp1bw_39zjVpbA';
 
         const db = (window.supabase && !SUPABASE_URL.startsWith('YOUR_'))
-            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            // DUCK_DB_FETCH (top of the page) tags requests with this device and
+            // refuses database calls the app doesn't make
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { fetch: window.DUCK_DB_FETCH } })
             : null;
 
         async function rpc(name, params) {
             if (!db) throw new Error('Supabase isn\'t configured yet.');
             const { data, error } = await db.rpc(name, params);
-            if (error) throw error;
+            if (error) {
+                // This device or Student ID is banned
+                if (/DUCKHUNT_BANNED/.test(error.message || '')) {
+                    window.DUCK_BANNED(params && params.p_student_id);
+                    throw new Error('Access blocked.');
+                }
+                throw error;
+            }
             return data;
         }
 
@@ -2796,7 +2968,7 @@
         }
 
         window.onload = function() {
-            if (window.DUCK_LOCKED) return; // locked after an inspect attempt
+            if (window.DUCK_LOCKED) return; // banned for tampering
             resize();
             initStars();
             animate();
