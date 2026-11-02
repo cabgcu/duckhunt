@@ -486,6 +486,29 @@
             #freeze-overlay .ice, .freeze-card { animation: none; }
         }
 
+        /* Judah Floyd duck: full-screen video that can't be skipped, then the objective */
+        #judah-stage { position: fixed; inset: 0; z-index: 99; background: #000; display: flex; align-items: center; justify-content: center; }
+        #judah-stage video { width: 100%; height: 100%; object-fit: contain; background: #000; pointer-events: none; }
+        #judah-stage .judah-tap {
+            position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+            background: rgba(0, 0, 0, 0.72); color: #fff; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 22px;
+            letter-spacing: 0.12em; text-transform: uppercase; text-align: center; padding: 24px; border: 0; width: 100%;
+        }
+        #judah-stage .judah-tap .play {
+            width: 88px; height: 88px; border-radius: 50%; border: 2px solid #ffe81f; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 30px rgba(255, 232, 31, 0.45); color: #ffe81f;
+        }
+        #judah-stage .judah-close {
+            position: absolute; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 2; width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.35); color: #fff; font-size: 22px; line-height: 1;
+        }
+        #judah-objective { position: fixed; inset: 0; z-index: 99; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0.82); animation: holo-in 0.35s ease-out; }
+        #judah-objective .card {
+            max-width: 380px; width: 100%; text-align: center; padding: 26px 22px; border-radius: 20px; color: #fff;
+            border: 1px solid rgba(255, 232, 31, 0.6); background: rgba(20, 18, 4, 0.92);
+            box-shadow: 0 0 40px rgba(255, 232, 31, 0.3), inset 0 0 30px rgba(255, 232, 31, 0.06);
+        }
+
         /* Hologram transmissions (admin announcements) */
         #holo-overlay { animation: holo-in 0.35s ease-out; }
         @keyframes holo-in { from { opacity: 0; } to { opacity: 1; } }
@@ -1040,6 +1063,17 @@
                     </div>
                 </section>
 
+                <!-- Judah Floyd duck (shown once you've found it) -->
+                <section id="judah-section" class="hidden shimmer-wrapper w-full scroll-mt-6">
+                    <div class="glass-inner w-full p-5">
+                        <p class="card-label">Objective</p>
+                        <h2 class="text-xl font-bold font-tech tracking-wider text-white">Student Body President</h2>
+                        <p id="judah-text" class="mt-2 text-[15px] text-gray-200 leading-snug"></p>
+                        <button type="button" onclick="playJudahVideo(false)"
+                            class="mt-4 w-full bg-[#ffe81f]/10 border border-[#ffe81f]/50 hover:bg-[#ffe81f]/20 text-[#ffe81f] font-semibold text-[15px] py-3 rounded-xl transition-all duration-300 active:scale-[0.98]">▶ Watch the video again</button>
+                    </div>
+                </section>
+
                 <!-- QR Scanner -->
                 <section id="scan-section" class="shimmer-wrapper w-full scroll-mt-6">
                     <div class="glass-inner w-full p-5">
@@ -1538,6 +1572,7 @@
                 refreshAnnouncements();
                 refreshHuntStatus();
                 refreshReports();
+                refreshJudah();
                 return me;
             } catch (err) {
                 showToast(err.message || 'Couldn\'t load your stats.');
@@ -2239,6 +2274,170 @@
             }
         }
 
+        // ---------- JUDAH FLOYD DUCK ----------
+        // Claiming the Student Body President duck wipes the rescuer's points
+        // (sql/judah-duck.sql in the admin repo). They have to watch the whole
+        // video (no skipping), then acknowledge the objective: find Judah Floyd
+        // in person, and an admin gives every point back plus 500.
+        // Until the video has been watched to the end on this phone, it plays
+        // again every time the app opens.
+        const JUDAH_VIDEO = 'https://i.imgur.com/VqTOLGT.mp4';
+        const JUDAH_RE = /judah|student body president/i;
+        const JUDAH_OBJECTIVE = 'Find Student Body President Judah Floyd to get all of your points back plus 500 points.';
+        let judahStatus = null;
+        let judahPlaying = false;
+
+        function isJudahDuck(result) {
+            return JUDAH_RE.test(`${result.duck_id || ''} ${result.duck_type || ''}`);
+        }
+        function judahKey(kind) {
+            return `duckhunt.judah.${kind}.${player ? player.student_id : ''}`;
+        }
+        function judahFlag(kind, value) {
+            try {
+                if (value === undefined) return localStorage.getItem(judahKey(kind));
+                localStorage.setItem(judahKey(kind), value);
+            } catch (e) { return null; }
+        }
+
+        async function refreshJudah() {
+            if (!player) return;
+            try {
+                judahStatus = await rpc('get_judah_status', { p_student_id: player.student_id });
+            } catch (err) {
+                return; // sql/judah-duck.sql not run yet
+            }
+            const section = document.getElementById('judah-section');
+            if (!judahStatus || !judahStatus.found) return section.classList.add('hidden');
+            section.classList.remove('hidden');
+            const text = document.getElementById('judah-text');
+            if (judahFlag('watched-pending') && !judahPlaying) {
+                judahFlag('watched', String(judahStatus.id));
+                try { localStorage.removeItem(judahKey('watched-pending')); } catch (e) {}
+            }
+            const watched = judahFlag('watched') === String(judahStatus.id);
+            if (judahStatus.lifted) {
+                text.textContent = `Objective complete! You found Judah Floyd and got ${Number(judahStatus.points_returned || 0).toLocaleString()} points back.`;
+                if (watched && judahFlag('lifted') !== String(judahStatus.id)) {
+                    judahFlag('lifted', String(judahStatus.id));
+                    scanFeedback('ok', 'Points restored!', `+${judahStatus.points_returned} pts`, 'You found Student Body President Judah Floyd.');
+                }
+            } else {
+                text.textContent = JUDAH_OBJECTIVE;
+            }
+            // Never watched it all the way through (closed the app mid-video, etc.)
+            if (!watched && !judahStatus.lifted && !judahPlaying) playJudahVideo(true);
+        }
+
+        // forced: no way out until the video ends, then the objective pops up.
+        // Replays from the home card can be closed.
+        function playJudahVideo(forced) {
+            if (judahPlaying) return;
+            judahPlaying = true;
+            const resumeScanner = scanning && !forced;
+            if (scanning) stopScanner();
+            if (navigator.vibrate) navigator.vibrate([60, 40, 200]);
+
+            const stage = document.createElement('div');
+            stage.id = 'judah-stage';
+            stage.setAttribute('role', 'dialog');
+            stage.setAttribute('aria-label', 'Student Body President Judah Floyd');
+            stage.innerHTML = `
+                <video playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback
+                    controlslist="nodownload nofullscreen noremoteplayback noplaybackrate" src="${JUDAH_VIDEO}"></video>
+                <button type="button" class="judah-tap hidden">
+                    <span class="play"><svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+                    <span class="label">Tap to play</span>
+                </button>
+                ${forced ? '' : '<button type="button" class="judah-close" aria-label="Close">✕</button>'}`;
+            document.body.appendChild(stage);
+            document.documentElement.style.overflow = 'hidden';
+
+            const video = stage.querySelector('video');
+            const tap = stage.querySelector('.judah-tap');
+            const tapLabel = tap.querySelector('.label');
+            let furthest = 0;
+            let done = false;
+
+            const showTap = label => {
+                tapLabel.textContent = label;
+                tap.classList.remove('hidden');
+            };
+            const play = () => {
+                tap.classList.add('hidden');
+                video.muted = false;
+                video.volume = 1;
+                const p = video.play();
+                if (p && p.catch) p.catch(() => { if (!done) showTap(video.currentTime > 0 ? 'Tap to keep watching' : 'Tap to play'); });
+            };
+            const finish = () => {
+                if (done) return;
+                done = true;
+                document.removeEventListener('visibilitychange', onVisible);
+                try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+                stage.remove();
+                document.documentElement.style.overflow = '';
+                judahPlaying = false;
+                if (forced) {
+                    if (judahStatus && judahStatus.id) judahFlag('watched', String(judahStatus.id));
+                    else judahFlag('watched-pending', '1');
+                    showJudahObjective();
+                } else if (resumeScanner) {
+                    startScanner();
+                }
+            };
+            const onVisible = () => { if (!document.hidden && !done && video.paused) play(); };
+
+            // No skipping ahead, no pausing, no speeding it up
+            video.addEventListener('timeupdate', () => {
+                if (video.currentTime > furthest + 1.5) video.currentTime = furthest;
+                else furthest = Math.max(furthest, video.currentTime);
+            });
+            video.addEventListener('seeking', () => { if (video.currentTime > furthest + 1.5) video.currentTime = furthest; });
+            video.addEventListener('ratechange', () => { if (video.playbackRate !== 1) video.playbackRate = 1; });
+            video.addEventListener('pause', () => { if (!done && !video.ended && !document.hidden) play(); });
+            video.addEventListener('ended', () => {
+                if (forced && furthest < (video.duration || 0) - 2) { video.currentTime = furthest; return play(); }
+                finish();
+            });
+            video.addEventListener('error', () => {
+                if (!done) showTap('Couldn\'t load the video. Tap to try again');
+            });
+            tap.addEventListener('click', () => {
+                if (video.error) video.load();
+                play();
+            });
+            document.addEventListener('visibilitychange', onVisible);
+            if (!forced) stage.querySelector('.judah-close').addEventListener('click', finish);
+            try { if (stage.requestFullscreen) stage.requestFullscreen().catch(() => {}); } catch (e) {}
+            play();
+        }
+
+        function showJudahObjective() {
+            if (document.getElementById('judah-objective')) return;
+            const overlay = document.createElement('div');
+            overlay.id = 'judah-objective';
+            overlay.setAttribute('role', 'alertdialog');
+            overlay.setAttribute('aria-labelledby', 'judah-objective-title');
+            overlay.innerHTML = `
+                <div class="card">
+                    <p class="card-label">Objective</p>
+                    <h2 id="judah-objective-title" class="text-2xl font-bold font-tech tracking-wider text-[#ffe81f] mt-1">Find Judah Floyd</h2>
+                    <p class="mt-3 text-[16px] text-gray-100 leading-snug"></p>
+                    <p class="mt-3 text-[13px] text-gray-400 leading-snug">You can watch the video again from your home screen.</p>
+                    <button type="button" class="mt-5 w-full bg-[#ffe81f] text-black font-bold text-[16px] py-3 rounded-xl transition-all duration-300 active:scale-[0.98]">Acknowledge</button>
+                </div>`;
+            overlay.querySelector('p.mt-3').textContent = JUDAH_OBJECTIVE;
+            overlay.querySelector('button').addEventListener('click', () => {
+                overlay.remove();
+                refreshJudah();
+            });
+            document.body.appendChild(overlay);
+        }
+
         // ---------- SPECIAL DUCKS ----------
         // Named ducks get their own Star Wars moment when claimed. They're
         // matched on the Duck ID or the type, so "Duck Leia" (Golden Duck) works.
@@ -2716,7 +2915,12 @@
                 const name = duckName(result.duck_type);
                 setChecking(false);
 
-                if (result.status === 'claimed') {
+                if (result.status === 'claimed' && isJudahDuck(result)) {
+                    // Their points are gone: make them watch, then show the objective
+                    if (result.duck_id) myGoldenClaims.add(result.duck_id);
+                    playJudahVideo(true);
+                    refreshHome();
+                } else if (result.status === 'claimed') {
                     if (result.duck_id) myGoldenClaims.add(result.duck_id);
                     const special = specialDuck(result);
                     // "Duck Leia rescued!" when the ID is the name; otherwise the type
