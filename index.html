@@ -7,13 +7,11 @@
     <link rel="icon" type="image/png" href="https://i.imgur.com/Srn2y30.png">
     <link rel="apple-touch-icon" href="https://i.imgur.com/Srn2y30.png">
     <script>
-        // ---------- TAMPER BAN ----------
-        // Opening dev tools, view-source / save-page shortcuts, pausing the page
-        // in a debugger, or firing off a burst of fake codes bans this device
-        // and the signed-in student ID from Duck Hunt (sql/bans.sql in the
-        // admin repo). Admins lift bans from the Bans tab in the admin.
-        // The database enforces bans too, so calling the API directly doesn't
-        // get around them.
+        // ---------- BANS ----------
+        // Admins can ban a student ID by hand from the Bans tab in the admin
+        // (sql/bans.sql in the admin repo) and lift it there. The app never
+        // bans anyone on its own. The database enforces bans too, so calling
+        // the API directly doesn't get around them.
         window.DUCK_API = {
             url: 'https://cvfzoxlqozmopavmlaxt.supabase.co',
             key: 'sb_publishable_VKivvEek6IsBq6GrsLp1bw_39zjVpbA'
@@ -22,10 +20,6 @@
             var DEVICE_KEY = 'duckhunt.device';
             var BAN_KEY = 'duckhunt.banned';
             var SESSION_KEY = 'duckhunt.session';
-            var ua = navigator.userAgent || '';
-            var claimsMobile = (navigator.userAgentData && navigator.userAgentData.mobile) ||
-                /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|Opera Mini|IEMobile/i.test(ua) ||
-                (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1); // iPadOS reports as a Mac
 
             function store(key, value) {
                 try {
@@ -95,8 +89,7 @@
                 var kind = read(BAN_KEY) || cookie('dh_banned');
                 document.body.innerHTML =
                     '<div id="desktop-gate" class="locked"><div class="icon">⛔</div><h1>Banned</h1>' +
-                    '<p>Inspecting or tampering with Duck Hunt isn\'t allowed. ' +
-                    (kind === 'student' ? 'This Student ID' : 'This device') + ' has been banned from Duck Hunt.</p>' +
+                    '<p>' + (kind === 'student' ? 'This Student ID' : 'This device') + ' has been banned from Duck Hunt.</p>' +
                     '<p>If you think this is a mistake, talk to the Canyon Activities Board.</p>' +
                     '<p class="url">Device ' + DEVICE_ID.slice(0, 8) + '</p></div>';
             }
@@ -119,25 +112,6 @@
                 stopPage();
             };
 
-            // Caught tampering: ban this device and whoever is signed in
-            function ban(reason, details) {
-                if (tripped) return;
-                tripped = true;
-                markBanned(signedInStudent() ? 'student' : 'device');
-                var done = function () { stopPage(); };
-                try {
-                    api('report_tamper', {
-                        p_device_id: DEVICE_ID,
-                        p_student_id: signedInStudent(),
-                        p_reason: reason,
-                        p_details: (details || '') + ' | ' + location.pathname
-                    }, true).then(done, done);
-                } catch (e) { done(); }
-                setTimeout(done, 1500); // don't wait long for the network
-            }
-            window.DUCK_LOCKOUT = ban;
-            window.DUCK_REPORT_TAMPER = ban;
-
             // Banned on this phone: the app doesn't start. Ask the server each
             // time so a ban an admin lifted goes away (and one set from
             // another phone shows up).
@@ -151,48 +125,6 @@
                 if (res.banned && !window.DUCK_LOCKED) window.DUCK_BANNED(res.kind);
                 else if (!res.banned && window.DUCK_LOCKED) { clearBanned(); location.reload(); }
             }, function () {});
-            if (window.DUCK_LOCKED) return;
-
-            // Shortcuts for dev tools / view source / save page
-            document.addEventListener('keydown', function (e) {
-                var k = (e.key || '').toLowerCase();
-                var mod = e.ctrlKey || e.metaKey;
-                if (k === 'f12' ||
-                    (mod && e.shiftKey && (k === 'i' || k === 'j' || k === 'c' || k === 'k')) ||
-                    (mod && e.altKey && (k === 'i' || k === 'j' || k === 'c' || k === 'u')) ||
-                    (mod && (k === 'u' || k === 's'))) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    ban('Dev tools / view source shortcut', 'Key: ' + (mod ? 'Ctrl/Cmd+' : '') + (e.shiftKey ? 'Shift+' : '') + (e.altKey ? 'Alt+' : '') + e.key);
-                }
-            }, true);
-
-            // Dev tools docked to the side or bottom shrink the page well below the
-            // window (pinch zoom excluded so phones never trip this). Needs two
-            // checks in a row so a quick window resize doesn't count.
-            var shrunk = 0;
-            setInterval(function () {
-                if (tripped || !window.outerWidth || !window.outerHeight) return;
-                if (window.visualViewport && Math.abs(window.visualViewport.scale - 1) > 0.01) { shrunk = 0; return; }
-                var w = window.outerWidth - window.innerWidth * (window.visualViewport ? window.visualViewport.scale : 1);
-                var h = window.outerHeight - window.innerHeight;
-                if (w > 200 || (h > 300 && !claimsMobile)) {
-                    if (++shrunk >= 2) ban('Dev tools opened', 'Window ' + window.outerWidth + 'x' + window.outerHeight + ', page ' + window.innerWidth + 'x' + window.innerHeight);
-                } else {
-                    shrunk = 0;
-                }
-            }, 1000);
-
-            // Dev tools (including Safari's Web Inspector on a Mac plugged into
-            // the phone) stop on this line; normally it takes no time at all.
-            setInterval(function () {
-                if (tripped || document.hidden) return;
-                var t = performance.now();
-                // eslint-disable-next-line no-debugger
-                debugger;
-                var paused = performance.now() - t;
-                if (paused > 1500) ban('Debugger / inspector attached', 'Paused ' + Math.round(paused) + 'ms');
-            }, 2000);
 
             // No right-click / long-press menus or dragging images out
             document.addEventListener('contextmenu', function (e) {
@@ -1351,7 +1283,7 @@
         // ---------- SUPABASE ----------
         // Project Settings → API in the Supabase dashboard. The publishable
         // (anon) key is safe to ship in the page; never put the secret key here.
-        // (Set at the top of the page, so the tamper ban can use them early.)
+        // (Set at the top of the page, so the ban check can use them early.)
         const SUPABASE_URL = window.DUCK_API.url;
         const SUPABASE_ANON_KEY = window.DUCK_API.key;
 
@@ -1397,7 +1329,7 @@
                 return null; // bans not set up yet, or offline: the database still enforces them
             }
         }
-        const BANNED_MESSAGE = 'This Student ID is banned from Duck Hunt for tampering. Talk to the Canyon Activities Board if you think this is a mistake.';
+        const BANNED_MESSAGE = 'This Student ID is banned from Duck Hunt. Talk to the Canyon Activities Board if you think this is a mistake.';
 
         // ---------- SESSION ----------
         const SESSION_KEY = 'duckhunt.session';
@@ -2957,7 +2889,6 @@
                     signOut();
                 } else {
                     scanFeedback('err', 'Not a Duck Hunt code', null, 'That QR code isn\'t one of our ducks.');
-                    noteBadCode(code);
                 }
             } catch (err) {
                 setChecking(false);
@@ -2966,21 +2897,6 @@
                 setChecking(false);
                 lastCodeAt = Date.now();
                 claimInFlight = false;
-            }
-        }
-
-        // A burst of different fake codes in a short time means someone is
-        // guessing codes, not scanning ducks: that's a ban.
-        const BAD_CODE_LIMIT = 15;
-        const BAD_CODE_WINDOW_MS = 2 * 60 * 1000;
-        let badCodes = [];
-        function noteBadCode(code) {
-            const now = Date.now();
-            badCodes = badCodes.filter(b => now - b.at < BAD_CODE_WINDOW_MS && b.code !== code);
-            badCodes.push({ code, at: now });
-            if (badCodes.length >= BAD_CODE_LIMIT) {
-                window.DUCK_REPORT_TAMPER('Guessing duck codes',
-                    `${badCodes.length} different invalid codes in 2 minutes, e.g. ${badCodes.slice(-3).map(b => String(b.code).slice(0, 40)).join(', ')}`);
             }
         }
 
@@ -3166,7 +3082,7 @@
         }
 
         window.onload = function() {
-            if (window.DUCK_LOCKED) return; // banned after tampering
+            if (window.DUCK_LOCKED) return; // banned by an admin
             resize();
             initStars();
             animate();
