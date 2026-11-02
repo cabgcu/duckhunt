@@ -189,6 +189,15 @@
             font-family: 'Rajdhani', sans-serif;
         }
 
+        /* Live Activity feed */
+        .live-dot { position: relative; width: 8px; height: 8px; border-radius: 9999px; background: #ff3b30; box-shadow: 0 0 8px rgba(255, 59, 48, 0.9); }
+        .live-dot::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: #ff3b30; animation: live-ping 1.6s ease-out infinite; }
+        @keyframes live-ping { from { transform: scale(1); opacity: 0.8; } to { transform: scale(3); opacity: 0; } }
+        .feed-item { animation: feed-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+        .feed-item.fresh { box-shadow: 0 0 0 1px rgba(255, 232, 31, 0.5), 0 0 22px rgba(255, 232, 31, 0.25); transition: box-shadow 2.5s ease; }
+        @keyframes feed-in { from { opacity: 0; transform: translateY(-14px) scale(0.96); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .live-dot::after, .feed-item { animation: none; } }
+
         /* Scan feedback: camera frame flash + result splash */
         #scan-box { transition: border-color 0.3s; }
         #scan-box.flash-ok { animation: frame-ok 1.6s ease-out; }
@@ -978,6 +987,21 @@
                     <p class="mt-1 text-[14px] text-gray-300 leading-snug">The hunt is paused right now, so ducks can't be rescued. Stand by for the next transmission.</p>
                 </section>
 
+                <!-- Live Activity: rescues by other players as they happen -->
+                <section id="feed-section" class="shimmer-wrapper w-full scroll-mt-6">
+                    <div class="glass-inner w-full p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <p class="card-label">Incoming Signals</p>
+                                <h2 class="text-xl font-bold font-tech tracking-wider text-white">Live Activity</h2>
+                            </div>
+                            <span class="flex items-center gap-2 text-[12px] px-3 py-1 rounded-full bg-red-500/10 border border-red-500/40 text-red-300 font-tech font-bold tracking-[0.2em]"><span class="live-dot"></span>LIVE</span>
+                        </div>
+                        <ol id="feed-list" class="flex flex-col gap-1.5" aria-live="polite"></ol>
+                        <p id="feed-empty" class="py-3 text-center text-gray-400 text-[14px]">Scanning for rebel activity… rescues show up here the moment they happen.</p>
+                    </div>
+                </section>
+
                 <!-- Rank / Leaderboard -->
                 <section id="rank-section" class="shimmer-wrapper w-full scroll-mt-6">
                     <div class="glass-inner w-full p-5">
@@ -1453,6 +1477,7 @@
                 home.classList.add('opacity-100');
             }
             untrackPresence();
+            stopActivity();
             player = null;
             saveSession();
             navigate('home', 'login');
@@ -1487,6 +1512,8 @@
         function renderHome() {
             if (!player) return;
             listenForTransmissions();
+            listenForActivity();
+            renderFeed();
             trackPresence();
             document.getElementById('welcome-name').textContent = player.first_name || 'Rescuer';
             refreshHome();
@@ -2055,6 +2082,168 @@
                 })
                 .subscribe();
         }
+
+        // ---------- LIVE ACTIVITY FEED ----------
+        // After a successful rescue the phone broadcasts it on a Realtime
+        // channel; every phone with the app open adds it to the Live Activity
+        // card. Entries come from other phones, so everything is checked and
+        // shown as plain text only.
+        const FEED_KEY = 'duckhunt.feed';
+        const FEED_SHOW = 5;          // rows on the card
+        const FEED_KEEP_MS = 3 * 60 * 60 * 1000; // forget entries after 3 hours
+        const FEED_NAME_RE = /^[\p{L}\p{M}][\p{L}\p{M}' .-]{0,23}$/u;
+        const FEED_DUCK_RE = /^[\p{L}\p{N}\p{M}][\p{L}\p{N}\p{M}' .&#-]{0,31}$/u;
+        let feedChannel = null;
+        let feed = [];
+        const feedSenders = new Map(); // name -> recent arrival times, for flood control
+
+        function loadFeed() {
+            try { feed = JSON.parse(localStorage.getItem(FEED_KEY)) || []; } catch (e) { feed = []; }
+            if (!Array.isArray(feed)) feed = [];
+            feed = feed.map(cleanFeedEntry).filter(Boolean);
+        }
+
+        function saveFeed() {
+            try { localStorage.setItem(FEED_KEY, JSON.stringify(feed.slice(0, 20))); } catch (e) {}
+        }
+
+        // Returns a safe copy of an entry, or null if anything looks off
+        function cleanFeedEntry(e) {
+            if (!e || typeof e !== 'object') return null;
+            const name = String(e.name || '').trim().replace(/\s+/g, ' ');
+            const duck = String(e.duck || '').trim().replace(/\s+/g, ' ');
+            const points = Number(e.points);
+            const id = String(e.id || '').slice(0, 40);
+            let at = Number(e.at);
+            if (!FEED_NAME_RE.test(name) || !FEED_DUCK_RE.test(duck) || !id) return null;
+            if (!Number.isInteger(points) || points < 0 || points > 1000) return null;
+            const now = Date.now();
+            if (!Number.isFinite(at) || at > now + 60000) at = now;
+            if (now - at > FEED_KEEP_MS) return null;
+            return { id, name, duck, points, at, golden: !!e.golden, mine: !!e.mine };
+        }
+
+        function addFeedEntry(raw, fromNetwork) {
+            const entry = cleanFeedEntry(raw);
+            if (!entry || feed.some(f => f.id === entry.id)) return;
+            if (fromNetwork) {
+                entry.mine = false;
+                // Ignore anyone posting more than 4 rescues a minute
+                const now = Date.now();
+                const times = (feedSenders.get(entry.name) || []).filter(t => now - t < 60000);
+                if (times.length >= 4) return;
+                times.push(now);
+                feedSenders.set(entry.name, times);
+                if (player && entry.name === myFeedName()) return; // my own, echoed from another tab
+            }
+            feed.unshift(entry);
+            feed.sort((a, b) => b.at - a.at);
+            feed = feed.slice(0, 20);
+            saveFeed();
+            renderFeed(entry.id);
+        }
+
+        function myFeedName() {
+            if (!player) return '';
+            return (player.first_name || 'Rescuer') + (player.last_name ? ' ' + player.last_name[0] + '.' : '');
+        }
+
+        function feedAgo(at) {
+            const s = Math.max(0, Math.round((Date.now() - at) / 1000));
+            if (s < 45) return 'just now';
+            const m = Math.round(s / 60);
+            if (m < 60) return m + 'm ago';
+            return Math.round(m / 60) + 'h ago';
+        }
+
+        function renderFeed(freshId) {
+            const list = document.getElementById('feed-list');
+            if (!list) return;
+            const now = Date.now();
+            feed = feed.filter(f => now - f.at <= FEED_KEEP_MS);
+            // At most 2 rows per rescuer, so one person can't fill the card
+            const perName = new Map();
+            const rows = feed.filter(f => {
+                const n = (perName.get(f.name) || 0) + 1;
+                perName.set(f.name, n);
+                return n <= 2;
+            }).slice(0, FEED_SHOW);
+            document.getElementById('feed-empty').classList.toggle('hidden', rows.length > 0);
+            list.innerHTML = '';
+            rows.forEach(f => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center gap-3 px-3 py-2.5 rounded-xl border ' +
+                    (f.mine ? 'bg-[#ffe81f]/10 border-[#ffe81f]/40' : f.golden ? 'bg-amber-400/10 border-amber-400/40' : 'bg-white/[0.03] border-white/10');
+                if (f.id === freshId) li.classList.add('feed-item', 'fresh');
+
+                const icon = document.createElement('span');
+                icon.className = 'shrink-0 text-[20px] leading-none';
+                icon.textContent = f.golden ? '⭐' : '🦆';
+
+                const body = document.createElement('div');
+                body.className = 'flex-1 min-w-0';
+                const line = document.createElement('p');
+                line.className = 'text-[14px] text-gray-200 leading-snug truncate';
+                const who = document.createElement('b');
+                who.className = f.mine ? 'text-[#ffe81f]' : 'text-white';
+                who.textContent = f.mine ? 'You' : f.name;
+                const what = document.createElement('b');
+                what.className = 'text-white';
+                what.textContent = f.duck;
+                line.append(who, document.createTextNode(' rescued '), what);
+                const when = document.createElement('p');
+                when.className = 'feed-when text-[12px] text-gray-500';
+                when.dataset.at = f.at;
+                when.textContent = feedAgo(f.at);
+                body.append(line, when);
+
+                const pts = document.createElement('span');
+                pts.className = 'shrink-0 text-[14px] font-bold font-tech text-[#ffe81f]';
+                pts.textContent = '+' + f.points;
+
+                li.append(icon, body, pts);
+                list.appendChild(li);
+                if (f.id === freshId) setTimeout(() => li.classList.remove('fresh'), 2500);
+            });
+        }
+
+        function listenForActivity() {
+            if (!db || feedChannel) return;
+            feedChannel = db.channel('activity-feed')
+                .on('broadcast', { event: 'rescue' }, msg => {
+                    if (player) addFeedEntry(msg && msg.payload, true);
+                })
+                .subscribe();
+        }
+
+        function stopActivity() {
+            if (!feedChannel) return;
+            db.removeChannel(feedChannel);
+            feedChannel = null;
+        }
+
+        // Called after claim_duck says the duck is now ours
+        function postRescue(result, duckLabel) {
+            if (!player) return;
+            const entry = {
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+                name: myFeedName(),
+                duck: duckLabel,
+                points: Number(result.points) || 0,
+                golden: /golden/i.test(String(result.duck_type || '')),
+                at: Date.now()
+            };
+            addFeedEntry({ ...entry, mine: true }, false);
+            if (feedChannel) {
+                const sent = feedChannel.send({ type: 'broadcast', event: 'rescue', payload: entry });
+                if (sent && sent.catch) sent.catch(() => {});
+            }
+        }
+
+        loadFeed();
+        setInterval(() => {
+            document.querySelectorAll('#feed-list .feed-when').forEach(el => { el.textContent = feedAgo(Number(el.dataset.at)); });
+        }, 30000);
 
         // Lets the admin page show how many players are online: each signed-in
         // player joins a Realtime Presence channel keyed by student ID, so
@@ -2870,6 +3059,7 @@
                     const idIsName = special && SPECIAL_DUCKS.find(([k]) => k === special)[1].test(result.duck_id || '');
                     const title = idIsName ? result.duck_id : (name || 'Duck');
                     const celebrate = () => scanFeedback('ok', `${title} rescued!`, `+${result.points} pts`, 'Added to your score 🦆');
+                    postRescue(result, title);
                     if (special) {
                         runSpecial(special, celebrate); // show the points once the animation is over
                     } else {
