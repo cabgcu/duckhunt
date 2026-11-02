@@ -182,7 +182,7 @@
             position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover;
             z-index: 0; pointer-events: none; opacity: 0; transition: opacity 0.8s ease;
         }
-        body.home-bg-on #home-bg { opacity: 1; }
+        body.home-bg-on.home-bg-playing #home-bg { opacity: 1; } /* only once frames are actually playing; otherwise the starfield stays */
         body.in-galaxy #home-bg, body.solo-jump #home-bg { opacity: 0 !important; transition: opacity 0.4s; }
 
         .font-tech {
@@ -3100,11 +3100,19 @@
             if (on) {
                 video.muted = true;
                 const p = video.play();
-                if (p && p.catch) p.catch(() => {});
+                if (p && p.catch) p.catch(() => document.body.classList.remove('home-bg-playing'));
             } else if (!video.paused) {
                 setTimeout(() => { if (!document.body.classList.contains('home-bg-on')) video.pause(); }, 800);
             }
         }
+        (function () {
+            const video = document.getElementById('home-bg');
+            const fail = () => document.body.classList.remove('home-bg-playing');
+            video.addEventListener('playing', () => document.body.classList.add('home-bg-playing'));
+            video.addEventListener('error', fail);
+            video.addEventListener('emptied', fail);
+            video.addEventListener('stalled', () => { if (video.readyState < 3) fail(); });
+        })();
         new MutationObserver(syncHomeBg).observe(document.getElementById('home-view'), { attributes: true, attributeFilter: ['class'] });
         document.addEventListener('visibilitychange', () => { if (!document.hidden) syncHomeBg(); });
 
