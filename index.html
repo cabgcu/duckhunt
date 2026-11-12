@@ -452,12 +452,15 @@
             position: absolute; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 2; width: 44px; height: 44px; border-radius: 50%;
             background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.35); color: #fff; font-size: 22px; line-height: 1;
         }
-        #judah-objective { position: fixed; inset: 0; z-index: 99; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0.82); animation: holo-in 0.35s ease-out; }
-        #judah-objective .card {
+        #judah-objective, #amy-objective { position: fixed; inset: 0; z-index: 99; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0.82); animation: holo-in 0.35s ease-out; }
+        #judah-objective .card, #amy-objective .card {
             max-width: 380px; width: 100%; text-align: center; padding: 26px 22px; border-radius: 20px; color: #fff;
             border: 1px solid rgba(255, 232, 31, 0.6); background: rgba(20, 18, 4, 0.92);
             box-shadow: 0 0 40px rgba(255, 232, 31, 0.3), inset 0 0 30px rgba(255, 232, 31, 0.06);
         }
+
+        /* Amy duck: objective card with Amy's photo */
+        #amy-objective .card img { display: block; width: 100%; max-height: 46vh; object-fit: cover; border-radius: 14px; margin-top: 14px; border: 1px solid rgba(255, 232, 31, 0.45); }
 
         /* Hologram transmissions (admin announcements) */
         #holo-overlay { animation: holo-in 0.35s ease-out; }
@@ -2596,6 +2599,39 @@
             document.body.appendChild(overlay);
         }
 
+        // ---------- AMY DUCK ----------
+        // A duck whose type (or ID) is "Amy" sends the rescuer to find Amy at
+        // tonight's game for 1000 points. Shown each time it's claimed.
+        const AMY_PHOTO = 'https://i.imgur.com/to10lZX.jpeg';
+        const AMY_RE = /\bamy\b/i;
+        function isAmyDuck(result) {
+            return AMY_RE.test(`${result.duck_id || ''} ${result.duck_type || ''}`);
+        }
+
+        function showAmyObjective() {
+            if (document.getElementById('amy-objective')) return;
+            const resumeScanner = scanning;
+            if (scanning) stopScanner();
+            if (navigator.vibrate) navigator.vibrate([60, 40, 200]);
+            const overlay = document.createElement('div');
+            overlay.id = 'amy-objective';
+            overlay.setAttribute('role', 'alertdialog');
+            overlay.setAttribute('aria-labelledby', 'amy-objective-title');
+            overlay.innerHTML = `
+                <div class="card">
+                    <p class="card-label">Objective</p>
+                    <h2 id="amy-objective-title" class="text-2xl font-bold font-tech tracking-wider text-[#ffe81f] mt-1">Great job finding the duck!</h2>
+                    <p class="mt-3 text-[16px] text-gray-100 leading-snug">Now you're tasked with finding Amy at the game tonight to receive your 1000 points.</p>
+                    <img src="${AMY_PHOTO}" alt="Amy">
+                    <button type="button" class="mt-5 w-full bg-[#ffe81f] text-black font-bold text-[16px] py-3 rounded-xl transition-all duration-300 active:scale-[0.98]">Got it</button>
+                </div>`;
+            overlay.querySelector('button').addEventListener('click', () => {
+                overlay.remove();
+                if (resumeScanner) startScanner();
+            });
+            document.body.appendChild(overlay);
+        }
+
         // ---------- SPECIAL DUCKS ----------
         // Named ducks get their own Star Wars moment when claimed. They're
         // matched on the Duck ID or the type, so "Duck Leia" (Golden Duck) works.
@@ -3077,6 +3113,11 @@
                     // Their points are gone: make them watch, then show the objective
                     if (result.duck_id) myGoldenClaims.add(result.duck_id);
                     playJudahVideo(true);
+                    refreshHome();
+                } else if (result.status === 'claimed' && isAmyDuck(result)) {
+                    if (result.duck_id) myGoldenClaims.add(result.duck_id);
+                    postRescue(result, name || 'Amy Duck');
+                    showAmyObjective();
                     refreshHome();
                 } else if (result.status === 'claimed') {
                     if (result.duck_id) myGoldenClaims.add(result.duck_id);
